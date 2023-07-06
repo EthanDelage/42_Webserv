@@ -1,0 +1,5 @@
+.build/
+lib/googletest/build
+cmake-build-debug
+CMakeLists.txt
+.idea
