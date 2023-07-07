@@ -9,3 +9,9 @@
 /*   Updated: 2023/07/06 21:04:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
+
+int	main(int argc, char** argv) {
+	(void) argc;
+	(void) argv;
+	return (0);
+}

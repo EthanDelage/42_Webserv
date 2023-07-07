@@ -19,6 +19,7 @@ BUILD_DIR	=		.build/
 #######################
 
 SRC			=		main.cpp		\
+					config/Config.cpp	\
 
 OBJ			=		$(addprefix $(BUILD_DIR), $(SRC:.cpp=.o))
 
