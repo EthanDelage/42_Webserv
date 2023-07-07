@@ -11,15 +11,18 @@
 /* ************************************************************************** */
 #include "Config.hpp"
 
-Config::Config(std::string& configFile) {
+#include <iostream>
+
+Config::Config(std::string const & configFile) {
 	virtualServerConfig_t	defaultConfig;
 
 	(void) configFile;
+	defaultConfig.isDefault = true;
 	defaultConfig.serverNames.push_back("www.test.com");
 	defaultConfig.address = "127.0.0.1";
 	defaultConfig.port = 80;
-	defaultConfig.isDefault = true;
-	defaultConfig.defaultErrorPage = "404.html";
+	defaultConfig.errorPage[404] = "404.html";
+	defaultConfig.maxBodySize = 1024;
 
 	_serverConfig.push_back(defaultConfig);
 }

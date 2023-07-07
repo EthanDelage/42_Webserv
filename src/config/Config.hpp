@@ -14,16 +14,18 @@
 
 # include <string>
 # include <vector>
+# include <map>
 # include <stdint.h>
 
 typedef struct virtualServerConfig_s	virtualServerConfig_t;
 
 struct	virtualServerConfig_s {
-	std::vector<std::string>	serverNames;
-	std::string					address;
-	uint16_t					port;
-	bool						isDefault;
-	std::string					defaultErrorPage;
+	bool							isDefault;
+	std::vector<std::string>		serverNames;
+	std::string						address;
+	uint16_t						port;
+	std::map<uint16_t, std::string>	errorPage;
+	size_t							maxBodySize;
 };
 
 class Config {
@@ -32,7 +34,7 @@ private:
 	std::vector<virtualServerConfig_t>	_serverConfig;
 
 public:
-	Config(std::string& configFile);
+	Config(std::string const & configFile);
 	~Config();
 
 };
