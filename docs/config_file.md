@@ -4,6 +4,7 @@ This documentation uses an augmented Backus-Naur Form ([BNF](https://fr.wikipedi
 ## Directives
 
 ### autoindex:
+Enables or disables the directory listing display.
 ```
 autoindex = "autoindex" SP "on" | "off" ";"
 Default: autoindex off;
@@ -25,7 +26,7 @@ Deny HTTP methods (GET, POST, DELETE) received from a client to a location/serve
 ```
 deny = "deny" SP "GET" | "POST" | "DELETE" ";"
 Default: ——
-Context: server, location
+Context: main, server, location
 ```
 
 ### error_page:
@@ -33,7 +34,7 @@ Define error pages to be sent in response when a client request result in an err
 ```
 error_page = "error_page" 1*( SP code ) SP uri ";"
 Default: ——
-Context: server
+Context: main, server, location
 ```
 
 ### index:
@@ -74,7 +75,7 @@ The file `"/bar/foo/this.txt"` will be sent in response to the `"/foo/this.txt"`
 ```
 root = "root" SP path ";"
 Default: root html;
-Context: main, ,server, location
+Context: main, server, location
 ```
 ### server:
 Set the configuration for a virtual server.
@@ -101,5 +102,5 @@ hostname    = *TEXT
 path        = 1*TEXT *( "/" 1*TEXT )
 port        = 1*DIGIT
 size        = 1*DIGIT [ "k" | "m" ]
-uri         = 1*TEXT
+uri         = *TEXT ;if uri == "" it replace by the default directory
 ```
