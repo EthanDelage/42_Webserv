@@ -1,6 +1,6 @@
 NAME		=		webserv
 
-ARG			=
+ARG			=		ressources/webserv.conf
 
 #######################
 #	DIR
@@ -19,7 +19,11 @@ BUILD_DIR	=		.build/
 #######################
 
 SRC			=		main.cpp		\
-					config/Config.cpp	\
+					\
+						config/Config.cpp				\
+						config/VirtualServerConfig.cpp	\
+						config/LocationConfig.cpp		\
+					\
 
 OBJ			=		$(addprefix $(BUILD_DIR), $(SRC:.cpp=.o))
 

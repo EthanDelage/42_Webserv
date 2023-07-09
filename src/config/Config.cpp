@@ -12,19 +12,21 @@
 #include "Config.hpp"
 
 #include <iostream>
+#include <fstream>
 
-Config::Config(std::string const & configFile) {
-	virtualServerConfig_t	defaultConfig;
+Config::Config(char const * configFilename) {
+	std::ifstream		configFile(configFilename);
+	if (!configFile.is_open())
+		throw std::runtime_error("Cannot open file " + std::string(configFilename));
 
-	(void) configFile;
-	defaultConfig.isDefault = true;
-	defaultConfig.serverNames.push_back("www.test.com");
-	defaultConfig.address = "127.0.0.1";
-	defaultConfig.port = 80;
-	defaultConfig.errorPage[404] = "404.html";
-	defaultConfig.maxBodySize = 1024;
+	VirtualServerConfig	*defaultServerConfig = new VirtualServerConfig(configFile);
 
-	_serverConfig.push_back(defaultConfig);
+	_serverConfig.push_back(defaultServerConfig);
+	configFile.close();
 }
 
-Config::~Config() {}
+Config::~Config() {
+	for (std::vector<VirtualServerConfig *>::iterator it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
+		delete *it;
+	}
+}

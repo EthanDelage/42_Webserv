@@ -1,36 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Config.hpp                                         :+:      :+:    :+:   */
+/*   LocationConfig.hpp                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: ethan <ethan@student.42lyon.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/07/07 16:43:00 by ethan             #+#    #+#             */
-/*   Updated: 2023/07/07 16:43:00 by ethan            ###   ########lyon.fr   */
+/*   Created: 2023/07/09 02:34:00 by ethan             #+#    #+#             */
+/*   Updated: 2023/07/09 02:34:00 by ethan            ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#ifndef CONFIG_HPP
-# define CONFIG_HPP
+#ifndef LOCATIONCONFIG_HPP
+# define LOCATIONCONFIG_HPP
 
 # include <string>
 # include <vector>
 # include <map>
+# include <fstream>
 # include <stdint.h>
-# include "VirtualServerConfig.hpp"
 
-class Config {
+class LocationConfig {
 
 private:
-	std::vector<VirtualServerConfig *>	_serverConfig;
-	std::vector<std::string>			_index;
-	std::string 						_root;
-	std::map<uint16_t, std::string>		_errorPage;
-	ssize_t								_maxBodySize;
-	bool								_autoindex;
+	std::vector<std::string>		_index;
+	std::string 					_root;
+	std::map<uint16_t, std::string>	_errorPage;
+	bool							_autoindex;
 
 public:
-	Config(char const * configFilename);
-	~Config();
+	LocationConfig(std::ifstream& configFile);
+	~LocationConfig();
 
 };
 
