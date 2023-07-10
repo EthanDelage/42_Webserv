@@ -10,19 +10,25 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "VirtualServerConfig.hpp"
+#include "LocationConfig.hpp"
 
-VirtualServerConfig::VirtualServerConfig(std::ifstream& configFile) {
-	(void) configFile;
-
+VirtualServerConfig::VirtualServerConfig(Config const & config) : Config(config) {
 	_isDefault = true;
-	_serverNames.push_back("www.test.com");
-	_address = "127.0.0.1";
-	_port = 80;
-	_index.push_back("index.html");
-	_root = "undefined";
-	_errorPage[404] = "404.html";
-	_maxBodySize = -1;
-	_autoindex = false;
+	_address = DEFAULT_ADDRESS;
+	_port = DEFAULT_PORT;
+}
+
+VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Config() {
+	_index = other._index;
+	_root = other._root;
+	_errorPage = other._errorPage;
+	_maxBodySize = other._maxBodySize;
+	_autoindex = other._autoindex;
+	_isDefault = other._isDefault;
+	_serverNames = other._serverNames;
+	_address = other._address;
+	_port = other._port;
+	_locationConfig = other._locationConfig;
 }
 
 VirtualServerConfig::~VirtualServerConfig() {}

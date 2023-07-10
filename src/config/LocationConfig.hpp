@@ -17,17 +17,12 @@
 # include <map>
 # include <fstream>
 # include <stdint.h>
+# include "VirtualServerConfig.hpp"
 
-class LocationConfig {
-
-private:
-	std::vector<std::string>		_index;
-	std::string 					_root;
-	std::map<uint16_t, std::string>	_errorPage;
-	bool							_autoindex;
+class LocationConfig: public VirtualServerConfig {
 
 public:
-	LocationConfig(std::ifstream& configFile);
+	LocationConfig(VirtualServerConfig const & virtualServerConfig);
 	~LocationConfig();
 
 };

@@ -15,21 +15,31 @@
 # include <string>
 # include <vector>
 # include <map>
+# include <cstddef>
 # include <stdint.h>
-# include "VirtualServerConfig.hpp"
+
+# define DEFAULT_MAX_BODY_SIZE	1048576
+# define DEFAULT_ROOT			"html";
+# define DEFAULT_INDEX			"index.html"
+# define DEFAULT_AUTOINDEX		false
+
+class VirtualServerConfig;
 
 class Config {
 
 private:
 	std::vector<VirtualServerConfig *>	_serverConfig;
+
+protected:
 	std::vector<std::string>			_index;
 	std::string 						_root;
 	std::map<uint16_t, std::string>		_errorPage;
-	ssize_t								_maxBodySize;
+	size_t								_maxBodySize;
 	bool								_autoindex;
 
 public:
-	Config(char const * configFilename);
+	Config();
+	Config(Config const & other);
 	~Config();
 
 };

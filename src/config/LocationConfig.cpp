@@ -11,8 +11,9 @@
 /* ************************************************************************** */
 #include "LocationConfig.hpp"
 
-LocationConfig::LocationConfig(std::ifstream& configFile) {
-	(void) configFile;
+LocationConfig::LocationConfig(VirtualServerConfig const & virtualServerConfig)
+	: VirtualServerConfig(virtualServerConfig) {
+	(void)virtualServerConfig;
 }
 
 LocationConfig::~LocationConfig() {}

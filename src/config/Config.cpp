@@ -10,23 +10,21 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "Config.hpp"
+#include "VirtualServerConfig.hpp"
 
 #include <iostream>
 #include <fstream>
 
-Config::Config(char const * configFilename) {
-	std::ifstream		configFile(configFilename);
-	if (!configFile.is_open())
-		throw std::runtime_error("Cannot open file " + std::string(configFilename));
-
-	VirtualServerConfig	*defaultServerConfig = new VirtualServerConfig(configFile);
-
-	_serverConfig.push_back(defaultServerConfig);
-	configFile.close();
+Config::Config() {
+	_index.push_back(DEFAULT_INDEX);
+	_root = DEFAULT_ROOT;
+	_errorPage[404] = "404.html";
+	_maxBodySize = DEFAULT_MAX_BODY_SIZE;
+	_autoindex = DEFAULT_AUTOINDEX;
 }
 
-Config::~Config() {
-	for (std::vector<VirtualServerConfig *>::iterator it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
-		delete *it;
-	}
+Config::Config(Config const & other) {
+	(void) other;
 }
+
+Config::~Config() {}

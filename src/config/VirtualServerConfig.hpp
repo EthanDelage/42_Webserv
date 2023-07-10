@@ -17,9 +17,14 @@
 # include <map>
 # include <fstream>
 # include <stdint.h>
-# include "LocationConfig.hpp"
+# include "Config.hpp"
 
-class VirtualServerConfig {
+# define DEFAULT_PORT		80
+# define DEFAULT_ADDRESS	"*"
+
+class LocationConfig;
+
+class VirtualServerConfig : public Config {
 
 private:
 	bool							_isDefault;
@@ -27,14 +32,10 @@ private:
 	std::string						_address;
 	uint16_t						_port;
 	std::vector<LocationConfig *>	_locationConfig;
-	std::vector<std::string>		_index;
-	std::string 					_root;
-	std::map<uint16_t, std::string>	_errorPage;
-	ssize_t							_maxBodySize;
-	bool							_autoindex;
 
 public:
-	VirtualServerConfig(std::ifstream& configFile);
+	VirtualServerConfig(Config const & config);
+	VirtualServerConfig(VirtualServerConfig const & other);
 	~VirtualServerConfig();
 
 };
