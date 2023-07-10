@@ -26,7 +26,7 @@ Deny HTTP methods (GET, POST, DELETE) received from a client to a location/serve
 ```
 deny = "deny" SP "GET" | "POST" | "DELETE" ";"
 Default: ——
-Context: main, server, location
+Context: location
 ```
 
 ### error_page:

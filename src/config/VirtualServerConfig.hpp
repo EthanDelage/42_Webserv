@@ -17,7 +17,7 @@
 # include <map>
 # include <fstream>
 # include <stdint.h>
-# include "Config.hpp"
+# include <Config/Config.hpp>
 
 # define DEFAULT_PORT		80
 # define DEFAULT_ADDRESS	"*"
@@ -36,7 +36,7 @@ private:
 public:
 	VirtualServerConfig(Config const & config);
 	VirtualServerConfig(VirtualServerConfig const & other);
-	~VirtualServerConfig();
+	~VirtualServerConfig() {};
 
 };
 

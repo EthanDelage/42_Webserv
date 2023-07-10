@@ -9,11 +9,8 @@
 /*   Updated: 2023/07/07 16:43:00 by ethan            ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "Config.hpp"
+#include <Config/Config.hpp>
 #include "VirtualServerConfig.hpp"
-
-#include <iostream>
-#include <fstream>
 
 Config::Config() {
 	_index.push_back(DEFAULT_INDEX);
@@ -24,7 +21,9 @@ Config::Config() {
 }
 
 Config::Config(Config const & other) {
-	(void) other;
+	_index = other._index;
+	_root = other._root;
+	_errorPage = other._errorPage;
+	_maxBodySize = other._maxBodySize;
+	_autoindex = other._autoindex;
 }
-
-Config::~Config() {}

@@ -14,6 +14,17 @@
 LocationConfig::LocationConfig(VirtualServerConfig const & virtualServerConfig)
 	: VirtualServerConfig(virtualServerConfig) {
 	(void)virtualServerConfig;
+	_allowedHttpMethod = 0b00000111;
 }
 
-LocationConfig::~LocationConfig() {}
+bool LocationConfig::getMethodStatus() {
+	return (_allowedHttpMethod & GET_METHOD_MASK);
+}
+
+bool LocationConfig::postMethodStatus() {
+	return (_allowedHttpMethod & POST_METHOD_MASK);
+}
+
+bool LocationConfig::deleteMethodStatus() {
+	return (_allowedHttpMethod & DELETE_METHOD_MASK);
+}

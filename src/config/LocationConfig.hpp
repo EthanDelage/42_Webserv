@@ -19,11 +19,22 @@
 # include <stdint.h>
 # include "VirtualServerConfig.hpp"
 
+# define GET_METHOD_MASK	0b00000001
+# define POST_METHOD_MASK	0b00000010
+# define DELETE_METHOD_MASK	0b00000100
+
 class LocationConfig: public VirtualServerConfig {
+
+private:
+	uint8_t	_allowedHttpMethod;
 
 public:
 	LocationConfig(VirtualServerConfig const & virtualServerConfig);
-	~LocationConfig();
+	~LocationConfig() {};
+
+	bool	getMethodStatus();
+	bool	postMethodStatus();
+	bool	deleteMethodStatus();
 
 };
 

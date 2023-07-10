@@ -30,5 +30,3 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_port = other._port;
 	_locationConfig = other._locationConfig;
 }
-
-VirtualServerConfig::~VirtualServerConfig() {}

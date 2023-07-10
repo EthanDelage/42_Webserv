@@ -40,8 +40,7 @@ protected:
 public:
 	Config();
 	Config(Config const & other);
-	~Config();
-
+	~Config() {};
 };
 
 #endif

@@ -9,8 +9,7 @@
 /*   Updated: 2023/07/06 21:04:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "config/Config.hpp"
-
+#include <Config/Config.hpp>
 #include <iostream>
 
 int	main(int argc, char** argv) {
