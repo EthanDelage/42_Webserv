@@ -80,7 +80,7 @@ Context: main, server, location
 ### server:
 Set the configuration for a virtual server.
 ```
-server = "server" SP {" LF 1*<rules with server in context> LF "}"
+server = "server" SP "{" LF 1*<rules with server in context> LF "}"
 Default: ——
 Context: main
 ```
