@@ -30,13 +30,13 @@ class Config {
 private:
 	std::vector<VirtualServerConfig *>	_serverConfig;
 
-	void parse(std::string& line);
-	void parseLine(std::string& line, std::ifstream& configFile);
-	void parseAutoindex(std::string& line);
-	void parseMaxBodySize(std::string& line);
-	void parseErrorPage(std::string& line);
-	void parseIndex(std::string& line);
-	void parseRoot(std::string& line);
+	void	parseLine(std::string& line, std::ifstream& configFile);
+	void	parseAutoindex(std::string& line);
+	void	parseMaxBodySize(std::string& line);
+	void	parseErrorPage(std::string& line);
+	void	parseIndex(std::string& line);
+	void	parseRoot(std::string& line);
+	void	parseServer(std::ifstream& configFile);
 
 
 protected:
@@ -51,7 +51,7 @@ public:
 	Config(Config const & other);
 	~Config() {};
 
-	void parse(std::string& configFilename);
+	void parse(char* configFilename);
 };
 
 #endif

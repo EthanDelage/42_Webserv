@@ -32,9 +32,9 @@ public:
 	LocationConfig(VirtualServerConfig const & virtualServerConfig);
 	~LocationConfig() {};
 
-	bool	getMethodStatus();
-	bool	postMethodStatus();
-	bool	deleteMethodStatus();
+	bool	getMethodStatus() const;
+	bool	postMethodStatus() const;
+	bool	deleteMethodStatus() const;
 
 };
 

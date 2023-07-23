@@ -30,23 +30,60 @@ Config::Config(Config const & other) {
 	_autoindex = other._autoindex;
 }
 
-void Config::parse(std::string& configFilename) {
+void Config::parse(char* configFilename) {
 	std::ifstream	configFile(configFilename);
 	std::string		line;
 
 	if (!configFile.is_open())
-		throw (std::runtime_error("Couldn't open file: " + configFilename));
+		throw (std::runtime_error(std::string("Couldn't open file: ") + configFilename));
 	while (!configFile.eof()) {
 		std::getline(configFile, line);
 		parseLine(line, configFile);
 	}
+	configFile.close();
 }
 
+typedef void (Config::*parseFunctionType)(std::string&);
+
 void Config::parseLine(std::string& line, std::ifstream& configFile) {
-	std::string directives[] = {"autoindex", "client_max_body_size", "error_page", "index", "root", "server"};
-	
+	std::string 		directives[] = {"autoindex",
+		"client_max_body_size", "error_page", "index", "root", ""};
+	parseFunctionType	parseFunction[] = {&Config::parseAutoindex,
+		&Config::parseMaxBodySize, &Config::parseErrorPage,
+		&Config::parseIndex, &Config::parseRoot};
+
+	for (int i = 0; !directives[i].empty(); ++i) {
+		if (line.compare(0, directives[i].size(), directives[i]) == 0) {
+			(this->*parseFunction[i])(line);
+			return ;
+		}
+	}
+	if (line == "server {")
+		parseServer(configFile);
+	else
+		throw std::runtime_error("Unknown command: `" + line + '`');
 }
 
 void Config::parseAutoindex(std::string& line) {
+	(void) line;
+}
 
+void Config::parseMaxBodySize(std::string &line) {
+	(void) line;
+}
+
+void Config::parseErrorPage(std::string &line) {
+	(void) line;
+}
+
+void Config::parseIndex(std::string &line) {
+	(void) line;
+}
+
+void Config::parseRoot(std::string &line) {
+	(void) line;
+}
+
+void Config::parseServer(std::ifstream &configFile) {
+	(void) configFile;
 }

@@ -17,14 +17,14 @@ LocationConfig::LocationConfig(VirtualServerConfig const & virtualServerConfig)
 	_allowedHttpMethod = 0b00000111;
 }
 
-bool LocationConfig::getMethodStatus() {
+bool LocationConfig::getMethodStatus() const {
 	return (_allowedHttpMethod & GET_METHOD_MASK);
 }
 
-bool LocationConfig::postMethodStatus() {
+bool LocationConfig::postMethodStatus() const {
 	return (_allowedHttpMethod & POST_METHOD_MASK);
 }
 
-bool LocationConfig::deleteMethodStatus() {
+bool LocationConfig::deleteMethodStatus() const {
 	return (_allowedHttpMethod & DELETE_METHOD_MASK);
 }
