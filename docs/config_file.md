@@ -58,7 +58,7 @@ Context: server
 ### location:
 Set the configuration for a requested URI.
 ```
-location =  "location" SP uri SP "{" 1*( LF *HT <rules with location in context> ) LF "}"
+location =  "location" SP uri SP "{" 1*( LF *HT <rules with location in context> ) LF *HT "}"
 Default: ——
 Context: server
 ```

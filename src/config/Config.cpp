@@ -52,6 +52,8 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 		&Config::parseMaxBodySize, &Config::parseErrorPage,
 		&Config::parseIndex, &Config::parseRoot};
 
+	if (line.empty())
+		return ;
 	for (int i = 0; !directives[i].empty(); ++i) {
 		if (line.compare(0, directives[i].size(), directives[i]) == 0) {
 			(this->*parseFunction[i])(line);
