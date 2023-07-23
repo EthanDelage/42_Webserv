@@ -67,7 +67,13 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 }
 
 void Config::parseAutoindex(std::string& line) {
-	(void) line;
+	if (line == "autoindex on;")
+		_autoindex = true;
+	else if (line == "autoindex off;")
+		_autoindex = false;
+	else
+		throw (std::runtime_error("Invalid format: " + line
+			+ '\n' + "Syntax: \"autoindex\" SP \"on\" | \"off\" \";\""));
 }
 
 void Config::parseMaxBodySize(std::string &line) {
