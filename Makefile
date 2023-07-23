@@ -77,14 +77,23 @@ leaks:				$(NAME)
 .PHONY:				debug
 
 .PHONY:				test
-test:				gtest
+test:
+					$(MAKE) gtest
+					$(MAKE) gtestRun
 
 .PHONY:				gtest
 gtest:
-					mkdir -p $(LIB_DIR)/googletest/build
-					cmake -B$(LIB_DIR)/googletest/build -S$(LIB_DIR)/googletest/
-					$(MAKE) -C $(LIB_DIR)/googletest/build
+					mkdir -p $(LIB_DIR)googletest/build
+					cmake -B $(LIB_DIR)googletest/build -S $(LIB_DIR)googletest/
+					$(MAKE) -C $(LIB_DIR)googletest/build
 
+.PHONY:				gtestRun
+gtestRun:
+					@ echo run
+
+.PHONY:				gtestClean
+gtestClean:
+					$(RM) -r $(LIB_DIR)googletest/build
 
 ################
 #	EXECUTABLES

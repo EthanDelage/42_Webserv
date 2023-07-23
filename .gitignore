@@ -1,6 +1,6 @@
 .build/
 lib/googletest/build
 cmake-build-debug
-CMakeLists.txt
+./CMakeLists.txt
 .idea
 webserv
