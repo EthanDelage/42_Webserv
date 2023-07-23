@@ -58,7 +58,7 @@ Context: server
 ### location:
 Set the configuration for a requested URI.
 ```
-location =  "location" SP uri SP "{" LF 1*<rules with location in context> LF "}"
+location =  "location" SP uri SP "{" 1*( LF HT <rules with location in context> ) LF "}"
 Default: ——
 Context: server
 ```
@@ -80,7 +80,7 @@ Context: main, server, location
 ### server:
 Set the configuration for a virtual server.
 ```
-server = "server" SP "{" LF 1*<rules with server in context> LF "}"
+server = "server" SP "{" 1*( LF HT <rules with server in context> ) LF "}"
 Default: ——
 Context: main
 ```
