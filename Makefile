@@ -2,6 +2,10 @@ NAME		=		webserv
 
 ARG			=		ressources/webserv.conf
 
+NAME_TEST	=		webservTest
+
+ARG_TEST	=
+
 #######################
 #	DIR
 #######################
@@ -12,14 +16,15 @@ INC_DIR		=		include/
 
 LIB_DIR		=		lib/
 
+TEST_DIR	=		test/
+
 BUILD_DIR	=		.build/
 
 #######################
 #	FILES
 #######################
 
-SRC			=		main.cpp		\
-					\
+SRC			=		\
 						config/Config.cpp				\
 						config/VirtualServerConfig.cpp	\
 						config/LocationConfig.cpp		\
@@ -28,6 +33,15 @@ SRC			=		main.cpp		\
 OBJ			=		$(addprefix $(BUILD_DIR), $(SRC:.cpp=.o))
 
 DEPS		=		$(OBJ:.o=.d)
+
+SRC_TEST	=		main.cpp	\
+					\
+						Config/ConfigTest.cpp	\
+					\
+
+OBJ_TEST	=		$(addprefix $(TEST_DIR)$(BUILD_DIR), $(SRC_TEST:.cpp=.o))
+
+DEPS_TEST	=		$(OBJ_TEST:.o=.d)
 
 #######################
 #	FLAGS
@@ -83,17 +97,17 @@ test:
 
 .PHONY:				gtest
 gtest:
-					mkdir -p $(LIB_DIR)googletest/build
-					cmake -B $(LIB_DIR)googletest/build -S $(LIB_DIR)googletest/
-					$(MAKE) -C $(LIB_DIR)googletest/build
+					mkdir -p $(LIB_DIR)googletest/$(BUILD_DIR)
+					cmake -B $(LIB_DIR)googletest/$(BUILD_DIR) -S $(LIB_DIR)googletest/
+					$(MAKE) -C $(LIB_DIR)googletest/$(BUILD_DIR)
 
 .PHONY:				gtestRun
-gtestRun:
-					@ echo run
+gtestRun:			$(NAME_TEST)
+					./$(NAME_TEST)
 
 .PHONY:				gtestClean
 gtestClean:
-					$(RM) -r $(LIB_DIR)googletest/build
+					$(RM) -r $(LIB_DIR)googletest/$(BUILD_DIR) $(TEST_DIR)$(BUILD_DIR)
 
 ################
 #	EXECUTABLES
@@ -101,8 +115,13 @@ gtestClean:
 
 -include			$(DEPS)
 
-$(NAME):			$(OBJ)
+$(NAME):			$(OBJ) .build/main.o
 					$(CXX) $(CFLAGS) $(IFLAGS) $^ -o $@
+
+-include			$(DEPS_TEST)
+
+$(NAME_TEST):		$(OBJ_TEST) $(OBJ)
+					$(CXX) -std=c++14 $(IFLAGS) -I $(LIB_DIR)googletest/googletest/include -L$(LIB_DIR)googletest/.build/lib -lgtest $^ -o $@
 
 ##################
 #	OBJECTS FILES
@@ -111,3 +130,7 @@ $(NAME):			$(OBJ)
 $(BUILD_DIR)%.o:	$(SRC_DIR)%.cpp
 					mkdir -p $(shell dirname $@)
 					$(CXX) $(CFLAGS) $(DFLAGS) $(IFLAGS) -c $< -o $@
+
+$(TEST_DIR)$(BUILD_DIR)%.o:	$(TEST_DIR)%.cpp
+							mkdir -p $(shell dirname $@)
+							$(CXX) -std=c++14 $(DFLAGS) $(IFLAGS) -I $(LIB_DIR)googletest/googletest/include -c $< -o $@

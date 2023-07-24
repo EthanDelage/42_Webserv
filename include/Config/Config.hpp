@@ -26,25 +26,28 @@
 class VirtualServerConfig;
 
 class Config {
+	friend class ConfigTest;
 
 private:
 	std::vector<VirtualServerConfig *>	_serverConfig;
 
 	void	parseLine(std::string& line, std::ifstream& configFile);
+	void	parseServer(std::ifstream& configFile);
+
+
+
+protected:
+	bool								_autoindex;
+	size_t								_maxBodySize;
+	std::map<uint16_t, std::string>		_errorPage;
+	std::vector<std::string>			_index;
+	std::string 						_root;
+
 	void	parseAutoindex(std::string& line);
 	void	parseMaxBodySize(std::string& line);
 	void	parseErrorPage(std::string& line);
 	void	parseIndex(std::string& line);
 	void	parseRoot(std::string& line);
-	void	parseServer(std::ifstream& configFile);
-
-
-protected:
-	std::vector<std::string>			_index;
-	std::string 						_root;
-	std::map<uint16_t, std::string>		_errorPage;
-	size_t								_maxBodySize;
-	bool								_autoindex;
 
 public:
 	Config();
