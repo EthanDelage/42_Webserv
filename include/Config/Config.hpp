@@ -18,7 +18,7 @@
 # include <cstddef>
 # include <stdint.h>
 
-# define DEFAULT_MAX_BODY_SIZE	1048576
+# define DEFAULT_MAX_BODY_SIZE	1 << 20
 # define DEFAULT_ROOT			"html";
 # define DEFAULT_INDEX			"index.html"
 # define DEFAULT_AUTOINDEX		false
@@ -31,10 +31,9 @@ class Config {
 private:
 	std::vector<VirtualServerConfig *>	_serverConfig;
 
-	void	parseLine(std::string& line, std::ifstream& configFile);
-	void	parseServer(std::ifstream& configFile);
-
-
+	void			parseLine(std::string& line, std::ifstream& configFile);
+	void			parseServer(std::ifstream& configFile);
+	static ssize_t	parseSize(std::string& value);
 
 protected:
 	bool								_autoindex;

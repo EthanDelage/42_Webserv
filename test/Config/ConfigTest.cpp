@@ -32,6 +32,22 @@ TEST_F(ConfigTest, testParseAutoindexInvalidInput) {
 	EXPECT_EQ(parseAutoindexTest("auto index ono;"), -1);
 }
 
+TEST_F(ConfigTest, testParseMaxBodySizeValid) {
+	EXPECT_EQ(parseMaxBodySize("client_max_body_size 1024;"), 1024);
+	EXPECT_EQ(parseMaxBodySize("client_max_body_size 1k;"), 1024);
+	EXPECT_EQ(parseMaxBodySize("client_max_body_size 1m;"), 1 << 20);
+}
+
+TEST_F(ConfigTest, testParseMaxBodySizeInvalid) {
+	EXPECT_THROW(parseMaxBodySize("client_max_body_size ;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySize("client_max_body_size m;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySize("client_max_body_size k;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySize("client_max_body_size 1024M;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySize("client_max_body_size 1024K;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySize("client_max_body_size 1024ko;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySize("client_max_body_size 1024mo;"), std::runtime_error);
+}
+
 int ConfigTest::parseAutoindexTest(char* line) {
 	try {
 		std::string lineStr(line);
@@ -41,4 +57,11 @@ int ConfigTest::parseAutoindexTest(char* line) {
 	} catch (std::exception const & e) {
 		return (-1);
 	}
+}
+
+size_t ConfigTest::parseMaxBodySize(char *line) {
+	std::string	lineStr(line);
+
+	config.parseMaxBodySize(lineStr);
+	return (config._maxBodySize);
 }

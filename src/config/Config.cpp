@@ -55,7 +55,8 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 	if (line.empty())
 		return ;
 	for (int i = 0; !directives[i].empty(); ++i) {
-		if (line.compare(0, directives[i].size(), directives[i]) == 0) {
+		if (line.compare(0, directives[i].size(), directives[i]) == 0
+			&& line[directives[i].size()] == ' ') {
 			(this->*parseFunction[i])(line);
 			return ;
 		}
@@ -72,12 +73,24 @@ void Config::parseAutoindex(std::string& line) {
 	else if (line == "autoindex off;")
 		_autoindex = false;
 	else
-		throw (std::runtime_error("Invalid format: " + line
-			+ '\n' + "Syntax: \"autoindex\" SP \"on\" | \"off\" \";\""));
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ "Syntax: \"autoindex\" SP \"on\" | \"off\" \";\""));
 }
 
 void Config::parseMaxBodySize(std::string &line) {
-	(void) line;
+	std::string	value = line;
+	ssize_t		convertValue;
+
+	value.erase(0, strlen("client_max_body_size "));
+	if (line.back() != ';' || value.size() == 1)
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ "Syntax: \"client_max_body_size\" SP size \";\""));
+	value.pop_back();
+	convertValue = parseSize(value);
+	if (convertValue == -1)
+		throw (std::runtime_error("Invalid size: `" + line + "`\n"
+			+ "Syntax: 1*DIGIT [ \"k\" | \"m\" ]"));
+	_maxBodySize = convertValue;
 }
 
 void Config::parseErrorPage(std::string &line) {
@@ -94,4 +107,28 @@ void Config::parseRoot(std::string &line) {
 
 void Config::parseServer(std::ifstream &configFile) {
 	(void) configFile;
+}
+
+/**
+ * @brief converts a string in 'size' format to ssize_t
+ * @return returns converted value or -1 on error
+ */
+#include "iostream"
+ssize_t Config::parseSize(std::string &value) {
+	char*	rest;
+	double	conversion = std::strtod(value.c_str(), &rest);
+	ssize_t	result = static_cast<ssize_t>(conversion);
+
+	if (!isdigit(value[0])
+		|| conversion != round(conversion)
+		|| value.find('.') != std::string::npos)
+		return (-1);
+	if (*rest == '\0')
+		return (result);
+	else if (*rest == 'k' && *(++rest) == '\0')
+		return (result * 1 << 10);
+	else if (*rest == 'm' && *(++rest) == '\0')
+		return (result * 1 << 20);
+	else
+		return (-1);
 }

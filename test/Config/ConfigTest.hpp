@@ -20,7 +20,8 @@ private:
 	Config	config;
 
 protected:
-	int	parseAutoindexTest(char* line);
+	int		parseAutoindexTest(char* line);
+	size_t	parseMaxBodySize(char *line);
 
 };
 
