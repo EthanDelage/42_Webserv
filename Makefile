@@ -66,11 +66,11 @@ all:				$(NAME)
 
 .PHONY:				clean
 clean:
-					$(RM) $(OBJ) $(DEPS)
+					$(RM) $(OBJ) $(DEPS) $(OBJ_TEST) $(DEPS_TEST)
 
 .PHONY:				fclean
-fclean:
-					$(RM) $(OBJ) $(DEPS) $(NAME)
+fclean:				clean
+					$(RM) $(NAME) $(NAME_TEST)
 
 .PHONY:				re
 re:					fclean
@@ -107,7 +107,7 @@ gtestRun:			$(NAME_TEST)
 
 .PHONY:				gtestClean
 gtestClean:
-					$(RM) -r $(LIB_DIR)googletest/$(BUILD_DIR) $(TEST_DIR)$(BUILD_DIR)
+					$(RM) -r $(LIB_DIR)googletest/$(BUILD_DIR) $(TEST_DIR)$(BUILD_DIR) $(NAME_TEST) $(OBJ_TEST) $(DEPS_TEST)
 
 ################
 #	EXECUTABLES
