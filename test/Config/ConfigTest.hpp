@@ -21,7 +21,8 @@ private:
 
 protected:
 	int		parseAutoindexTest(char* line);
-	size_t	parseMaxBodySize(char *line);
+	size_t	parseMaxBodySizeTest(char *line);
+	std::string	parseRootTest(char *line);
 
 };
 

@@ -38,7 +38,8 @@ void Config::parse(char* configFilename) {
 		throw (std::runtime_error(std::string("Couldn't open file: ") + configFilename));
 	while (!configFile.eof()) {
 		std::getline(configFile, line);
-		parseLine(line, configFile);
+		if (!line.empty())
+			parseLine(line, configFile);
 	}
 	configFile.close();
 }
@@ -52,8 +53,6 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 		&Config::parseMaxBodySize, &Config::parseErrorPage,
 		&Config::parseIndex, &Config::parseRoot};
 
-	if (line.empty())
-		return ;
 	for (int i = 0; !directives[i].empty(); ++i) {
 		if (line.compare(0, directives[i].size(), directives[i]) == 0
 			&& line[directives[i].size()] == ' ') {
@@ -102,7 +101,14 @@ void Config::parseIndex(std::string &line) {
 }
 
 void Config::parseRoot(std::string &line) {
-	(void) line;
+	std::string	value = line;
+
+	value.erase(0, strlen("root "));
+	if (line.back() != ';' || value.size() == 1)
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ "Syntax: \"root\" SP path \";\""));
+	value.pop_back();
+	_root = value;
 }
 
 void Config::parseServer(std::ifstream &configFile) {

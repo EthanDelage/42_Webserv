@@ -33,19 +33,36 @@ TEST_F(ConfigTest, testParseAutoindexInvalidInput) {
 }
 
 TEST_F(ConfigTest, testParseMaxBodySizeValid) {
-	EXPECT_EQ(parseMaxBodySize("client_max_body_size 1024;"), 1024);
-	EXPECT_EQ(parseMaxBodySize("client_max_body_size 1k;"), 1024);
-	EXPECT_EQ(parseMaxBodySize("client_max_body_size 1m;"), 1 << 20);
+	EXPECT_EQ(parseMaxBodySizeTest("client_max_body_size 10;"), 10);
+	EXPECT_EQ(parseMaxBodySizeTest("client_max_body_size 1024;"), 1024);
+	EXPECT_EQ(parseMaxBodySizeTest("client_max_body_size 1k;"), 1024);
+	EXPECT_EQ(parseMaxBodySizeTest("client_max_body_size 1m;"), 1 << 20);
 }
 
 TEST_F(ConfigTest, testParseMaxBodySizeInvalid) {
-	EXPECT_THROW(parseMaxBodySize("client_max_body_size ;"), std::runtime_error);
-	EXPECT_THROW(parseMaxBodySize("client_max_body_size m;"), std::runtime_error);
-	EXPECT_THROW(parseMaxBodySize("client_max_body_size k;"), std::runtime_error);
-	EXPECT_THROW(parseMaxBodySize("client_max_body_size 1024M;"), std::runtime_error);
-	EXPECT_THROW(parseMaxBodySize("client_max_body_size 1024K;"), std::runtime_error);
-	EXPECT_THROW(parseMaxBodySize("client_max_body_size 1024ko;"), std::runtime_error);
-	EXPECT_THROW(parseMaxBodySize("client_max_body_size 1024mo;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size ;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size m;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size k;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size 1024M;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size 1024K;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size 1024ko;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size 1024mo;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size  1024m;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size 1024 m;"), std::runtime_error);
+}
+
+TEST_F(ConfigTest, testParseRootValid) {
+	EXPECT_EQ(parseRootTest("root html;"), "html");
+	EXPECT_EQ(parseRootTest("root test/foo;"), "test/foo");
+	EXPECT_EQ(parseRootTest("root test/foo;;"), "test/foo;");
+	EXPECT_EQ(parseRootTest("root /;"), "/");
+	EXPECT_EQ(parseRootTest("root  ;"), " ");
+}
+
+TEST_F(ConfigTest, testParseRootInvalid) {
+	EXPECT_THROW(parseRootTest("root ;"), std::runtime_error);
+	EXPECT_THROW(parseRootTest("root "), std::runtime_error);
+	EXPECT_THROW(parseRootTest("root ; "), std::runtime_error);
 }
 
 int ConfigTest::parseAutoindexTest(char* line) {
@@ -59,9 +76,16 @@ int ConfigTest::parseAutoindexTest(char* line) {
 	}
 }
 
-size_t ConfigTest::parseMaxBodySize(char *line) {
+size_t ConfigTest::parseMaxBodySizeTest(char *line) {
 	std::string	lineStr(line);
 
 	config.parseMaxBodySize(lineStr);
 	return (config._maxBodySize);
+}
+
+std::string ConfigTest::parseRootTest(char *line) {
+	std::string	lineStr(line);
+
+	config.parseRoot(lineStr);
+	return (config._root);
 }
