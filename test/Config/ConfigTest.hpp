@@ -20,9 +20,13 @@ private:
 	Config	config;
 
 protected:
-	int		parseAutoindexTest(char* line);
-	size_t	parseMaxBodySizeTest(char *line);
+	int			parseAutoindexTest(char* line);
+	size_t		parseMaxBodySizeTest(char *line);
 	std::string	parseRootTest(char *line);
+
+	int			getAutoindex() const {return (config._autoindex);};
+	size_t 		getMaxBodySize() const {return (config._maxBodySize);};
+	std::string	getRoot() const {return (config._root);};
 
 };
 

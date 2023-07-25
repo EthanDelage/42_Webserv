@@ -19,6 +19,7 @@
 # include <stdint.h>
 
 # define DEFAULT_MAX_BODY_SIZE	1 << 20
+# define PREFIX					"/var/www/"
 # define DEFAULT_ROOT			"html";
 # define DEFAULT_INDEX			"index.html"
 # define DEFAULT_AUTOINDEX		false

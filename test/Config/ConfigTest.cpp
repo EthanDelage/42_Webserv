@@ -11,28 +11,26 @@
 /* ************************************************************************** */
 #include "ConfigTest.hpp"
 
-TEST_F(ConfigTest, testParseAutoindexOn) {
-	ASSERT_EQ(parseAutoindexTest("autoindex on;"), true);
-}
-
-TEST_F(ConfigTest, testParseAutoindexOff) {
-	ASSERT_EQ(parseAutoindexTest("autoindex off;"), false);
+TEST_F(ConfigTest, testParseAutoindexValid) {
+	EXPECT_EQ(getMaxBodySize(), DEFAULT_MAX_BODY_SIZE);
+	EXPECT_EQ(parseAutoindexTest("autoindex on;"), true);
+	EXPECT_EQ(parseAutoindexTest("autoindex off;"), false);
 }
 
 TEST_F(ConfigTest, testParseAutoindexInvalidInput) {
-	EXPECT_EQ(parseAutoindexTest(" autoindex off;"), -1);
-	EXPECT_EQ(parseAutoindexTest("autoindex  off;"), -1);
-	EXPECT_EQ(parseAutoindexTest("autoindex off; "), -1);
-	EXPECT_EQ(parseAutoindexTest("autoindex off"), -1);
-	EXPECT_EQ(parseAutoindexTest("autoindex on"), -1);
-	EXPECT_EQ(parseAutoindexTest("autoindexon"), -1);
-	EXPECT_EQ(parseAutoindexTest("autoindex ;"), -1);
-	EXPECT_EQ(parseAutoindexTest("autoindex no;"), -1);
-	EXPECT_EQ(parseAutoindexTest("autoindex ono;"), -1);
-	EXPECT_EQ(parseAutoindexTest("auto index ono;"), -1);
+	EXPECT_THROW(parseAutoindexTest("autoindex  off;"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("autoindex off; "), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("autoindex off"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("autoindex on"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("autoindexon"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("autoindex ;"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("autoindex no;"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("autoindex ono;"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("auto index ono;"), std::runtime_error);
 }
 
 TEST_F(ConfigTest, testParseMaxBodySizeValid) {
+	EXPECT_EQ(getMaxBodySize(), DEFAULT_MAX_BODY_SIZE);
 	EXPECT_EQ(parseMaxBodySizeTest("client_max_body_size 10;"), 10);
 	EXPECT_EQ(parseMaxBodySizeTest("client_max_body_size 1024;"), 1024);
 	EXPECT_EQ(parseMaxBodySizeTest("client_max_body_size 1k;"), 1024);
@@ -52,11 +50,11 @@ TEST_F(ConfigTest, testParseMaxBodySizeInvalid) {
 }
 
 TEST_F(ConfigTest, testParseRootValid) {
-	EXPECT_EQ(parseRootTest("root html;"), "html");
-	EXPECT_EQ(parseRootTest("root test/foo;"), "test/foo");
-	EXPECT_EQ(parseRootTest("root test/foo;;"), "test/foo;");
+	EXPECT_EQ(parseRootTest("root html;"), PREFIX + std::string("html"));
+	EXPECT_EQ(parseRootTest("root /test/foo;"), "/test/foo");
+	EXPECT_EQ(parseRootTest("root test/foo;;"), PREFIX + std::string("test/foo;"));
 	EXPECT_EQ(parseRootTest("root /;"), "/");
-	EXPECT_EQ(parseRootTest("root  ;"), " ");
+	EXPECT_EQ(parseRootTest("root  ;"), PREFIX + std::string(" "));
 }
 
 TEST_F(ConfigTest, testParseRootInvalid) {
@@ -66,14 +64,10 @@ TEST_F(ConfigTest, testParseRootInvalid) {
 }
 
 int ConfigTest::parseAutoindexTest(char* line) {
-	try {
-		std::string lineStr(line);
+	std::string lineStr(line);
 
-		config.parseAutoindex(lineStr);
-		return (config._autoindex);
-	} catch (std::exception const & e) {
-		return (-1);
-	}
+	config.parseAutoindex(lineStr);
+	return (config._autoindex);
 }
 
 size_t ConfigTest::parseMaxBodySizeTest(char *line) {

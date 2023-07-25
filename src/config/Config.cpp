@@ -16,7 +16,7 @@
 
 Config::Config() {
 	_index.push_back(DEFAULT_INDEX);
-	_root = DEFAULT_ROOT;
+	_root = std::string(PREFIX) + DEFAULT_ROOT;
 	_errorPage[404] = "404.html";
 	_maxBodySize = DEFAULT_MAX_BODY_SIZE;
 	_autoindex = DEFAULT_AUTOINDEX;
@@ -108,6 +108,8 @@ void Config::parseRoot(std::string &line) {
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"root\" SP path \";\""));
 	value.pop_back();
+	if (value[0] != '/')
+		value = PREFIX + value;
 	_root = value;
 }
 
