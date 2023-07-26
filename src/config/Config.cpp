@@ -116,21 +116,26 @@ void Config::parseServer(std::ifstream &configFile) {
 }
 
 /**
- * @brief takes the path and removes the unwanted char (", ')
+ * @brief takes the path and removes the unwanted char (", ').
+ *  Also handles \" and \'
  */
 std::string Config::parsePath(std::string &value) {
 	std::string	path;
+	char		quote;
 
 	for (size_t i = 0; i < value.size(); ++i) {
-		if (value[i] == '"' && (i == 0 || (i > 0 && value[i - 1] != '\\'))) {
+		if ((value[i] == '"' || value[i] == '\'')
+			&& (i == 0 || value[i - 1] != '\\')) {
+			quote = value[i];
 			++i;
-			while (i < value.size() && value[i] != '"') {
+			while (i < value.size() && value[i] != quote) {
 				path += value[i];
 				++i;
 			}
 		}
-		else if (value[i] == '"' && i > 0 && value[i -1] == '\\')
-			path.back() = '"';
+		else if ((value[i] == '"' || value[i] == '\'') && i > 0
+			&& value[i -1] == '\\')
+			path.back() = value[i];
 		else
 			path += value[i];
 	}
