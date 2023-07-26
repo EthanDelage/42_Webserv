@@ -108,9 +108,7 @@ void Config::parseRoot(std::string &line) {
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"root\" SP path \";\""));
 	value.pop_back();
-	if (value[0] != '/')
-		value = PREFIX + value;
-	_root = value;
+	_root = parsePath(value);
 }
 
 void Config::parseServer(std::ifstream &configFile) {
@@ -118,10 +116,33 @@ void Config::parseServer(std::ifstream &configFile) {
 }
 
 /**
+ * @brief takes the path and removes the unwanted char (", ')
+ */
+std::string Config::parsePath(std::string &value) {
+	std::string	path;
+
+	for (size_t i = 0; i < value.size(); ++i) {
+		if (value[i] == '"' && (i == 0 || (i > 0 && value[i - 1] != '\\'))) {
+			++i;
+			while (i < value.size() && value[i] != '"') {
+				path += value[i];
+				++i;
+			}
+		}
+		else if (value[i] == '"' && i > 0 && value[i -1] == '\\')
+			path.back() = '"';
+		else
+			path += value[i];
+	}
+	if (path[0] != '/')
+		path = PREFIX + path;
+	return (path);
+}
+
+/**
  * @brief converts a string in 'size' format to ssize_t
  * @return returns converted value or -1 on error
  */
-#include "iostream"
 ssize_t Config::parseSize(std::string &value) {
 	char*	rest;
 	double	conversion = std::strtod(value.c_str(), &rest);

@@ -55,6 +55,12 @@ TEST_F(ConfigTest, testParseRootValid) {
 	EXPECT_EQ(parseRootTest("root test/foo;;"), PREFIX + std::string("test/foo;"));
 	EXPECT_EQ(parseRootTest("root /;"), "/");
 	EXPECT_EQ(parseRootTest("root  ;"), PREFIX + std::string(" "));
+	EXPECT_EQ(parseRootTest("root \"\";"), PREFIX);
+	EXPECT_EQ(parseRootTest("root \"html\";"), PREFIX + std::string("html"));
+	EXPECT_EQ(parseRootTest("root \"/test/foo\";"), std::string("/test/foo"));
+	EXPECT_EQ(parseRootTest("root \"/test  foo\";"), std::string("/test  foo"));
+	EXPECT_EQ(parseRootTest("root \\\"\\\";"), PREFIX + std::string("\"\""));
+	EXPECT_EQ(parseRootTest("root \\\"foo\\\";"), std::string(PREFIX) + '"' + "foo" + '"');
 }
 
 TEST_F(ConfigTest, testParseRootInvalid) {

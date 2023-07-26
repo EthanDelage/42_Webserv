@@ -32,9 +32,10 @@ class Config {
 private:
 	std::vector<VirtualServerConfig *>	_serverConfig;
 
-	void			parseLine(std::string& line, std::ifstream& configFile);
-	void			parseServer(std::ifstream& configFile);
-	static ssize_t	parseSize(std::string& value);
+	void				parseLine(std::string& line, std::ifstream& configFile);
+	void				parseServer(std::ifstream& configFile);
+	static std::string	parsePath(std::string& value);
+	static ssize_t		parseSize(std::string& value);
 
 protected:
 	bool								_autoindex;
