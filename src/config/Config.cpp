@@ -160,16 +160,18 @@ std::string Config::removeQuote(std::string &str) {
 			&& (i == 0 || str[i - 1] != '\\')) {
 			quote = str[i];
 			++i;
-			while (i < str.size() && str[i] != quote) {
-				result += str[i];
+			while (i < str.size() && (str[i] != quote
+					|| (str[i] == quote && str[i - 1] == '\\'))) {
+				if (str[i] == quote)
+					result.back() = quote;
+				else
+					result += str[i];
 				++i;
 			}
 			if (i == str.size())
 				throw (std::runtime_error(std::string("missing `")
 					+ quote + '`'));
-		}
-		else if ((str[i] == '"' || str[i] == '\'') && i > 0
-				 && str[i -1] == '\\')
+		} else if ((str[i] == '"' || str[i] == '\'') && str[i -1] == '\\')
 			result.back() = str[i];
 		else
 			result += str[i];
