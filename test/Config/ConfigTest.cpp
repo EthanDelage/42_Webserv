@@ -73,6 +73,9 @@ TEST_F(ConfigTest, testParseRootInvalid) {
 	EXPECT_THROW(parseRootTest("root ;"), std::runtime_error);
 	EXPECT_THROW(parseRootTest("root "), std::runtime_error);
 	EXPECT_THROW(parseRootTest("root ; "), std::runtime_error);
+	EXPECT_THROW(parseRootTest("root ';"), std::runtime_error);
+	EXPECT_THROW(parseRootTest("root \";"), std::runtime_error);
+	EXPECT_THROW(parseRootTest("root \"\"\";"), std::runtime_error);
 }
 
 int ConfigTest::parseAutoindexTest(char* line) {

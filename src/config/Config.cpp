@@ -115,30 +115,10 @@ void Config::parseServer(std::ifstream &configFile) {
 	(void) configFile;
 }
 
-/**
- * @brief takes the path and removes the unwanted char (", ').
- *  Also handles \" and \'
- */
 std::string Config::parsePath(std::string &value) {
 	std::string	path;
-	char		quote;
 
-	for (size_t i = 0; i < value.size(); ++i) {
-		if ((value[i] == '"' || value[i] == '\'')
-			&& (i == 0 || value[i - 1] != '\\')) {
-			quote = value[i];
-			++i;
-			while (i < value.size() && value[i] != quote) {
-				path += value[i];
-				++i;
-			}
-		}
-		else if ((value[i] == '"' || value[i] == '\'') && i > 0
-			&& value[i -1] == '\\')
-			path.back() = value[i];
-		else
-			path += value[i];
-	}
+	path = removeQuote(value);
 	if (path[0] != '/')
 		path = PREFIX + path;
 	return (path);
@@ -165,4 +145,34 @@ ssize_t Config::parseSize(std::string &value) {
 		return (result * 1 << 20);
 	else
 		return (-1);
+}
+
+/**
+ * @brief takes a string and removes quote char (", ').
+ *  Also handles \" and \'
+ */
+std::string Config::removeQuote(std::string &str) {
+	std::string	result;
+	char		quote;
+
+	for (size_t i = 0; i < str.size(); ++i) {
+		if ((str[i] == '"' || str[i] == '\'')
+			&& (i == 0 || str[i - 1] != '\\')) {
+			quote = str[i];
+			++i;
+			while (i < str.size() && str[i] != quote) {
+				result += str[i];
+				++i;
+			}
+			if (i == str.size())
+				throw (std::runtime_error(std::string("missing `")
+					+ quote + '`'));
+		}
+		else if ((str[i] == '"' || str[i] == '\'') && i > 0
+				 && str[i -1] == '\\')
+			result.back() = str[i];
+		else
+			result += str[i];
+	}
+	return (result);
 }
