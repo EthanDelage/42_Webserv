@@ -16,6 +16,7 @@
 
 Config::Config() {
 	_index.push_back(DEFAULT_INDEX);
+	_isDefaultIndex = true;
 	_root = std::string(PREFIX) + DEFAULT_ROOT;
 	_errorPage[404] = "404.html";
 	_maxBodySize = DEFAULT_MAX_BODY_SIZE;
@@ -97,7 +98,28 @@ void Config::parseErrorPage(std::string &line) {
 }
 
 void Config::parseIndex(std::string &line) {
-	(void) line;
+	std::string	value = line;
+	std::string	file;
+
+	value.erase(0, strlen("index "));
+	if (line.back() != ';' || value.size() == 1)
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ "Syntax: \"index\" 1*( SP file ) \";\""));
+	value.pop_back();
+	if (_isDefaultIndex == true) {
+		_isDefaultIndex = false;
+		_index.clear();
+	}
+	while (!value.empty()) {
+		file = getNextFile(value);
+		if (file.empty())
+			throw (std::runtime_error("Invalid format: `" + line + "`\n"
+				+ "Files must be separated by a single space"));
+		_index.push_back(file);
+		value.erase(0, file.size());
+		if (value.size() != 1)
+			value.erase(0, 1);
+	}
 }
 
 void Config::parseRoot(std::string &line) {
@@ -177,4 +199,31 @@ std::string Config::removeQuote(std::string &str) {
 			result += str[i];
 	}
 	return (result);
+}
+
+/**
+ * @brief get the next file while removing the quote
+ */
+std::string Config::getNextFile(std::string &value) {
+	std::string	file;
+	char		quote;
+
+	for (size_t i = 0; i < value.size() && value[i] != ' '; ++i) {
+		if ((value[i] == '"' || value[i] == '\'')
+			&& (i == 0 || value[i - 1] != '\\')) {
+			quote = value[i++];
+			while (i < value.size() && (value[i] != quote
+				|| (value[i] == quote && value[i - 1] == '\\'))) {
+				if (value[i] == quote)
+					file.back() = quote;
+				else
+					file += value[i];
+				++i;
+			}
+		} else if ((value[i] == '"' || value[i] == '\'') && value[i - 1] == '\\')
+			file.back() = value[i];
+		else
+			file += value[i];
+	}
+	return (file);
 }

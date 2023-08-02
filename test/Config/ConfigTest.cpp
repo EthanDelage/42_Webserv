@@ -12,7 +12,7 @@
 #include "ConfigTest.hpp"
 
 TEST_F(ConfigTest, testParseAutoindexValid) {
-	EXPECT_EQ(getMaxBodySize(), DEFAULT_MAX_BODY_SIZE);
+	EXPECT_EQ(getAutoindex(), DEFAULT_AUTOINDEX);
 	EXPECT_EQ(parseAutoindexTest("autoindex on;"), true);
 	EXPECT_EQ(parseAutoindexTest("autoindex off;"), false);
 }
@@ -50,6 +50,7 @@ TEST_F(ConfigTest, testParseMaxBodySizeInvalid) {
 }
 
 TEST_F(ConfigTest, testParseRootValid) {
+	EXPECT_EQ(getRoot(), PREFIX + std::string(DEFAULT_ROOT));
 	EXPECT_EQ(parseRootTest("root html;"), PREFIX + std::string("html"));
 	EXPECT_EQ(parseRootTest("root /test/foo;"), "/test/foo");
 	EXPECT_EQ(parseRootTest("root test/foo;;"), PREFIX + std::string("test/foo;"));
@@ -79,6 +80,49 @@ TEST_F(ConfigTest, testParseRootInvalid) {
 	EXPECT_THROW(parseRootTest("root \"\"\";"), std::runtime_error);
 }
 
+TEST_F(ConfigTest, testDefaultIndex) {
+	std::vector<std::string>	defaultIndex;
+
+	defaultIndex.push_back(std::string(DEFAULT_INDEX));
+	EXPECT_EQ(getIndex(), defaultIndex);
+}
+
+TEST_F(ConfigTest, testSingleIndex) {
+	std::vector<std::string>	index;
+
+	index.push_back(std::string("foo.html"));
+	EXPECT_EQ(parseIndexTest("index foo.html;"), index);
+}
+
+TEST_F(ConfigTest, testMultipleIndex) {
+	std::vector<std::string>	index;
+
+	index.push_back(std::string("foo.html"));
+	index.push_back(std::string("test.html"));
+	EXPECT_EQ(parseIndexTest("index foo.html test.html;"), index);
+}
+
+TEST_F(ConfigTest, testMultipleIndexDirectives) {
+	std::vector<std::string>	index;
+
+	index.push_back(std::string("foo.html"));
+	EXPECT_EQ(parseIndexTest("index foo.html;"), index);
+	index.push_back(std::string("test.html"));
+	EXPECT_EQ(parseIndexTest("index test.html;"), index);
+	index.push_back(std::string("tost.html"));
+	index.push_back(std::string("index.html"));
+	EXPECT_EQ(parseIndexTest("index tost.html index.html;"), index);
+}
+
+TEST_F(ConfigTest, testParseIndexInvalid) {
+	EXPECT_THROW(parseIndexTest("index ;"), std::runtime_error);
+	EXPECT_THROW(parseIndexTest("index test ;"), std::runtime_error);
+	EXPECT_THROW(parseIndexTest("index test  tost;"), std::runtime_error);
+	EXPECT_THROW(parseIndexTest("index \"\";"), std::runtime_error);
+	EXPECT_THROW(parseIndexTest("index test tost \"\";"), std::runtime_error);
+	EXPECT_THROW(parseIndexTest("index  test tost;"), std::runtime_error);
+}
+
 int ConfigTest::parseAutoindexTest(char* line) {
 	std::string lineStr(line);
 
@@ -98,4 +142,11 @@ std::string ConfigTest::parseRootTest(char *line) {
 
 	config.parseRoot(lineStr);
 	return (config._root);
+}
+
+std::vector<std::string> ConfigTest::parseIndexTest(char *line) {
+	std::string	lineStr(line);
+
+	config.parseIndex(lineStr);
+	return (config._index);
 }

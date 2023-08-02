@@ -20,6 +20,7 @@ VirtualServerConfig::VirtualServerConfig(Config const & config) : Config(config)
 
 VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Config() {
 	_index = other._index;
+	_isDefaultIndex = other._isDefaultIndex;
 	_root = other._root;
 	_errorPage = other._errorPage;
 	_maxBodySize = other._maxBodySize;
