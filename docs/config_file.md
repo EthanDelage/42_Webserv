@@ -97,7 +97,7 @@ Context: server
 ### Index
 ```
 address     = 1*3DIGIT 3 ( "." 1*3DIGIT )
-code        = 3DIGIT
+code        = 3DIGIT ;must be between 300 and 599
 file        = 1*TEXT
 hostname    = *TEXT
 path        = 1*TEXT *( "/" 1*TEXT )
