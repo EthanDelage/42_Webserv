@@ -77,6 +77,7 @@ TEST_F(ConfigTest, testParseRootInvalid) {
 	EXPECT_THROW(parseRootTest("root ; "), std::runtime_error);
 	EXPECT_THROW(parseRootTest("root ';"), std::runtime_error);
 	EXPECT_THROW(parseRootTest("root \";"), std::runtime_error);
+	EXPECT_THROW(parseRootTest("root \"foo;"), std::runtime_error);
 	EXPECT_THROW(parseRootTest("root \"\"\";"), std::runtime_error);
 }
 
@@ -120,6 +121,7 @@ TEST_F(ConfigTest, testParseIndexInvalid) {
 	EXPECT_THROW(parseIndexTest("index test  tost;"), std::runtime_error);
 	EXPECT_THROW(parseIndexTest("index \"\";"), std::runtime_error);
 	EXPECT_THROW(parseIndexTest("index test tost \"\";"), std::runtime_error);
+	EXPECT_THROW(parseIndexTest("index test \"\" foo;"), std::runtime_error);
 	EXPECT_THROW(parseIndexTest("index  test tost;"), std::runtime_error);
 }
 

@@ -97,10 +97,11 @@ Context: server
 ### Index
 ```
 address     = 1*3DIGIT 3 ( "." 1*3DIGIT )
+code        = 3DIGIT
 file        = 1*TEXT
 hostname    = *TEXT
 path        = 1*TEXT *( "/" 1*TEXT )
 port        = 1*DIGIT
 size        = 1*DIGIT [ "k" | "m" ]
-uri         = *TEXT ;if uri == "" it replace by the default directory
+uri         = *TEXT
 ```
