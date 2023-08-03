@@ -81,7 +81,7 @@ void Config::parseMaxBodySize(std::string &line) {
 	std::string	value = line;
 	ssize_t		convertValue;
 
-	value.erase(0, strlen("client_max_body_size "));
+	value.erase(0, std::strlen("client_max_body_size "));
 	if (line.back() != ';' || value.size() == 1)
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"client_max_body_size\" SP size \";\""));
@@ -94,14 +94,36 @@ void Config::parseMaxBodySize(std::string &line) {
 }
 
 void Config::parseErrorPage(std::string &line) {
-	(void) line;
+	std::string				value = line;
+	std::string				uri;
+
+	value.erase(0, std::strlen("error_page "));
+	if (line.back() != ';' || value.size() == 1)
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ "Syntax: \"error_page\" 1*( SP code ) SP uri \";\""));
+	value.pop_back();
+	try {
+		uri = GetUriErrorPage(value);
+		while (!value.empty()) {
+			_errorPage[getNextCode(value)] = uri;
+			if (value.size() > 3 && value[3] != ' ')
+				throw (std::runtime_error("Syntax: \"error_page\" 1*( SP code ) SP uri \";\""));
+			if (value.size() > 4)
+				value.erase(0, 4);
+			else
+				value.erase(0, 3);
+		}
+	} catch (std::runtime_error const & e) {
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ e.what()));
+	}
 }
 
 void Config::parseIndex(std::string &line) {
 	std::string	value = line;
 	std::string	file;
 
-	value.erase(0, strlen("index "));
+	value.erase(0, std::strlen("index "));
 	if (line.back() != ';' || value.size() == 1)
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"index\" 1*( SP file ) \";\""));
@@ -125,12 +147,17 @@ void Config::parseIndex(std::string &line) {
 void Config::parseRoot(std::string &line) {
 	std::string	value = line;
 
-	value.erase(0, strlen("root "));
+	value.erase(0, std::strlen("root "));
 	if (line.back() != ';' || value.size() == 1)
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"root\" SP path \";\""));
 	value.pop_back();
-	_root = parsePath(value);
+	try {
+		_root = parsePath(value);
+	} catch (std::runtime_error const & e) {
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ e.what()));
+	}
 }
 
 void Config::parseServer(std::ifstream &configFile) {
@@ -155,7 +182,7 @@ ssize_t Config::parseSize(std::string &value) {
 	double	conversion = std::strtod(value.c_str(), &rest);
 	ssize_t	result = static_cast<ssize_t>(conversion);
 
-	if (!isdigit(value[0])
+	if (!std::isdigit(value[0])
 		|| conversion != round(conversion)
 		|| value.find('.') != std::string::npos)
 		return (-1);
@@ -191,7 +218,7 @@ std::string Config::removeQuote(std::string &str) {
 				++i;
 			}
 			if (i == str.size())
-				throw (std::runtime_error(std::string("missing `")
+				throw (std::runtime_error(std::string("Missing: `")
 					+ quote + '`'));
 		} else if ((str[i] == '"' || str[i] == '\'') && str[i -1] == '\\')
 			result.back() = str[i];
@@ -226,4 +253,53 @@ std::string Config::getNextFile(std::string &value) {
 			file += value[i];
 	}
 	return (file);
+}
+
+/**
+ * @brief get the next code format: code = 3DIGIT
+ */
+uint16_t Config::getNextCode(std::string &value) {
+	uint16_t	code = 0;
+
+	if (value[0] == ' ')
+		throw (std::runtime_error("Codes must be separate by single space"));
+	for (int i = 0; i < 3; ++i) {
+		if (!std::isdigit(value[i]))
+			throw (std::runtime_error("Syntax: code = 3DIGIT"));
+		code = code * 10 + (value[i] - '0');
+	}
+	if (code < 300 || code > 599)
+		throw (std::runtime_error('`' + value.substr(0, 3)
+			+ "`: code must be between 300 and 599"));
+	return (code);
+}
+
+/**
+ * @brief get the uri and remove it from value
+ * @return uri
+ */
+std::string Config::GetUriErrorPage(std::string &value) {
+	size_t		indexLastSpace = 0;
+	char		quote = 0;
+	std::string	uri;
+
+	for (size_t i = 0; i != value.size(); ++i) {
+		if (value[i] == ' ' && quote == 0)
+			indexLastSpace = i;
+		else if ((value[i] == '\'' || value[i] == '"')
+			&& (i == 0 || value[i - 1] != '\\')
+			&& quote == 0)
+			quote = value[i];
+		else if ((value[i] == '\'' || value[i] == '"')
+			&& (i == 0 || value[i - 1] != '\\')
+			&& quote == value[i])
+			quote = 0;
+	}
+	if (indexLastSpace == 0)
+		throw (std::runtime_error("Invalid number of arguments"));
+	else if (indexLastSpace == value.size() - 1)
+		throw (std::runtime_error("Space after uri"));
+	uri = value.substr(indexLastSpace + 1);
+	value.erase(indexLastSpace);
+	return (removeQuote(uri));
 }

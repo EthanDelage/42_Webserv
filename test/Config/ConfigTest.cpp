@@ -125,6 +125,81 @@ TEST_F(ConfigTest, testParseIndexInvalid) {
 	EXPECT_THROW(parseIndexTest("index  test tost;"), std::runtime_error);
 }
 
+TEST_F(ConfigTest, testDefaultErrorPage) {
+	std::map<uint16_t, std::string>	errorPage;
+
+	errorPage[404] = "404.html";
+	EXPECT_EQ(getErrorPage(), errorPage);
+}
+
+TEST_F(ConfigTest, testSingleErrorPage) {
+	std::map<uint16_t, std::string>	errorPage;
+
+	errorPage[404] = "404.html";
+	errorPage[502] = "50x.html";
+	EXPECT_EQ(parseErrorPage("error_page 502 50x.html;"), errorPage);
+}
+
+TEST_F(ConfigTest, testMultipleCodeErrorPage) {
+	std::map<uint16_t, std::string>	errorPage;
+
+	errorPage[404] = "404.html";
+	errorPage[502] = "50x.html";
+	errorPage[503] = "50x.html";
+	errorPage[504] = "50x.html";
+	errorPage[505] = "50x.html";
+	EXPECT_EQ(parseErrorPage("error_page 502 503 504 505 50x.html;"), errorPage);
+}
+
+TEST_F(ConfigTest, testMultipleErrorPageDirectives) {
+	std::map<uint16_t, std::string>	errorPage;
+
+	errorPage[404] = "404.html";
+	errorPage[502] = "50x.html";
+	errorPage[503] = "50x.html";
+	errorPage[504] = "50x.html";
+	errorPage[505] = "50x.html";
+	EXPECT_EQ(parseErrorPage("error_page 502 503 504 505 50x.html;"), errorPage);
+	errorPage[302] = "302.html";
+	EXPECT_EQ(parseErrorPage("error_page 302 302.html;"), errorPage);
+	errorPage[403] = "403.html";
+	EXPECT_EQ(parseErrorPage("error_page 403 403.html;"), errorPage);
+}
+
+TEST_F(ConfigTest, testOverrideCodeErrorPage) {
+	std::map<uint16_t, std::string>	errorPage;
+
+	errorPage[404] = "404.html";
+	errorPage[302] = "302.html";
+	EXPECT_EQ(parseErrorPage("error_page 302 302.html;"), errorPage);
+	errorPage[302] = "foo.html";
+	EXPECT_EQ(parseErrorPage("error_page 302 foo.html;"), errorPage);
+	errorPage[404] = "test.html";
+	errorPage[502] = "test.html";
+	EXPECT_EQ(parseErrorPage("error_page 404 502 test.html;"), errorPage);
+	errorPage[502] = "50x.html";
+	errorPage[503] = "50x.html";
+	errorPage[504] = "50x.html";
+	errorPage[505] = "50x.html";
+	EXPECT_EQ(parseErrorPage("error_page 502 503 504 505 50x.html;"), errorPage);
+	errorPage[505] = "505.html";
+	EXPECT_EQ(parseErrorPage("error_page 505 505.html;"), errorPage);
+}
+
+TEST_F(ConfigTest, testParseErrorPageInvalid) {
+	EXPECT_THROW(parseErrorPage("error_page ;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 404 \";"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page foo;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 404;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 40 foo;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 404 299 foo;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 404 600 foo;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 404 302  foo;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 404 302            ; foo;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 404 302 ;            foo;"), std::runtime_error);
+	EXPECT_THROW(parseErrorPage("error_page 404 302 foo ;"), std::runtime_error);
+}
+
 int ConfigTest::parseAutoindexTest(char* line) {
 	std::string lineStr(line);
 
@@ -151,4 +226,11 @@ std::vector<std::string> ConfigTest::parseIndexTest(char *line) {
 
 	config.parseIndex(lineStr);
 	return (config._index);
+}
+
+std::map<uint16_t, std::string> ConfigTest::parseErrorPage(char *line) {
+	std::string	lineStr(line);
+
+	config.parseErrorPage(lineStr);
+	return (config._errorPage);
 }
