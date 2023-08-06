@@ -12,6 +12,8 @@
 #include <Config/Config.hpp>
 #include <iostream>
 
+#include <iostream>
+
 int	main(int argc, char** argv) {
 	(void) argv;
 	if (argc != 2) {
@@ -21,6 +23,7 @@ int	main(int argc, char** argv) {
 	try {
 		Config config;
 		config.parse(argv[1]);
+		config.print();
 	} catch (std::exception const &e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return (1);

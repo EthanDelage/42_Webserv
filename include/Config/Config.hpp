@@ -19,11 +19,19 @@
 # include <cstddef>
 # include <stdint.h>
 
-# define DEFAULT_MAX_BODY_SIZE	1 << 20
+# define DEFAULT_MAX_BODY_SIZE	(1 << 20)
 # define PREFIX					"/var/www/"
 # define DEFAULT_ROOT			"html"
 # define DEFAULT_INDEX			"index.html"
 # define DEFAULT_AUTOINDEX		false
+
+# define SYNTAX_AUTOINDEX		"Syntax: \"autoindex\" SP \"on\" | \"off\" \";\""
+# define SYNTAX_MAX_BODY_SIZE	"Syntax: \"client_max_body_size\" SP size \";\""
+# define SYNTAX_SIZE			"Syntax: 1*DIGIT [ \"k\" | \"m\" ]"
+# define SYNTAX_ERROR_PAGE		"Syntax: \"error_page\" 1*( SP code ) SP uri \";\""
+# define SYNTAX_INDEX			"Syntax: \"index\" 1*( SP file ) \";\""
+# define SYNTAX_ROOT			"Syntax: \"root\" SP path \";\""
+
 
 class VirtualServerConfig;
 
@@ -34,6 +42,7 @@ private:
 	std::vector<VirtualServerConfig *>	_serverConfig;
 
 	void				parseLine(std::string& line, std::ifstream& configFile);
+    void                router(std::string& directive, std::string& value);
 	void				parseServer(std::ifstream& configFile);
 	static std::string	parsePath(std::string& value);
 	static ssize_t		parseSize(std::string& value);
@@ -62,6 +71,7 @@ public:
 	~Config() {};
 
 	void parse(char* configFilename);
+	void print();
 };
 
 #endif

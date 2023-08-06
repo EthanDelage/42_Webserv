@@ -48,88 +48,86 @@ void Config::parse(char* configFilename) {
 	configFile.close();
 }
 
-typedef void (Config::*parseFunctionType)(std::string&);
-
 void Config::parseLine(std::string& line, std::ifstream& configFile) {
-	std::string 		directives[] = {"autoindex",
-		"client_max_body_size", "error_page", "index", "root", ""};
-	parseFunctionType	parseFunction[] = {&Config::parseAutoindex,
-		&Config::parseMaxBodySize, &Config::parseErrorPage,
-		&Config::parseIndex, &Config::parseRoot};
+	std::string	directive;
+	std::string	value;
+	size_t		separator;
 
-	for (int i = 0; !directives[i].empty(); ++i) {
-		if (line.compare(0, directives[i].size(), directives[i]) == 0
-			&& line[directives[i].size()] == ' ') {
-			(this->*parseFunction[i])(line);
-			return ;
-		}
-	}
-	if (line == "server {")
-		parseServer(configFile);
-	else
-		throw std::runtime_error("Unknown command: `" + line + '`');
-}
-
-void Config::parseAutoindex(std::string& line) {
-	if (line == "autoindex on;")
-		_autoindex = true;
-	else if (line == "autoindex off;")
-		_autoindex = false;
-	else
-		throw (std::runtime_error("Invalid format: `" + line + "`\n"
-			+ "Syntax: \"autoindex\" SP \"on\" | \"off\" \";\""));
-}
-
-void Config::parseMaxBodySize(std::string &line) {
-	std::string	value = line;
-	ssize_t		convertValue;
-
-	value.erase(0, std::strlen("client_max_body_size "));
-	if (*(line.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error("Invalid format: `" + line + "`\n"
-			+ "Syntax: \"client_max_body_size\" SP size \";\""));
-	value.erase(value.end() - 1);
-	convertValue = parseSize(value);
-	if (convertValue == -1)
-		throw (std::runtime_error("Invalid size: `" + line + "`\n"
-			+ "Syntax: 1*DIGIT [ \"k\" | \"m\" ]"));
-	_maxBodySize = convertValue;
-}
-
-void Config::parseErrorPage(std::string &line) {
-	std::string value = line;
-	std::string uri;
-
-	value.erase(0, std::strlen("error_page "));
-	if (*(line.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error("Invalid format: `" + line + "`\n"
-			+ "Syntax: \"error_page\" 1*( SP code ) SP uri \";\""));
-    value.erase(value.end() - 1);
+	(void)configFile;
+	separator = line.find(' ');
+	directive = line.substr(0, separator);
+	value = line.substr(separator + 1, line.size());
 	try {
-		uri = GetUriErrorPage(value);
-		while (!value.empty()) {
-			_errorPage[getNextCode(value)] = uri;
-			if (value.size() > 3 && value[3] != ' ')
-				throw (std::runtime_error("Syntax: \"error_page\" 1*( SP code ) SP uri \";\""));
-			if (value.size() > 4)
-				value.erase(0, 4);
-			else
-				value.erase(0, 3);
-		}
-	} catch (std::runtime_error const & e) {
+		Config::router(directive, value);
+	}
+	catch (std::exception const & e) {
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ e.what()));
 	}
 }
 
-void Config::parseIndex(std::string &line) {
-	std::string	value = line;
+typedef void (Config::*parseFunctionType)(std::string&);
+
+void Config::router(std::string& directive, std::string& value) {
+    std::string 		directives[] = {"autoindex",
+							"client_max_body_size", "error_page", "index", "root"};
+    parseFunctionType	parseFunction[] = {&Config::parseAutoindex,
+							&Config::parseMaxBodySize, &Config::parseErrorPage,
+							&Config::parseIndex, &Config::parseRoot};
+
+	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {
+        if (directives[i] == directive) {
+            (this->*parseFunction[i])(value);
+            return;
+        }
+    }
+	throw (std::runtime_error("Unknown command\n"));
+}
+
+void Config::parseAutoindex(std::string& value) {
+	if (value == "on;")
+		_autoindex = true;
+	else if (value == "off;")
+		_autoindex = false;
+	else
+		throw (std::runtime_error(SYNTAX_AUTOINDEX));
+}
+
+void Config::parseMaxBodySize(std::string& value) {
+	ssize_t		convertValue;
+
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error(SYNTAX_MAX_BODY_SIZE));
+	value.erase(value.end() - 1);
+	convertValue = parseSize(value);
+	if (convertValue == -1)
+		throw (std::runtime_error(SYNTAX_SIZE));
+	_maxBodySize = convertValue;
+}
+
+void Config::parseErrorPage(std::string &value) {
+	std::string uri;
+
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error(SYNTAX_ERROR_PAGE));
+    value.erase(value.end() - 1);
+	uri = GetUriErrorPage(value);
+	while (!value.empty()) {
+		_errorPage[getNextCode(value)] = uri;
+		if (value.size() > 3 && value[3] != ' ')
+			throw (std::runtime_error(SYNTAX_ERROR_PAGE));
+		if (value.size() > 4)
+			value.erase(0, 4);
+		else
+			value.erase(0, 3);
+	}
+}
+
+void Config::parseIndex(std::string &value) {
 	std::string	file;
 
-	value.erase(0, std::strlen("index "));
-	if (*(line.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error("Invalid format: `" + line + "`\n"
-			+ "Syntax: \"index\" 1*( SP file ) \";\""));
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error(SYNTAX_INDEX));
     value.erase(value.end() - 1);
 	if (_isDefaultIndex == true) {
 		_isDefaultIndex = false;
@@ -138,8 +136,7 @@ void Config::parseIndex(std::string &line) {
 	while (!value.empty()) {
 		file = getNextFile(value);
 		if (file.empty())
-			throw (std::runtime_error("Invalid format: `" + line + "`\n"
-				+ "Files must be separated by a single space"));
+			throw (std::runtime_error("Files must be separated by a single space"));
 		_index.push_back(file);
 		value.erase(0, file.size());
 		if (value.size() != 1)
@@ -147,20 +144,12 @@ void Config::parseIndex(std::string &line) {
 	}
 }
 
-void Config::parseRoot(std::string &line) {
-	std::string	value = line;
+void Config::parseRoot(std::string &value) {
 
-	value.erase(0, std::strlen("root "));
-	if (*(line.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error("Invalid format: `" + line + "`\n"
-			+ "Syntax: \"root\" SP path \";\""));
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error(SYNTAX_ROOT));
     value.erase(value.end() - 1);
-	try {
-		_root = parsePath(value);
-	} catch (std::runtime_error const & e) {
-		throw (std::runtime_error("Invalid format: `" + line + "`\n"
-			+ e.what()));
-	}
+	_root = parsePath(value);
 }
 
 void Config::parseServer(std::ifstream &configFile) {
@@ -200,7 +189,7 @@ ssize_t Config::parseSize(std::string &value) {
 }
 
 /**
- * @brief takes a string and removes quote char (", ').
+ * @brief takes a string and removes quotes (", ').
  *  Also handles \" and \'
  */
 std::string Config::removeQuote(std::string &str) {
@@ -305,4 +294,14 @@ std::string Config::GetUriErrorPage(std::string &value) {
 	uri = value.substr(indexLastSpace + 1);
 	value.erase(indexLastSpace);
 	return (removeQuote(uri));
+}
+
+#include <iostream>
+
+void Config::print() {
+	std::cout << "Autoindex: " << _autoindex << std::endl;
+	std::cout << "Max body size: " << _maxBodySize << std::endl;
+	std::cout << "Error pages: " << _errorPage.begin()->second << std::endl;
+	std::cout << "Index: " << _index.front() << std::endl;
+	std::cout << "Root: " << _root << std::endl;
 }
