@@ -13,6 +13,9 @@
 #include "VirtualServerConfig.hpp"
 
 #include <fstream>
+#include <cstring>
+#include <cstdlib>
+#include <cmath>
 
 Config::Config() {
 	_index.push_back(DEFAULT_INDEX);
@@ -82,10 +85,10 @@ void Config::parseMaxBodySize(std::string &line) {
 	ssize_t		convertValue;
 
 	value.erase(0, std::strlen("client_max_body_size "));
-	if (line.back() != ';' || value.size() == 1)
+	if (*(line.end() - 1) != ';' || value.size() == 1)
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"client_max_body_size\" SP size \";\""));
-	value.pop_back();
+	value.erase(value.end() - 1);
 	convertValue = parseSize(value);
 	if (convertValue == -1)
 		throw (std::runtime_error("Invalid size: `" + line + "`\n"
@@ -94,14 +97,14 @@ void Config::parseMaxBodySize(std::string &line) {
 }
 
 void Config::parseErrorPage(std::string &line) {
-	std::string				value = line;
-	std::string				uri;
+	std::string value = line;
+	std::string uri;
 
 	value.erase(0, std::strlen("error_page "));
-	if (line.back() != ';' || value.size() == 1)
+	if (*(line.end() - 1) != ';' || value.size() == 1)
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"error_page\" 1*( SP code ) SP uri \";\""));
-	value.pop_back();
+    value.erase(value.end() - 1);
 	try {
 		uri = GetUriErrorPage(value);
 		while (!value.empty()) {
@@ -124,10 +127,10 @@ void Config::parseIndex(std::string &line) {
 	std::string	file;
 
 	value.erase(0, std::strlen("index "));
-	if (line.back() != ';' || value.size() == 1)
+	if (*(line.end() - 1) != ';' || value.size() == 1)
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"index\" 1*( SP file ) \";\""));
-	value.pop_back();
+    value.erase(value.end() - 1);
 	if (_isDefaultIndex == true) {
 		_isDefaultIndex = false;
 		_index.clear();
@@ -148,10 +151,10 @@ void Config::parseRoot(std::string &line) {
 	std::string	value = line;
 
 	value.erase(0, std::strlen("root "));
-	if (line.back() != ';' || value.size() == 1)
+	if (*(line.end() - 1) != ';' || value.size() == 1)
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Syntax: \"root\" SP path \";\""));
-	value.pop_back();
+    value.erase(value.end() - 1);
 	try {
 		_root = parsePath(value);
 	} catch (std::runtime_error const & e) {
@@ -212,7 +215,7 @@ std::string Config::removeQuote(std::string &str) {
 			while (i < str.size() && (str[i] != quote
 					|| (str[i] == quote && str[i - 1] == '\\'))) {
 				if (str[i] == quote)
-					result.back() = quote;
+					*(result.end() - 1) = quote;
 				else
 					result += str[i];
 				++i;
@@ -221,7 +224,7 @@ std::string Config::removeQuote(std::string &str) {
 				throw (std::runtime_error(std::string("Missing: `")
 					+ quote + '`'));
 		} else if ((str[i] == '"' || str[i] == '\'') && str[i -1] == '\\')
-			result.back() = str[i];
+			*(result.end() - 1) = str[i];
 		else
 			result += str[i];
 	}
@@ -242,13 +245,13 @@ std::string Config::getNextFile(std::string &value) {
 			while (i < value.size() && (value[i] != quote
 				|| (value[i] == quote && value[i - 1] == '\\'))) {
 				if (value[i] == quote)
-					file.back() = quote;
+					*(file.end() - 1) = quote;
 				else
 					file += value[i];
 				++i;
 			}
 		} else if ((value[i] == '"' || value[i] == '\'') && value[i - 1] == '\\')
-			file.back() = value[i];
+			*(file.end() - 1) = value[i];
 		else
 			file += value[i];
 	}
