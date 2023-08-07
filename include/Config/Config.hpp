@@ -48,7 +48,7 @@ private:
 	static ssize_t		parseSize(std::string& value);
 	static std::string	removeQuote(std::string& str);
 	static std::string	getNextFile(std::string& value);
-	static uint16_t		getNextCode(std::string& value);
+	static uint16_t		getNextErrorCode(std::string& value);
 	static std::string	GetUriErrorPage(std::string& value);
 
 protected:
