@@ -121,7 +121,7 @@ $(NAME):			$(OBJ) .build/main.o
 -include			$(DEPS_TEST)
 
 $(NAME_TEST):		$(OBJ_TEST) $(OBJ)
-					$(CXX) -std=c++14 $(IFLAGS) -I $(LIB_DIR)googletest/googletest/include -L$(LIB_DIR)googletest/.build/lib -lgtest $^ -o $@
+					$(CXX) -std=c++14 $(IFLAGS) -I $(LIB_DIR)googletest/googletest/include $^ -L$(LIB_DIR)googletest/.build/lib -lgtest -o $@
 
 ##################
 #	OBJECTS FILES
