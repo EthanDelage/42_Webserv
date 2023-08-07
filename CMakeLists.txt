@@ -1,0 +1,182 @@
+cmake_minimum_required(VERSION 3.25)
+project(Webserv)
+
+set(CMAKE_CXX_STANDARD 14)
+
+include_directories(include)
+include_directories(lib/googletest/googlemock/include)
+include_directories(lib/googletest/googlemock/include/gmock)
+include_directories(lib/googletest/googlemock/include/gmock/internal)
+include_directories(lib/googletest/googlemock/include/gmock/internal/custom)
+include_directories(lib/googletest/googletest/include)
+include_directories(lib/googletest/googletest/include/gtest)
+include_directories(lib/googletest/googletest/include/gtest/internal)
+include_directories(lib/googletest/googletest/include/gtest/internal/custom)
+include_directories(lib/googletest/googletest/samples)
+include_directories(lib/googletest/googletest/src)
+include_directories(lib/googletest/googletest/test)
+
+add_executable(Webserv
+        include/Config/Config.hpp
+        lib/googletest/googlemock/include/gmock/internal/custom/gmock-generated-actions.h
+        lib/googletest/googlemock/include/gmock/internal/custom/gmock-matchers.h
+        lib/googletest/googlemock/include/gmock/internal/custom/gmock-port.h
+        lib/googletest/googlemock/include/gmock/internal/gmock-internal-utils.h
+        lib/googletest/googlemock/include/gmock/internal/gmock-port.h
+        lib/googletest/googlemock/include/gmock/internal/gmock-pp.h
+        lib/googletest/googlemock/include/gmock/gmock-actions.h
+        lib/googletest/googlemock/include/gmock/gmock-cardinalities.h
+        lib/googletest/googlemock/include/gmock/gmock-function-mocker.h
+        lib/googletest/googlemock/include/gmock/gmock-matchers.h
+        lib/googletest/googlemock/include/gmock/gmock-more-actions.h
+        lib/googletest/googlemock/include/gmock/gmock-more-matchers.h
+        lib/googletest/googlemock/include/gmock/gmock-nice-strict.h
+        lib/googletest/googlemock/include/gmock/gmock-spec-builders.h
+        lib/googletest/googlemock/include/gmock/gmock.h
+        lib/googletest/googlemock/src/gmock-all.cc
+        lib/googletest/googlemock/src/gmock-cardinalities.cc
+        lib/googletest/googlemock/src/gmock-internal-utils.cc
+        lib/googletest/googlemock/src/gmock-matchers.cc
+        lib/googletest/googlemock/src/gmock-spec-builders.cc
+        lib/googletest/googlemock/src/gmock.cc
+        lib/googletest/googlemock/src/gmock_main.cc
+        lib/googletest/googlemock/test/gmock-actions_test.cc
+        lib/googletest/googlemock/test/gmock-cardinalities_test.cc
+        lib/googletest/googlemock/test/gmock-function-mocker_test.cc
+        lib/googletest/googlemock/test/gmock-internal-utils_test.cc
+        lib/googletest/googlemock/test/gmock-matchers-arithmetic_test.cc
+        lib/googletest/googlemock/test/gmock-matchers-comparisons_test.cc
+        lib/googletest/googlemock/test/gmock-matchers-containers_test.cc
+        lib/googletest/googlemock/test/gmock-matchers-misc_test.cc
+        lib/googletest/googlemock/test/gmock-matchers_test.h
+        lib/googletest/googlemock/test/gmock-more-actions_test.cc
+        lib/googletest/googlemock/test/gmock-nice-strict_test.cc
+        lib/googletest/googlemock/test/gmock-port_test.cc
+        lib/googletest/googlemock/test/gmock-pp-string_test.cc
+        lib/googletest/googlemock/test/gmock-pp_test.cc
+        lib/googletest/googlemock/test/gmock-spec-builders_test.cc
+        lib/googletest/googlemock/test/gmock_all_test.cc
+        lib/googletest/googlemock/test/gmock_ex_test.cc
+        lib/googletest/googlemock/test/gmock_leak_test_.cc
+        lib/googletest/googlemock/test/gmock_link2_test.cc
+        lib/googletest/googlemock/test/gmock_link_test.cc
+        lib/googletest/googlemock/test/gmock_link_test.h
+        lib/googletest/googlemock/test/gmock_output_test_.cc
+        lib/googletest/googlemock/test/gmock_stress_test.cc
+        lib/googletest/googlemock/test/gmock_test.cc
+        lib/googletest/googletest/include/gtest/internal/custom/gtest-port.h
+        lib/googletest/googletest/include/gtest/internal/custom/gtest-printers.h
+        lib/googletest/googletest/include/gtest/internal/custom/gtest.h
+        lib/googletest/googletest/include/gtest/internal/gtest-death-test-internal.h
+        lib/googletest/googletest/include/gtest/internal/gtest-filepath.h
+        lib/googletest/googletest/include/gtest/internal/gtest-internal.h
+        lib/googletest/googletest/include/gtest/internal/gtest-param-util.h
+        lib/googletest/googletest/include/gtest/internal/gtest-port-arch.h
+        lib/googletest/googletest/include/gtest/internal/gtest-port.h
+        lib/googletest/googletest/include/gtest/internal/gtest-string.h
+        lib/googletest/googletest/include/gtest/internal/gtest-type-util.h
+        lib/googletest/googletest/include/gtest/gtest-assertion-result.h
+        lib/googletest/googletest/include/gtest/gtest-death-test.h
+        lib/googletest/googletest/include/gtest/gtest-matchers.h
+        lib/googletest/googletest/include/gtest/gtest-message.h
+        lib/googletest/googletest/include/gtest/gtest-param-test.h
+        lib/googletest/googletest/include/gtest/gtest-printers.h
+        lib/googletest/googletest/include/gtest/gtest-spi.h
+        lib/googletest/googletest/include/gtest/gtest-test-part.h
+        lib/googletest/googletest/include/gtest/gtest-typed-test.h
+        lib/googletest/googletest/include/gtest/gtest.h
+        lib/googletest/googletest/include/gtest/gtest_pred_impl.h
+        lib/googletest/googletest/include/gtest/gtest_prod.h
+        lib/googletest/googletest/samples/prime_tables.h
+        lib/googletest/googletest/samples/sample1.cc
+        lib/googletest/googletest/samples/sample1.h
+        lib/googletest/googletest/samples/sample10_unittest.cc
+        lib/googletest/googletest/samples/sample1_unittest.cc
+        lib/googletest/googletest/samples/sample2.cc
+        lib/googletest/googletest/samples/sample2.h
+        lib/googletest/googletest/samples/sample2_unittest.cc
+        lib/googletest/googletest/samples/sample3-inl.h
+        lib/googletest/googletest/samples/sample3_unittest.cc
+        lib/googletest/googletest/samples/sample4.cc
+        lib/googletest/googletest/samples/sample4.h
+        lib/googletest/googletest/samples/sample4_unittest.cc
+        lib/googletest/googletest/samples/sample5_unittest.cc
+        lib/googletest/googletest/samples/sample6_unittest.cc
+        lib/googletest/googletest/samples/sample7_unittest.cc
+        lib/googletest/googletest/samples/sample8_unittest.cc
+        lib/googletest/googletest/samples/sample9_unittest.cc
+        lib/googletest/googletest/src/gtest-all.cc
+        lib/googletest/googletest/src/gtest-assertion-result.cc
+        lib/googletest/googletest/src/gtest-death-test.cc
+        lib/googletest/googletest/src/gtest-filepath.cc
+        lib/googletest/googletest/src/gtest-internal-inl.h
+        lib/googletest/googletest/src/gtest-matchers.cc
+        lib/googletest/googletest/src/gtest-port.cc
+        lib/googletest/googletest/src/gtest-printers.cc
+        lib/googletest/googletest/src/gtest-test-part.cc
+        lib/googletest/googletest/src/gtest-typed-test.cc
+        lib/googletest/googletest/src/gtest.cc
+        lib/googletest/googletest/src/gtest_main.cc
+        lib/googletest/googletest/test/googletest-break-on-failure-unittest_.cc
+        lib/googletest/googletest/test/googletest-catch-exceptions-test_.cc
+        lib/googletest/googletest/test/googletest-color-test_.cc
+        lib/googletest/googletest/test/googletest-death-test-test.cc
+        lib/googletest/googletest/test/googletest-death-test_ex_test.cc
+        lib/googletest/googletest/test/googletest-env-var-test_.cc
+        lib/googletest/googletest/test/googletest-failfast-unittest_.cc
+        lib/googletest/googletest/test/googletest-filepath-test.cc
+        lib/googletest/googletest/test/googletest-filter-unittest_.cc
+        lib/googletest/googletest/test/googletest-global-environment-unittest_.cc
+        lib/googletest/googletest/test/googletest-list-tests-unittest_.cc
+        lib/googletest/googletest/test/googletest-listener-test.cc
+        lib/googletest/googletest/test/googletest-message-test.cc
+        lib/googletest/googletest/test/googletest-options-test.cc
+        lib/googletest/googletest/test/googletest-output-test_.cc
+        lib/googletest/googletest/test/googletest-param-test-invalid-name1-test_.cc
+        lib/googletest/googletest/test/googletest-param-test-invalid-name2-test_.cc
+        lib/googletest/googletest/test/googletest-param-test-test.cc
+        lib/googletest/googletest/test/googletest-param-test-test.h
+        lib/googletest/googletest/test/googletest-param-test2-test.cc
+        lib/googletest/googletest/test/googletest-port-test.cc
+        lib/googletest/googletest/test/googletest-printers-test.cc
+        lib/googletest/googletest/test/googletest-setuptestsuite-test_.cc
+        lib/googletest/googletest/test/googletest-shuffle-test_.cc
+        lib/googletest/googletest/test/googletest-test-part-test.cc
+        lib/googletest/googletest/test/googletest-throw-on-failure-test_.cc
+        lib/googletest/googletest/test/googletest-uninitialized-test_.cc
+        lib/googletest/googletest/test/gtest-typed-test2_test.cc
+        lib/googletest/googletest/test/gtest-typed-test_test.cc
+        lib/googletest/googletest/test/gtest-typed-test_test.h
+        lib/googletest/googletest/test/gtest-unittest-api_test.cc
+        lib/googletest/googletest/test/gtest_all_test.cc
+        lib/googletest/googletest/test/gtest_assert_by_exception_test.cc
+        lib/googletest/googletest/test/gtest_dirs_test.cc
+        lib/googletest/googletest/test/gtest_environment_test.cc
+        lib/googletest/googletest/test/gtest_help_test_.cc
+        lib/googletest/googletest/test/gtest_list_output_unittest_.cc
+        lib/googletest/googletest/test/gtest_main_unittest.cc
+        lib/googletest/googletest/test/gtest_no_test_unittest.cc
+        lib/googletest/googletest/test/gtest_pred_impl_unittest.cc
+        lib/googletest/googletest/test/gtest_premature_exit_test.cc
+        lib/googletest/googletest/test/gtest_prod_test.cc
+        lib/googletest/googletest/test/gtest_repeat_test.cc
+        lib/googletest/googletest/test/gtest_skip_in_environment_setup_test.cc
+        lib/googletest/googletest/test/gtest_skip_test.cc
+        lib/googletest/googletest/test/gtest_sole_header_test.cc
+        lib/googletest/googletest/test/gtest_stress_test.cc
+        lib/googletest/googletest/test/gtest_test_macro_stack_footprint_test.cc
+        lib/googletest/googletest/test/gtest_testbridge_test_.cc
+        lib/googletest/googletest/test/gtest_throw_on_failure_ex_test.cc
+        lib/googletest/googletest/test/gtest_unittest.cc
+        lib/googletest/googletest/test/gtest_xml_outfile1_test_.cc
+        lib/googletest/googletest/test/gtest_xml_outfile2_test_.cc
+        lib/googletest/googletest/test/gtest_xml_output_unittest_.cc
+        lib/googletest/googletest/test/production.cc
+        lib/googletest/googletest/test/production.h
+        src/config/Config.cpp
+        src/config/LocationConfig.cpp
+        src/config/LocationConfig.hpp
+        src/config/VirtualServerConfig.cpp
+        src/config/VirtualServerConfig.hpp
+        src/main.cpp
+        test/main.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.hpp)
