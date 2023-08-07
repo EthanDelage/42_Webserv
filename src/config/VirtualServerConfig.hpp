@@ -38,6 +38,8 @@ public:
 	VirtualServerConfig(VirtualServerConfig const & other);
 	~VirtualServerConfig() {};
 
+	void parse(std::ifstream& configFile);
+
 };
 
 #endif

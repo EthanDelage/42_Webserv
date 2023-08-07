@@ -149,7 +149,10 @@ void Config::parseRoot(std::string &value) {
 }
 
 void Config::parseServer(std::ifstream &configFile) {
-	(void) configFile;
+	VirtualServerConfig	newServerConfig(*this);
+
+	newServerConfig.parse(configFile);
+	_serverConfig.push_back(newServerConfig);
 }
 
 std::string Config::parsePath(std::string &value) {

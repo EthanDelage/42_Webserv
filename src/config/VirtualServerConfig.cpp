@@ -31,3 +31,7 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_port = other._port;
 	_locationConfig = other._locationConfig;
 }
+
+void VirtualServerConfig::parse(std::ifstream &configFile) {
+	(void)configFile;
+}

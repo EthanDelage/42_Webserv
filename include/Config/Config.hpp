@@ -39,7 +39,7 @@ class Config {
 	friend class ConfigTest;
 
 private:
-	std::vector<VirtualServerConfig *>	_serverConfig;
+	std::vector<VirtualServerConfig>	_serverConfig;
 
 	void							parseLine(std::string& line, std::ifstream& configFile);
     void                			router(std::string& directive, std::string& value);
