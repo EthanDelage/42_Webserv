@@ -118,6 +118,7 @@ TEST_F(ConfigTest, testMultipleIndexDirectives) {
 TEST_F(ConfigTest, testParseIndexInvalid) {
 	EXPECT_THROW(parseIndexTest("index ;"), std::runtime_error);
 	EXPECT_THROW(parseIndexTest("index test ;"), std::runtime_error);
+	EXPECT_THROW(parseIndexTest("index test  ;"), std::runtime_error);
 	EXPECT_THROW(parseIndexTest("index test  tost;"), std::runtime_error);
 	EXPECT_THROW(parseIndexTest("index \"\";"), std::runtime_error);
 	EXPECT_THROW(parseIndexTest("index test tost \"\";"), std::runtime_error);

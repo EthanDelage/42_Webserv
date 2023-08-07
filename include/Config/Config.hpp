@@ -29,9 +29,9 @@
 # define SYNTAX_MAX_BODY_SIZE	"Syntax: \"client_max_body_size\" SP size \";\""
 # define SYNTAX_SIZE			"Syntax: 1*DIGIT [ \"k\" | \"m\" ]"
 # define SYNTAX_ERROR_PAGE		"Syntax: \"error_page\" 1*( SP code ) SP uri \";\""
+# define SYNTAX_ERROR_CODE		"Syntax: code = 3DIGIT"
 # define SYNTAX_INDEX			"Syntax: \"index\" 1*( SP file ) \";\""
 # define SYNTAX_ROOT			"Syntax: \"root\" SP path \";\""
-
 
 class VirtualServerConfig;
 
@@ -41,15 +41,16 @@ class Config {
 private:
 	std::vector<VirtualServerConfig *>	_serverConfig;
 
-	void				parseLine(std::string& line, std::ifstream& configFile);
-    void                router(std::string& directive, std::string& value);
-	void				parseServer(std::ifstream& configFile);
-	static std::string	parsePath(std::string& value);
-	static ssize_t		parseSize(std::string& value);
-	static std::string	removeQuote(std::string& str);
-	static std::string	getNextFile(std::string& value);
-	static uint16_t		getNextErrorCode(std::string& value);
-	static std::string	GetUriErrorPage(std::string& value);
+	void							parseLine(std::string& line, std::ifstream& configFile);
+    void                			router(std::string& directive, std::string& value);
+	void							parseServer(std::ifstream& configFile);
+	static std::string				parsePath(std::string& value);
+	static ssize_t					parseSize(std::string& value);
+	static std::string				removeQuote(std::string& str);
+	static std::string				getNextFile(std::string& value);
+	static uint16_t					getErrorCode(std::string& value);
+	static void						skipQuotes(std::string& str, size_t& index);
+	static std::vector<std::string>	split(std::string& str, std::string const syntax);
 
 protected:
 	bool								_autoindex;

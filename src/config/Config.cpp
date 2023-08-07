@@ -106,24 +106,21 @@ void Config::parseMaxBodySize(std::string& value) {
 }
 
 void Config::parseErrorPage(std::string &value) {
-	std::string uri;
+	std::vector<std::string>			argv;
+	std::string							uri;
+	std::vector<std::string>::iterator	it;
 
 	if (*(value.end() - 1) != ';' || value.size() == 1)
 		throw (std::runtime_error(SYNTAX_ERROR_PAGE));
-    value.erase(value.end() - 1);
-	uri = GetUriErrorPage(value);
-	while (!value.empty()) {
-		_errorPage[getNextErrorCode(value)] = uri;
-		if (value.size() > 3 && value[3] != ' ')
-			throw (std::runtime_error(SYNTAX_ERROR_PAGE));
-		if (value.size() > 4)
-			value.erase(0, 4);
-		else
-			value.erase(0, 3);
-	}
+	value.erase(value.end() - 1);
+	argv = split(value, SYNTAX_ERROR_PAGE);
+	if (argv.size() <= 1)
+		throw (std::runtime_error(SYNTAX_ERROR_PAGE));
+	uri = argv.back();
+	argv.pop_back();
+	for (it = argv.begin(); it != argv.end(); it++)
+		_errorPage[getErrorCode(*it)] = uri;
 }
-
-#include <iostream>
 
 void Config::parseIndex(std::string &value) {
 	std::string	file;
@@ -137,7 +134,6 @@ void Config::parseIndex(std::string &value) {
 	}
 	while (!value.empty()) {
 		file = getNextFile(value);
-		std::cout << "file: " << file << std::endl;
 		if (file.empty())
 			throw (std::runtime_error(SYNTAX_INDEX));
 		_index.push_back(file);
@@ -227,20 +223,8 @@ std::string Config::getNextFile(std::string &value) {
 	std::string	file;
 	size_t		i;
 
-	std::cout << "value: " << value << '|' << std::endl;
 	for (i = 0; i < value.size() && value[i] != ' '; i++) {
-		if (value[i] == '"')
-		{
-			i++;
-			while (i < value.size() && value[i] != '"')
-				i++;
-		}
-		else if (value[i] == '\'')
-		{
-			i++;
-			while (i < value.size() && value[i] != '\'')
-				i++;
-		}
+		skipQuotes(value, i);
 	}
 	if (value[i] == ' ' && value[i + 1] == '\0')
 		throw (std::runtime_error(SYNTAX_INDEX));
@@ -252,50 +236,58 @@ std::string Config::getNextFile(std::string &value) {
 /**
  * @brief get the next code format: code = 3DIGIT
  */
-uint16_t Config::getNextErrorCode(std::string &value) {
+uint16_t Config::getErrorCode(std::string &value) {
 	uint16_t	code = 0;
 
-	if (value[0] == ' ')
-		throw (std::runtime_error("Codes must be separate by single space"));
+	if (value.size() != 3)
+		throw (std::runtime_error(SYNTAX_ERROR_CODE));
 	for (int i = 0; i < 3; ++i) {
 		if (!std::isdigit(value[i]))
-			throw (std::runtime_error("Syntax: code = 3DIGIT"));
+			throw (std::runtime_error(SYNTAX_ERROR_CODE));
 		code = code * 10 + (value[i] - '0');
 	}
 	if (code < 300 || code > 599)
-		throw (std::runtime_error('`' + value.substr(0, 3)
-			+ "`: code must be between 300 and 599"));
+		throw (std::runtime_error("code must be between 300 and 599"));
 	return (code);
 }
 
-/**
- * @brief get the uri and remove it from value
- * @return uri
- */
-std::string Config::GetUriErrorPage(std::string &value) {
-	size_t		indexLastSpace = 0;
-	char		quote = 0;
-	std::string	uri;
-
-	for (size_t i = 0; i != value.size(); ++i) {
-		if (value[i] == ' ' && quote == 0)
-			indexLastSpace = i;
-		else if ((value[i] == '\'' || value[i] == '"')
-			&& (i == 0 || value[i - 1] != '\\')
-			&& quote == 0)
-			quote = value[i];
-		else if ((value[i] == '\'' || value[i] == '"')
-			&& (i == 0 || value[i - 1] != '\\')
-			&& quote == value[i])
-			quote = 0;
+void Config::skipQuotes(std::string& str, size_t& index) {
+	if (str[index] == '"' && (index == 0 || str[index - 1] != '\\'))
+	{
+		++index;
+		while (index < str.size()
+			&& str[index] != '"' && str[index - 1] != '\\')
+			++index;
 	}
-	if (indexLastSpace == 0)
-		throw (std::runtime_error("Invalid number of arguments"));
-	else if (indexLastSpace == value.size() - 1)
-		throw (std::runtime_error("Space after uri"));
-	uri = value.substr(indexLastSpace + 1);
-	value.erase(indexLastSpace);
-	return (removeQuote(uri));
+	else if (str[index] == '\'' && (index == 0 || str[index - 1] != '\\'))
+	{
+		++index;
+		while (index < str.size()
+			&& str[index] != '\'' && str[index - 1] != '\\')
+			++index;
+	}
+}
+
+std::vector<std::string> Config::split(std::string& str, std::string const syntax) {
+	std::vector<std::string>	argv;
+	size_t						start;
+	std::string					arg;
+
+	if (str[0] == ' ' || str[str.size() - 1] == ' ')
+		throw (std::runtime_error(syntax));
+	for (size_t i = 0; i < str.size(); ++i) {
+		start = i;
+		while (str[i] && str[i] != ' ') {
+			skipQuotes(str, i);
+			++i;
+		}
+		arg = str.substr(start, i - start);
+		removeQuote(arg);
+		argv.push_back(arg);
+		if (str[i] && str[i + 1] == ' ')
+			throw (std::runtime_error(syntax));
+	}
+	return (argv);
 }
 
 #include <iostream>
