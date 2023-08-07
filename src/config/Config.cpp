@@ -76,11 +76,11 @@ void Config::router(std::string& directive, std::string& value) {
 		&Config::parseIndex, &Config::parseRoot};
 
 	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {
-        if (directives[i] == directive) {
-            (this->*parseFunction[i])(value);
-            return;
-        }
-    }
+		if (directives[i] == directive) {
+			(this->*parseFunction[i])(value);
+			return;
+		}
+	}
 	throw (std::runtime_error("Unknown command\n"));
 }
 
@@ -123,6 +123,8 @@ void Config::parseErrorPage(std::string &value) {
 	}
 }
 
+#include <iostream>
+
 void Config::parseIndex(std::string &value) {
 	std::string	file;
 
@@ -135,6 +137,7 @@ void Config::parseIndex(std::string &value) {
 	}
 	while (!value.empty()) {
 		file = getNextFile(value);
+		std::cout << "file: " << file << std::endl;
 		if (file.empty())
 			throw (std::runtime_error(SYNTAX_INDEX));
 		_index.push_back(file);
@@ -224,6 +227,7 @@ std::string Config::getNextFile(std::string &value) {
 	std::string	file;
 	size_t		i;
 
+	std::cout << "value: " << value << '|' << std::endl;
 	for (i = 0; i < value.size() && value[i] != ' '; i++) {
 		if (value[i] == '"')
 		{
@@ -238,6 +242,8 @@ std::string Config::getNextFile(std::string &value) {
 				i++;
 		}
 	}
+	if (value[i] == ' ' && value[i + 1] == '\0')
+		throw (std::runtime_error(SYNTAX_INDEX));
 	file = value.substr(0, i);
 	value.erase(0, i + 1);
 	return (removeQuote(file));
@@ -300,7 +306,7 @@ void Config::print() {
 	std::cout << "Error pages: " << _errorPage.begin()->second << std::endl;
 	std::cout << "Index:";
 	for (std::vector<std::string>::iterator i = _index.begin(); i !=  _index.end(); i++)
-		std::cout << " | " << *i;
+		std::cout << *i << " | ";
 	std::cout << std::endl;
 	std::cout << "Root: " << _root << std::endl;
 }
