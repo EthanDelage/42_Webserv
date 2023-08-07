@@ -136,12 +136,27 @@ void Config::parseIndex(std::string &value) {
 	while (!value.empty()) {
 		file = getNextFile(value);
 		if (file.empty())
-			throw (std::runtime_error("Files must be separated by a single space"));
+			throw (std::runtime_error(SYNTAX_INDEX));
 		_index.push_back(file);
-		value.erase(0, file.size());
-		if (value.size() != 1)
-			value.erase(0, 1);
 	}
+//	std::string	file;
+//
+//	if (*(value.end() - 1) != ';' || value.size() == 1)
+//		throw (std::runtime_error(SYNTAX_INDEX));
+//    value.erase(value.end() - 1);
+//	if (_isDefaultIndex == true) {
+//		_isDefaultIndex = false;
+//		_index.clear();
+//	}
+//	while (!value.empty()) {
+//		file = getNextFile(value);
+//		if (file.empty())
+//			throw (std::runtime_error("Files must be separated by a single space"));
+//		_index.push_back(file);
+//		value.erase(0, file.size());
+//		if (value.size() != 1)
+//			value.erase(0, 1);
+//	}
 }
 
 void Config::parseRoot(std::string &value) {
@@ -225,26 +240,46 @@ std::string Config::removeQuote(std::string &str) {
  */
 std::string Config::getNextFile(std::string &value) {
 	std::string	file;
-	char		quote;
+	size_t		i;
 
-	for (size_t i = 0; i < value.size() && value[i] != ' '; ++i) {
-		if ((value[i] == '"' || value[i] == '\'')
-			&& (i == 0 || value[i - 1] != '\\')) {
-			quote = value[i++];
-			while (i < value.size() && (value[i] != quote
-				|| (value[i] == quote && value[i - 1] == '\\'))) {
-				if (value[i] == quote)
-					*(file.end() - 1) = quote;
-				else
-					file += value[i];
-				++i;
-			}
-		} else if ((value[i] == '"' || value[i] == '\'') && value[i - 1] == '\\')
-			*(file.end() - 1) = value[i];
-		else
-			file += value[i];
+	for (i = 0; i < value.size() && value[i] != ' '; i++) {
+		if (value[i] == '"')
+		{
+			i++;
+			while (i < value.size() && value[i] != '"')
+				i++;
+		}
+		else if (value[i] == '\'')
+		{
+			i++;
+			while (i < value.size() && value[i] != '\'')
+				i++;
+		}
 	}
-	return (file);
+	file = value.substr(0, i);
+	value.erase(0, i + 1);
+	return (removeQuote(file));
+//	std::string				file;
+//	char		quote;
+//
+//	for (size_t i = 0; i < value.size() && value[i] != ' '; ++i) {
+//		if ((value[i] == '"' || value[i] == '\'')
+//			&& (i == 0 || value[i - 1] != '\\')) {
+//			quote = value[i++];
+//			while (i < value.size() && (value[i] != quote
+//				|| (value[i] == quote && value[i - 1] == '\\'))) {
+//				if (value[i] == quote)
+//					*(file.end() - 1) = quote;
+//				else
+//					file += value[i];
+//				++i;
+//			}
+//		} else if ((value[i] == '"' || value[i] == '\'') && value[i - 1] == '\\')
+//			*(file.end() - 1) = value[i];
+//		else
+//			file += value[i];
+//	}
+//	return (file);
 }
 
 /**
@@ -302,6 +337,9 @@ void Config::print() {
 	std::cout << "Autoindex: " << _autoindex << std::endl;
 	std::cout << "Max body size: " << _maxBodySize << std::endl;
 	std::cout << "Error pages: " << _errorPage.begin()->second << std::endl;
-	std::cout << "Index: " << _index.front() << std::endl;
+	std::cout << "Index:";
+	for (std::vector<std::string>::iterator i = _index.begin(); i !=  _index.end(); i++)
+		std::cout << ' ' << *i;
+	std::cout << std::endl;
 	std::cout << "Root: " << _root << std::endl;
 }
