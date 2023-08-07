@@ -201,36 +201,41 @@ TEST_F(ConfigTest, testParseErrorPageInvalid) {
 }
 
 int ConfigTest::parseAutoindexTest(char* line) {
-	std::string lineStr(line);
+	std::string 	lineStr(line);
+	std::ifstream*	empty;
 
-	config.parseAutoindex(lineStr);
+	config.parseLine(lineStr, *empty);
 	return (config._autoindex);
 }
 
 size_t ConfigTest::parseMaxBodySizeTest(char *line) {
 	std::string	lineStr(line);
+	std::ifstream*	empty;
 
-	config.parseMaxBodySize(lineStr);
+	config.parseLine(lineStr, *empty);
 	return (config._maxBodySize);
 }
 
 std::string ConfigTest::parseRootTest(char *line) {
-	std::string	lineStr(line);
+	std::string		lineStr(line);
+	std::ifstream*	empty;
 
-	config.parseRoot(lineStr);
+	config.parseLine(lineStr, *empty);
 	return (config._root);
 }
 
 std::vector<std::string> ConfigTest::parseIndexTest(char *line) {
-	std::string	lineStr(line);
+	std::string		lineStr(line);
+	std::ifstream*	empty;
 
-	config.parseIndex(lineStr);
+	config.parseLine(lineStr, *empty);
 	return (config._index);
 }
 
 std::map<uint16_t, std::string> ConfigTest::parseErrorPage(char *line) {
-	std::string	lineStr(line);
+	std::string		lineStr(line);
+	std::ifstream*	empty;
 
-	config.parseErrorPage(lineStr);
+	config.parseLine(lineStr, *empty);
 	return (config._errorPage);
 }
