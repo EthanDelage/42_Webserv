@@ -22,9 +22,13 @@
 # define DEFAULT_PORT		80
 # define DEFAULT_ADDRESS	"*"
 
+# define SYNTAX_LISTEN		"Syntax: \"listen\" SP port | ( address [ \":\" port ] ) [ SP \"default\" ] \";\""
+# define SYNTAX_SERVER_NAME	"Syntax: \"server_name\" 1*( SP hostname | address ) \";\""
+
 class LocationConfig;
 
 class VirtualServerConfig : public Config {
+	typedef void (VirtualServerConfig::*parseFunctionType)(std::string&);
 
 private:
 	bool							_isDefault;
@@ -33,13 +37,20 @@ private:
 	uint16_t						_port;
 	std::vector<LocationConfig *>	_locationConfig;
 
+	void	parseLine(std::string& line);
+	void	router(std::string& directive, std::string& value);
+
+protected:
+	void parseListen(std::string& value);
+	void parseServerName(std::string& value);
+
 public:
 	VirtualServerConfig(Config const & config);
 	VirtualServerConfig(VirtualServerConfig const & other);
 	~VirtualServerConfig() {};
 
 	void parse(std::ifstream& configFile);
-
+	void print();
 };
 
 #endif

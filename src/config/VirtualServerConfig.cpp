@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 #include "VirtualServerConfig.hpp"
 #include "LocationConfig.hpp"
+#include <cstdlib>
 
 VirtualServerConfig::VirtualServerConfig(Config const & config) : Config(config) {
 	_isDefault = true;
@@ -32,6 +33,103 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_locationConfig = other._locationConfig;
 }
 
-void VirtualServerConfig::parse(std::ifstream &configFile) {
-	(void)configFile;
+void VirtualServerConfig::parse(std::ifstream& configFile) {
+	std::string	line;
+
+	std::getline(configFile, line);
+	while (!configFile.eof())
+	{
+		std::getline(configFile, line);
+		if (!line.empty())
+			parseLine(line);
+	}
+}
+
+void VirtualServerConfig::parseLine(std::string& line) {
+	std::string	directive;
+	std::string	value;
+	size_t		separator;
+
+	separator = line.find(' ');
+	directive = line.substr(0, separator);
+	value = line.substr(separator + 1, line.size());
+	try {
+		router(directive, value);
+	}
+	catch (std::exception const & e) {
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ e.what()));
+	}
+}
+
+void VirtualServerConfig::router(std::string& directive, std::string& value) {
+	std::string	directives[] = {
+		"autoindex",
+		"client_max_body_size",
+		"error_page",
+		"index",
+		"listen",
+		"root",
+		"server_name"
+	};
+	parseFunctionType	parseFunction[] = {
+		&VirtualServerConfig::parseAutoindex,
+		&VirtualServerConfig::parseMaxBodySize,
+		&VirtualServerConfig::parseErrorPage,
+		&VirtualServerConfig::parseIndex,
+		&VirtualServerConfig::parseListen,
+		&VirtualServerConfig::parseRoot,
+		&VirtualServerConfig::parseServerName,
+	};
+
+	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {
+		if (directives[i] == directive) {
+			(this->*parseFunction[i])(value);
+			return;
+		}
+	}
+	throw (std::runtime_error("Unknown command\n"));
+}
+
+void VirtualServerConfig::parseListen(std::string& value) {
+	double	conversion;
+	char*	endptr;
+	size_t	separator;
+
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error(SYNTAX_MAX_BODY_SIZE));
+	value.erase(value.end() - 1);
+	conversion = std::strtod(value.c_str(), &endptr);
+	if (*endptr != '\0' && *endptr != ':')
+		throw (std::runtime_error(SYNTAX_LISTEN));
+	_port = static_cast<uint8_t>(conversion);
+	if (*endptr == ':') {
+		separator = value.find(':');
+		_address = value.substr(separator + 1);
+	}
+}
+
+void VirtualServerConfig::parseServerName(std::string& value) {
+	std::vector<std::string>			argv;
+	std::vector<std::string>::iterator	it;
+
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error(SYNTAX_MAX_BODY_SIZE));
+	value.erase(value.end() - 1);
+	argv = Config::split(value, SYNTAX_SERVER_NAME);
+	for (it = argv.begin(); it != argv.end(); it++)
+		_serverNames.push_back(*it);
+}
+
+#include <iostream>
+
+void VirtualServerConfig::print() {
+	std::cout << "VIRTUAL SERVER" << std::endl;
+	Config::print();
+	std::cout << "Port: " << _port << std::endl;
+	std::cout << "Address: " << _address << std::endl;
+	std::cout << "Server Names: ";
+	for (std::vector<std::string>::iterator i = _serverNames.begin(); i !=  _serverNames.end(); i++)
+		std::cout << *i << " | ";
+	std::cout << std::endl;
 }

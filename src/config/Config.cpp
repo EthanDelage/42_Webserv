@@ -53,7 +53,11 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 	std::string	value;
 	size_t		separator;
 
-	(void)configFile;
+	if (line == "server {")
+	{
+		parseServer(configFile);
+		return;
+	}
 	separator = line.find(' ');
 	directive = line.substr(0, separator);
 	value = line.substr(separator + 1, line.size());
@@ -65,8 +69,6 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 			+ e.what()));
 	}
 }
-
-typedef void (Config::*parseFunctionType)(std::string&);
 
 void Config::router(std::string& directive, std::string& value) {
     std::string 		directives[] = {"autoindex",
@@ -149,9 +151,10 @@ void Config::parseRoot(std::string &value) {
 }
 
 void Config::parseServer(std::ifstream &configFile) {
-	VirtualServerConfig	newServerConfig(*this);
+	VirtualServerConfig*	newServerConfig = new VirtualServerConfig(*this);
 
-	newServerConfig.parse(configFile);
+	newServerConfig->parse(configFile);
+	newServerConfig->print();
 	_serverConfig.push_back(newServerConfig);
 }
 
@@ -296,6 +299,7 @@ std::vector<std::string> Config::split(std::string& str, std::string const synta
 #include <iostream>
 
 void Config::print() {
+	std::cout << "CONFIG" << std::endl;
 	std::cout << "Autoindex: " << _autoindex << std::endl;
 	std::cout << "Max body size: " << _maxBodySize << std::endl;
 	std::cout << "Error pages: " << _errorPage.begin()->second << std::endl;

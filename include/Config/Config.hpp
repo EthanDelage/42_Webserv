@@ -38,8 +38,10 @@ class VirtualServerConfig;
 class Config {
 	friend class ConfigTest;
 
+	typedef void (Config::*parseFunctionType)(std::string&);
+
 private:
-	std::vector<VirtualServerConfig>	_serverConfig;
+	std::vector<VirtualServerConfig *>	_serverConfig;
 
 	void							parseLine(std::string& line, std::ifstream& configFile);
     void                			router(std::string& directive, std::string& value);
@@ -50,7 +52,6 @@ private:
 	static std::string				getNextFile(std::string& value);
 	static uint16_t					getErrorCode(std::string& value);
 	static void						skipQuotes(std::string& str, size_t& index);
-	static std::vector<std::string>	split(std::string& str, std::string const syntax);
 
 protected:
 	bool								_autoindex;
@@ -66,13 +67,15 @@ protected:
 	void	parseIndex(std::string& line);
 	void	parseRoot(std::string& line);
 
+	static std::vector<std::string>	split(std::string& str, std::string const syntax);
+
 public:
 	Config();
 	Config(Config const & other);
-	~Config() {};
+	virtual ~Config() {};
 
 	void parse(char* configFilename);
-	void print();
+	virtual void print();
 };
 
 #endif
