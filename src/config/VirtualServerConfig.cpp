@@ -13,6 +13,14 @@
 #include "LocationConfig.hpp"
 #include <cstdlib>
 
+#ifdef UNIT_TESTING
+VirtualServerConfig::VirtualServerConfig() : Config() {
+	_isDefault = true;
+	_address = DEFAULT_ADDRESS;
+	_port = DEFAULT_PORT;
+}
+#endif
+
 VirtualServerConfig::VirtualServerConfig(Config const & config) : Config(config) {
 	_isDefault = true;
 	_address = DEFAULT_ADDRESS;
@@ -94,8 +102,6 @@ void VirtualServerConfig::router(std::string& directive, std::string& value) {
 	throw (std::runtime_error("Unknown command\n"));
 }
 
-#include <iostream>
-
 void VirtualServerConfig::parseListen(std::string& value) {
 	double	conversion;
 	char*	endptr;
@@ -108,7 +114,6 @@ void VirtualServerConfig::parseListen(std::string& value) {
 		value.erase(0,separator + 1);
 	}
 	conversion = std::strtod(value.c_str(), &endptr);
-	std::cout << "endptr: " << endptr << std::endl;
 	if (*endptr != '\0')
 		throw (std::runtime_error(SYNTAX_LISTEN));
 	_port = static_cast<uint8_t>(conversion);

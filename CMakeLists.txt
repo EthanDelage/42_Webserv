@@ -179,4 +179,6 @@ add_executable(Webserv
         src/config/VirtualServerConfig.cpp
         src/config/VirtualServerConfig.hpp
         src/main.cpp
-        test/main.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.hpp)
+        test/main.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.hpp
+        test/Config/VirtualServerConfigTest.hpp
+        test/Config/VirtualServerConfigTest.cpp)

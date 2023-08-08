@@ -17,16 +17,18 @@ TEST_F(ConfigTest, testParseAutoindexValid) {
 	EXPECT_EQ(parseAutoindexTest("autoindex off;"), false);
 }
 
-TEST_F(ConfigTest, testParseAutoindexInvalidInput) {
+TEST_F(ConfigTest, testParseAutoindexInvalid) {
 	EXPECT_THROW(parseAutoindexTest("autoindex  off;"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest(" autoindex off;"), std::runtime_error);
 	EXPECT_THROW(parseAutoindexTest("autoindex off; "), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("autoindex off ;"), std::runtime_error);
 	EXPECT_THROW(parseAutoindexTest("autoindex off"), std::runtime_error);
 	EXPECT_THROW(parseAutoindexTest("autoindex on"), std::runtime_error);
 	EXPECT_THROW(parseAutoindexTest("autoindexon"), std::runtime_error);
 	EXPECT_THROW(parseAutoindexTest("autoindex ;"), std::runtime_error);
 	EXPECT_THROW(parseAutoindexTest("autoindex no;"), std::runtime_error);
 	EXPECT_THROW(parseAutoindexTest("autoindex ono;"), std::runtime_error);
-	EXPECT_THROW(parseAutoindexTest("auto index ono;"), std::runtime_error);
+	EXPECT_THROW(parseAutoindexTest("auto index on;"), std::runtime_error);
 }
 
 TEST_F(ConfigTest, testParseMaxBodySizeValid) {

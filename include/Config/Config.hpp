@@ -38,7 +38,7 @@ class VirtualServerConfig;
 class Config {
 	typedef void (Config::*parseFunctionType)(std::string&);
 
-# ifndef UNIT_TESTING
+# ifdef UNIT_TESTING
 	friend class ConfigTest;
 # endif
 

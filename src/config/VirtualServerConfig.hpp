@@ -27,8 +27,13 @@
 
 class LocationConfig;
 
+
 class VirtualServerConfig : public Config {
 	typedef void (VirtualServerConfig::*parseFunctionType)(std::string&);
+
+# ifdef UNIT_TESTING
+	friend class VirtualServerConfigTest;
+# endif
 
 private:
 	bool							_isDefault;
@@ -45,6 +50,9 @@ protected:
 	void parseServerName(std::string& value);
 
 public:
+# ifdef UNIT_TESTING
+	VirtualServerConfig();
+# endif
 	VirtualServerConfig(Config const & config);
 	VirtualServerConfig(VirtualServerConfig const & other);
 	~VirtualServerConfig() {};
