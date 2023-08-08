@@ -26,10 +26,10 @@ protected:
 	std::vector<std::string>		parseIndexTest(char *line);
 	std::map<uint16_t, std::string>	parseErrorPage(char *line);
 
-	int							getAutoindex() const {return (config._autoindex);};
-	size_t 						getMaxBodySize() const {return (config._maxBodySize);};
-	std::string					getRoot() const {return (config._root);};
-	std::vector<std::string>	getIndex() const {return (config._index);}
+	int								getAutoindex() const {return (config._autoindex);};
+	size_t 							getMaxBodySize() const {return (config._maxBodySize);};
+	std::string						getRoot() const {return (config._root);};
+	std::vector<std::string>		getIndex() const {return (config._index);}
 	std::map<uint16_t, std::string>	getErrorPage() const {return (config._errorPage);}
 
 };

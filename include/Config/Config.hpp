@@ -36,9 +36,11 @@
 class VirtualServerConfig;
 
 class Config {
-	friend class ConfigTest;
-
 	typedef void (Config::*parseFunctionType)(std::string&);
+
+# ifndef UNIT_TESTING
+	friend class ConfigTest;
+# endif
 
 private:
 	std::vector<VirtualServerConfig *>	_serverConfig;
