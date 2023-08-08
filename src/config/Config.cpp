@@ -61,6 +61,10 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 	separator = line.find(' ');
 	directive = line.substr(0, separator);
 	value = line.substr(separator + 1, line.size());
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ "Missing `;`"));
+	value.erase(value.size() - 1);
 	try {
 		Config::router(directive, value);
 	}
@@ -87,23 +91,18 @@ void Config::router(std::string& directive, std::string& value) {
 }
 
 void Config::parseAutoindex(std::string& value) {
-	if (value == "on;")
+	if (value == "on")
 		_autoindex = true;
-	else if (value == "off;")
+	else if (value == "off")
 		_autoindex = false;
 	else
 		throw (std::runtime_error(SYNTAX_AUTOINDEX));
 }
 
 void Config::parseMaxBodySize(std::string& value) {
-	ssize_t		convertValue;
+	size_t		convertValue;
 
-	if (*(value.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error(SYNTAX_MAX_BODY_SIZE));
-	value.erase(value.end() - 1);
 	convertValue = parseSize(value);
-	if (convertValue == -1)
-		throw (std::runtime_error(SYNTAX_SIZE));
 	_maxBodySize = convertValue;
 }
 
@@ -112,9 +111,6 @@ void Config::parseErrorPage(std::string &value) {
 	std::string							uri;
 	std::vector<std::string>::iterator	it;
 
-	if (*(value.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error(SYNTAX_ERROR_PAGE));
-	value.erase(value.end() - 1);
 	argv = split(value, SYNTAX_ERROR_PAGE);
 	if (argv.size() <= 1)
 		throw (std::runtime_error(SYNTAX_ERROR_PAGE));
@@ -127,9 +123,6 @@ void Config::parseErrorPage(std::string &value) {
 void Config::parseIndex(std::string &value) {
 	std::string	file;
 
-	if (*(value.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error(SYNTAX_INDEX));
-    value.erase(value.end() - 1);
 	if (_isDefaultIndex == true) {
 		_isDefaultIndex = false;
 		_index.clear();
@@ -143,10 +136,6 @@ void Config::parseIndex(std::string &value) {
 }
 
 void Config::parseRoot(std::string &value) {
-
-	if (*(value.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error(SYNTAX_ROOT));
-    value.erase(value.end() - 1);
 	_root = parsePath(value);
 }
 
@@ -167,19 +156,21 @@ std::string Config::parsePath(std::string &value) {
 	return (path);
 }
 
+#include <iostream>
 /**
- * @brief converts a string in 'size' format to ssize_t
- * @return returns converted value or -1 on error
+ * @brief converts a 'size' formatted string to size_t
+ * @return the converted value
  */
-ssize_t Config::parseSize(std::string &value) {
+size_t Config::parseSize(std::string &value) {
 	char*	rest;
 	double	conversion = std::strtod(value.c_str(), &rest);
-	ssize_t	result = static_cast<ssize_t>(conversion);
+	size_t	result = static_cast<size_t>(conversion);
 
+	std::cout << rest <<std::endl;
 	if (!std::isdigit(value[0])
 		|| conversion != round(conversion)
 		|| value.find('.') != std::string::npos)
-		return (-1);
+		throw (std::runtime_error(SYNTAX_SIZE));
 	if (*rest == '\0')
 		return (result);
 	else if (*rest == 'k' && *(++rest) == '\0')
@@ -187,7 +178,7 @@ ssize_t Config::parseSize(std::string &value) {
 	else if (*rest == 'm' && *(++rest) == '\0')
 		return (result * 1 << 20);
 	else
-		return (-1);
+		throw (std::runtime_error(SYNTAX_SIZE));
 }
 
 /**

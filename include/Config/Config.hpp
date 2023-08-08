@@ -47,7 +47,7 @@ private:
     void                			router(std::string& directive, std::string& value);
 	void							parseServer(std::ifstream& configFile);
 	static std::string				parsePath(std::string& value);
-	static ssize_t					parseSize(std::string& value);
+	static size_t					parseSize(std::string& value);
 	static std::string				removeQuote(std::string& str);
 	static std::string				getNextFile(std::string& value);
 	static uint16_t					getErrorCode(std::string& value);
