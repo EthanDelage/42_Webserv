@@ -36,7 +36,6 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 void VirtualServerConfig::parse(std::ifstream& configFile) {
 	std::string	line;
 
-	std::getline(configFile, line);
 	while (!configFile.eof())
 	{
 		std::getline(configFile, line);
@@ -53,6 +52,10 @@ void VirtualServerConfig::parseLine(std::string& line) {
 	separator = line.find(' ');
 	directive = line.substr(0, separator);
 	value = line.substr(separator + 1, line.size());
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ "Missing `;`"));
+	value.erase(value.end() - 1);
 	try {
 		router(directive, value);
 	}
@@ -91,31 +94,30 @@ void VirtualServerConfig::router(std::string& directive, std::string& value) {
 	throw (std::runtime_error("Unknown command\n"));
 }
 
+#include <iostream>
+
 void VirtualServerConfig::parseListen(std::string& value) {
 	double	conversion;
 	char*	endptr;
 	size_t	separator;
 
-	if (*(value.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error(SYNTAX_MAX_BODY_SIZE));
-	value.erase(value.end() - 1);
+	separator = value.find(':');
+	if (separator != std::string::npos)
+	{
+		_address = value.substr(0, separator);
+		value.erase(0,separator + 1);
+	}
 	conversion = std::strtod(value.c_str(), &endptr);
-	if (*endptr != '\0' && *endptr != ':')
+	std::cout << "endptr: " << endptr << std::endl;
+	if (*endptr != '\0')
 		throw (std::runtime_error(SYNTAX_LISTEN));
 	_port = static_cast<uint8_t>(conversion);
-	if (*endptr == ':') {
-		separator = value.find(':');
-		_address = value.substr(separator + 1);
-	}
 }
 
 void VirtualServerConfig::parseServerName(std::string& value) {
 	std::vector<std::string>			argv;
 	std::vector<std::string>::iterator	it;
 
-	if (*(value.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error(SYNTAX_MAX_BODY_SIZE));
-	value.erase(value.end() - 1);
 	argv = Config::split(value, SYNTAX_SERVER_NAME);
 	for (it = argv.begin(); it != argv.end(); it++)
 		_serverNames.push_back(*it);
