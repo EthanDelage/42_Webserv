@@ -23,6 +23,8 @@
 # define POST_METHOD_MASK	0b00000010
 # define DELETE_METHOD_MASK	0b00000100
 
+# define SYNTAX_DENY "Syntax: \"deny\" SP \"GET\" | \"POST\" | \"DELETE\" \";\""
+
 class LocationConfig: public VirtualServerConfig {
 	typedef void (LocationConfig::*parseFunctionType)(std::string&);
 

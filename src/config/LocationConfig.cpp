@@ -44,7 +44,13 @@ void LocationConfig::parseLine(std::string& line) {
 	std::string	value;
 
 	lineLexer(line, directive, value);
-
+	try {
+		router(directive, value);
+	}
+	catch (std::exception const & e) {
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ e.what()));
+	}
 }
 
 void LocationConfig::router(std::string& directive, std::string& value) {
@@ -73,5 +79,12 @@ void LocationConfig::router(std::string& directive, std::string& value) {
 }
 
 void LocationConfig::parseDeny(std::string& value) {
-	(void)value;
+	if (value == "GET")
+		_allowedHttpMethod &= !GET_METHOD_MASK;
+	else if (value == "POST")
+		_allowedHttpMethod &= !POST_METHOD_MASK;
+	else if (value == "DELETE")
+		_allowedHttpMethod &= !DELETE_METHOD_MASK;
+	else
+		throw (std::runtime_error(SYNTAX_DENY));
 }

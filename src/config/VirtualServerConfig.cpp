@@ -13,6 +13,7 @@
 #include "LocationConfig.hpp"
 #include <cstdlib>
 #include <limits>
+#include <cmath>
 
 #ifdef UNIT_TESTING
 VirtualServerConfig::VirtualServerConfig() : Config() {
