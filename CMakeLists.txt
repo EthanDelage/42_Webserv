@@ -3,6 +3,8 @@ project(Webserv)
 
 set(CMAKE_CXX_STANDARD 14)
 
+add_definitions(-DUNIT_TESTING)
+
 include_directories(include)
 include_directories(lib/googletest/googlemock/include)
 include_directories(lib/googletest/googlemock/include/gmock)
