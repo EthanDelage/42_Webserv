@@ -103,18 +103,26 @@ void VirtualServerConfig::router(std::string& directive, std::string& value) {
 }
 
 void VirtualServerConfig::parseListen(std::string& value) {
-	double	conversion;
-	char*	endptr;
-	size_t	separator;
+	double						conversion;
+	char*						endptr;
+	size_t						separator;
+	std::vector<std::string>	argv;
 
+	argv = split(value, SYNTAX_LISTEN);
+	if (argv.size() != 1)
+		throw (std::runtime_error(SYNTAX_LISTEN));
 	separator = value.find(':');
 	if (separator != std::string::npos)
 	{
 		_address = value.substr(0, separator);
 		value.erase(0,separator + 1);
+		if (value.empty())
+			throw (std::runtime_error(SYNTAX_LISTEN));
 	}
 	conversion = std::strtod(value.c_str(), &endptr);
 	if (*endptr != '\0')
+		throw (std::runtime_error(SYNTAX_LISTEN));
+	if (conversion > UINT16_MAX || conversion < 0)
 		throw (std::runtime_error(SYNTAX_LISTEN));
 	_port = static_cast<uint8_t>(conversion);
 }

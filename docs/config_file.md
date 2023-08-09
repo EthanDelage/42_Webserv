@@ -50,7 +50,7 @@ Context: main, server, location
 ### listen:
 Specifies the address and port on which the server will listen to.
 ```
-listen = "listen" SP port | ( address [ ":" port ] ) [ SP "default" ] ";"
+listen = "listen" SP port | ( address [ ":" port ] )";"
 Default: *:80
 Context: server
 ```

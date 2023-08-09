@@ -18,6 +18,17 @@ TEST_F(VirtualServerConfigTest, testParseSingleServerName) {
 	EXPECT_EQ(parseServerNameTest("server_name localhost;"), serverNames);
 }
 
+TEST_F(VirtualServerConfigTest, testParseQuoteServerName) {
+	std::vector<std::string> serverNames;
+
+	serverNames.push_back("\"test test2\"");
+	EXPECT_EQ(parseServerNameTest("server_name \"test test2\";"), serverNames);
+	serverNames.push_back("\"127.0.0.1\"");
+	EXPECT_EQ(parseServerNameTest("server_name \"127.0.0.1\";"), serverNames);
+	serverNames.push_back("\"my address\"");
+	EXPECT_EQ(parseServerNameTest("server_name \"my address\";"), serverNames);
+}
+
 TEST_F(VirtualServerConfigTest, testParseMultipleServerName) {
 	std::vector<std::string> serverNames;
 
@@ -38,9 +49,73 @@ TEST_F(VirtualServerConfigTest, testParseMultipleServerNameDirectives) {
 	EXPECT_EQ(parseServerNameTest("server_name tost;"), serverNames);
 }
 
+TEST_F(VirtualServerConfigTest, testParseInvalidServerName) {
+	EXPECT_ANY_THROW(parseServerNameTest("server_name test ;"));
+	EXPECT_ANY_THROW(parseServerNameTest("server_name  test;"));
+	EXPECT_ANY_THROW(parseServerNameTest("server_name test  test2;"));
+	EXPECT_ANY_THROW(parseServerNameTest("server_name test test2 ;"));
+	EXPECT_ANY_THROW(parseServerNameTest("server_name \"test test2\" ;"));
+}
+
+TEST_F(VirtualServerConfigTest, testParseDefaultListen) {
+	EXPECT_EQ(getAddress(), DEFAULT_ADDRESS);
+	EXPECT_EQ(getPort(), DEFAULT_PORT);
+}
+
+TEST_F(VirtualServerConfigTest, testParseSingleListen) {
+	std::pair<std::string, uint8_t>	listen;
+
+	listen.first = "127.0.0.1";
+	listen.second = 42;
+	EXPECT_EQ(parseListenTest("listen 127.0.0.1:42;"), listen);
+}
+
+TEST_F(VirtualServerConfigTest, testParseSingleAddressListen) {
+	std::pair<std::string, uint8_t>	listen;
+
+	listen.first = "127.0.0.1";
+	listen.second = DEFAULT_PORT;
+	EXPECT_EQ(parseListenTest("listen 127.0.0.1;"), listen);
+}
+
+TEST_F(VirtualServerConfigTest, testParseSinglePortListen) {
+	std::pair<std::string, uint8_t>	listen;
+
+	listen.first = DEFAULT_ADDRESS;
+	listen.second = 42;
+	EXPECT_EQ(parseListenTest("listen 42;"), listen);
+}
+
+TEST_F(VirtualServerConfigTest, testParseInvalidListen) {
+	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:42"));
+	EXPECT_ANY_THROW(parseListenTest("listen  127.0.0.1:42;"));
+	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:42 ;"));
+	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1 :42;"));
+	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1: 42;"));
+	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1 : 42;"));
+	EXPECT_ANY_THROW(parseListenTest("listen 42:127.0.0.1;"));
+	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:;"));
+	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:test;"));
+	EXPECT_ANY_THROW(parseListenTest("listen test:test;"));
+	EXPECT_ANY_THROW(parseListenTest("listen test:42a;"));
+	EXPECT_ANY_THROW(parseListenTest("listen test;"));
+	EXPECT_ANY_THROW(parseListenTest("listen 99999999999999999999999;"));
+	EXPECT_ANY_THROW(parseListenTest("listen -1;"));
+}
+
 std::vector<std::string> VirtualServerConfigTest::parseServerNameTest(char* line) {
 	std::string		lineStr(line);
 
 	virtualServerConfig.parseLine(lineStr);
 	return (virtualServerConfig._serverNames);
+}
+
+std::pair<std::string, uint8_t>	VirtualServerConfigTest::parseListenTest(char* line) {
+	std::string						lineStr(line);
+	std::pair<std::string, uint8_t>	ret;
+
+	virtualServerConfig.parseLine(lineStr);
+	ret.first = virtualServerConfig._address;
+	ret.second = virtualServerConfig._port;
+	return (ret);
 }

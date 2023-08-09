@@ -22,7 +22,7 @@
 # define DEFAULT_PORT		80
 # define DEFAULT_ADDRESS	"*"
 
-# define SYNTAX_LISTEN		"Syntax: \"listen\" SP port | ( address [ \":\" port ] ) [ SP \"default\" ] \";\""
+# define SYNTAX_LISTEN		"Syntax: \"listen\" SP port | ( address [ \":\" port ] ) \";\""
 # define SYNTAX_SERVER_NAME	"Syntax: \"server_name\" 1*( SP hostname | address ) \";\""
 
 class LocationConfig;
