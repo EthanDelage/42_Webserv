@@ -63,6 +63,7 @@ protected:
 	bool								_isDefaultIndex;
 	std::string 						_root;
 
+	void	lineLexer(std::string& line, std::string& directive, std::string& value);
 	void	parseAutoindex(std::string& line);
 	void	parseMaxBodySize(std::string& line);
 	void	parseErrorPage(std::string& line);
@@ -76,7 +77,7 @@ public:
 	Config(Config const & other);
 	virtual ~Config() {};
 
-	void parse(char* configFilename);
+	virtual void parse(char* configFilename);
 	virtual void print();
 };
 

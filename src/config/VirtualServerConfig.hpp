@@ -24,6 +24,8 @@
 
 # define SYNTAX_LISTEN		"Syntax: \"listen\" SP port | ( address [ \":\" port ] ) \";\""
 # define SYNTAX_SERVER_NAME	"Syntax: \"server_name\" 1*( SP hostname | address ) \";\""
+# define SYNTAX_ADDRESS		"Syntax: 1*3DIGIT 3 ( \".\" 1*3DIGIT )"
+# define SYNTAX_PORT		"Syntax: 1*DIGIT"
 
 class LocationConfig;
 
@@ -42,8 +44,11 @@ private:
 	uint16_t						_port;
 	std::vector<LocationConfig *>	_locationConfig;
 
-	void	parseLine(std::string& line);
-	void	router(std::string& directive, std::string& value);
+	void			parseLine(std::string& line);
+	void			router(std::string& directive, std::string& value);
+	static bool		isValidIP(std::string const & str);
+	static uint8_t	getIpByte(std::string const & address, size_t& index);
+	static uint16_t	getPort(std::string const & str);
 
 protected:
 	void parseListen(std::string& value);
@@ -57,7 +62,7 @@ public:
 	VirtualServerConfig(VirtualServerConfig const & other);
 	~VirtualServerConfig() {};
 
-	void parse(std::ifstream& configFile);
+	virtual void parse(std::ifstream& configFile);
 	void print();
 };
 

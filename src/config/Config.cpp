@@ -51,20 +51,13 @@ void Config::parse(char* configFilename) {
 void Config::parseLine(std::string& line, std::ifstream& configFile) {
 	std::string	directive;
 	std::string	value;
-	size_t		separator;
 
 	if (line == "server {")
 	{
 		parseServer(configFile);
 		return;
 	}
-	separator = line.find(' ');
-	directive = line.substr(0, separator);
-	value = line.substr(separator + 1, line.size());
-	if (*(value.end() - 1) != ';' || value.size() == 1)
-		throw (std::runtime_error("Invalid format: `" + line + "`\n"
-			+ "Missing `;`"));
-	value.erase(value.size() - 1);
+	lineLexer(line, directive, value);
 	try {
 		Config::router(directive, value);
 	}
@@ -74,12 +67,36 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 	}
 }
 
+void Config::lineLexer(std::string& line, std::string& directive, std::string& value) {
+	size_t		separator;
+
+	separator = line.find(' ');
+	if (separator == std::string::npos)
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+			+ "Unknown command"));
+	directive = line.substr(0, separator);
+	value = line.substr(separator + 1, line.size());
+	if (*(value.end() - 1) != ';' || value.size() == 1)
+		throw (std::runtime_error("Invalid format: `" + line + "`\n"
+								  + "Missing `;`"));
+	value.erase(value.size() - 1);
+}
+
 void Config::router(std::string& directive, std::string& value) {
-    std::string 		directives[] = {"autoindex",
-		"client_max_body_size", "error_page", "index", "root"};
-    parseFunctionType	parseFunction[] = {&Config::parseAutoindex,
-		&Config::parseMaxBodySize, &Config::parseErrorPage,
-		&Config::parseIndex, &Config::parseRoot};
+    std::string directives[] = {
+		"autoindex",
+		"client_max_body_size",
+		"error_page",
+		"index",
+		"root"
+	};
+    parseFunctionType	parseFunction[] = {
+		&Config::parseAutoindex,
+		&Config::parseMaxBodySize,
+		&Config::parseErrorPage,
+		&Config::parseIndex,
+		&Config::parseRoot
+	};
 
 	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {
 		if (directives[i] == directive) {
@@ -87,7 +104,7 @@ void Config::router(std::string& directive, std::string& value) {
 			return;
 		}
 	}
-	throw (std::runtime_error("Unknown command\n"));
+	throw (std::runtime_error("Unknown command"));
 }
 
 void Config::parseAutoindex(std::string& value) {

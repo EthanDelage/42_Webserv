@@ -24,9 +24,16 @@
 # define DELETE_METHOD_MASK	0b00000100
 
 class LocationConfig: public VirtualServerConfig {
+	typedef void (LocationConfig::*parseFunctionType)(std::string&);
 
 private:
 	uint8_t	_allowedHttpMethod;
+
+	void parseLine(std::string& line);
+	void router(std::string& directive, std::string& value);
+
+protected:
+	void parseDeny(std::string& value);
 
 public:
 	LocationConfig(VirtualServerConfig const & virtualServerConfig);
@@ -36,6 +43,7 @@ public:
 	bool	postMethodStatus() const;
 	bool	deleteMethodStatus() const;
 
+	void	parse(std::ifstream& configFile);
 };
 
 #endif

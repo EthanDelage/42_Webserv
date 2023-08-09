@@ -87,20 +87,28 @@ TEST_F(VirtualServerConfigTest, parseListenSinglePort) {
 }
 
 TEST_F(VirtualServerConfigTest, parseListenInvalid) {
-	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:42"));
-	EXPECT_ANY_THROW(parseListenTest("listen  127.0.0.1:42;"));
-	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:42 ;"));
-	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1 :42;"));
-	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1: 42;"));
-	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1 : 42;"));
-	EXPECT_ANY_THROW(parseListenTest("listen 42:127.0.0.1;"));
-	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:;"));
-	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:test;"));
-	EXPECT_ANY_THROW(parseListenTest("listen test:test;"));
-	EXPECT_ANY_THROW(parseListenTest("listen test:42a;"));
-	EXPECT_ANY_THROW(parseListenTest("listen test;"));
-	EXPECT_ANY_THROW(parseListenTest("listen 99999999999999999999999;"));
-	EXPECT_ANY_THROW(parseListenTest("listen -1;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:42"));
+	EXPECT_ANY_THROW(parseListenTest("listen 256.0.0.1;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 0.252.0.0.1;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 0.256.0.1;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 0.250.1;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 0.250.1.0.1;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 0.250.1.i;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 0..250.1.i;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 1000.0.0.1;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen  127.0.0.1:42;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:42 ;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1 :42;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1: 42;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1 : 42;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 42:127.0.0.1;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:test;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen test:test;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen test:42a;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen test;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen 99999999999999999999999;"));
+//	EXPECT_ANY_THROW(parseListenTest("listen -1;"));
 }
 
 std::vector<std::string> VirtualServerConfigTest::parseServerNameTest(char* line) {

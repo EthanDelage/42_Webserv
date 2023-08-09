@@ -96,12 +96,12 @@ Context: server
 
 ### Index
 ```
-address     = 1*3DIGIT 3 ( "." 1*3DIGIT )
+address     = 1*3DIGIT 3 ( "." 1*3DIGIT ) ;each fragment must be between 0 and 255
 code        = 3DIGIT ;must be between 300 and 599
 file        = 1*TEXT
 hostname    = *TEXT
 path        = 1*TEXT *( "/" 1*TEXT )
-port        = 1*DIGIT
+port        = 1*DIGIT ; must be under uint16_t max
 size        = 1*DIGIT [ "k" | "m" ]
 uri         = *TEXT
 ```
