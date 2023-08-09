@@ -11,14 +11,14 @@
 /* ************************************************************************** */
 #include "VirtualServerConfigTest.hpp"
 
-TEST_F(VirtualServerConfigTest, testParseSingleServerName) {
+TEST_F(VirtualServerConfigTest, parseSingleServerName) {
 	std::vector<std::string> serverNames;
 
 	serverNames.push_back("localhost");
 	EXPECT_EQ(parseServerNameTest("server_name localhost;"), serverNames);
 }
 
-TEST_F(VirtualServerConfigTest, testParseQuoteServerName) {
+TEST_F(VirtualServerConfigTest, parseQuoteServerName) {
 	std::vector<std::string> serverNames;
 
 	serverNames.push_back("\"test test2\"");
@@ -29,7 +29,7 @@ TEST_F(VirtualServerConfigTest, testParseQuoteServerName) {
 	EXPECT_EQ(parseServerNameTest("server_name \"my address\";"), serverNames);
 }
 
-TEST_F(VirtualServerConfigTest, testParseMultipleServerName) {
+TEST_F(VirtualServerConfigTest, parseMultipleServerName) {
 	std::vector<std::string> serverNames;
 
 	serverNames.push_back("localhost");
@@ -38,7 +38,7 @@ TEST_F(VirtualServerConfigTest, testParseMultipleServerName) {
 	EXPECT_EQ(parseServerNameTest("server_name localhost test tost;"), serverNames);
 }
 
-TEST_F(VirtualServerConfigTest, testParseMultipleServerNameDirectives) {
+TEST_F(VirtualServerConfigTest, parseMultipleServerNameDirectives) {
 	std::vector<std::string> serverNames;
 
 	serverNames.push_back("localhost");
@@ -49,20 +49,20 @@ TEST_F(VirtualServerConfigTest, testParseMultipleServerNameDirectives) {
 	EXPECT_EQ(parseServerNameTest("server_name tost;"), serverNames);
 }
 
-TEST_F(VirtualServerConfigTest, testParseInvalidServerName) {
-	EXPECT_ANY_THROW(parseServerNameTest("server_name test ;"));
-	EXPECT_ANY_THROW(parseServerNameTest("server_name  test;"));
-	EXPECT_ANY_THROW(parseServerNameTest("server_name test  test2;"));
-	EXPECT_ANY_THROW(parseServerNameTest("server_name test test2 ;"));
-	EXPECT_ANY_THROW(parseServerNameTest("server_name \"test test2\" ;"));
+TEST_F(VirtualServerConfigTest, parseServerNameInvalid) {
+	EXPECT_THROW(parseServerNameTest("server_name test ;"), std::runtime_error);
+	EXPECT_THROW(parseServerNameTest("server_name  test;"), std::runtime_error);
+	EXPECT_THROW(parseServerNameTest("server_name test  test2;"), std::runtime_error);
+	EXPECT_THROW(parseServerNameTest("server_name test test2 ;"), std::runtime_error);
+	EXPECT_THROW(parseServerNameTest("server_name \"test test2\" ;"), std::runtime_error);
 }
 
-TEST_F(VirtualServerConfigTest, testParseDefaultListen) {
+TEST_F(VirtualServerConfigTest, defaultListen) {
 	EXPECT_EQ(getAddress(), DEFAULT_ADDRESS);
 	EXPECT_EQ(getPort(), DEFAULT_PORT);
 }
 
-TEST_F(VirtualServerConfigTest, testParseSingleListen) {
+TEST_F(VirtualServerConfigTest, parseListenSingle) {
 	std::pair<std::string, uint8_t>	listen;
 
 	listen.first = "127.0.0.1";
@@ -70,7 +70,7 @@ TEST_F(VirtualServerConfigTest, testParseSingleListen) {
 	EXPECT_EQ(parseListenTest("listen 127.0.0.1:42;"), listen);
 }
 
-TEST_F(VirtualServerConfigTest, testParseSingleAddressListen) {
+TEST_F(VirtualServerConfigTest, ParseListenSingleAddress) {
 	std::pair<std::string, uint8_t>	listen;
 
 	listen.first = "127.0.0.1";
@@ -78,7 +78,7 @@ TEST_F(VirtualServerConfigTest, testParseSingleAddressListen) {
 	EXPECT_EQ(parseListenTest("listen 127.0.0.1;"), listen);
 }
 
-TEST_F(VirtualServerConfigTest, testParseSinglePortListen) {
+TEST_F(VirtualServerConfigTest, parseListenSinglePort) {
 	std::pair<std::string, uint8_t>	listen;
 
 	listen.first = DEFAULT_ADDRESS;
@@ -86,7 +86,7 @@ TEST_F(VirtualServerConfigTest, testParseSinglePortListen) {
 	EXPECT_EQ(parseListenTest("listen 42;"), listen);
 }
 
-TEST_F(VirtualServerConfigTest, testParseInvalidListen) {
+TEST_F(VirtualServerConfigTest, parseListenInvalid) {
 	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:42"));
 	EXPECT_ANY_THROW(parseListenTest("listen  127.0.0.1:42;"));
 	EXPECT_ANY_THROW(parseListenTest("listen 127.0.0.1:42 ;"));
