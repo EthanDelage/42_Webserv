@@ -160,7 +160,7 @@ void Config::parseServer(std::ifstream &configFile) {
 	VirtualServerConfig*	newServerConfig = new VirtualServerConfig(*this);
 
 	newServerConfig->parse(configFile);
-//	newServerConfig->print();
+	newServerConfig->print();
 	_serverConfig.push_back(newServerConfig);
 }
 

@@ -51,8 +51,9 @@ private:
 	static uint16_t	getPort(std::string const & str);
 
 protected:
-	void parseListen(std::string& value);
-	void parseServerName(std::string& value);
+	void		parseListen(std::string& value);
+	void		parseServerName(std::string& value);
+	static void	removeHorizontalTabAndSpace(std::string& line);
 
 public:
 # ifdef UNIT_TESTING

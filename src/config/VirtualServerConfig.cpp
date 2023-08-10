@@ -46,12 +46,17 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 void VirtualServerConfig::parse(std::ifstream& configFile) {
 	std::string	line;
 
-		while (!configFile.eof())
+	while (!configFile.eof())
 	{
 		std::getline(configFile, line);
-		if (!line.empty())
+		if (!line.empty()) {
+			if (line == "}")
+				return ;
+			removeHorizontalTabAndSpace(line);
 			parseLine(line);
+		}
 	}
+	throw (std::runtime_error("Missing `}` to close the server"));
 }
 
 void VirtualServerConfig::parseLine(std::string& line) {
@@ -98,7 +103,6 @@ void VirtualServerConfig::router(std::string& directive, std::string& value) {
 }
 
 void VirtualServerConfig::parseListen(std::string& value) {
-	double						conversion;
 	size_t						separator;
 	std::vector<std::string>	argv;
 
@@ -175,8 +179,16 @@ uint16_t VirtualServerConfig::getPort(std::string const & str) {
 	return (static_cast<uint16_t>(conversion));
 }
 
-#include <iostream>
+void VirtualServerConfig::removeHorizontalTabAndSpace(std::string& line) {
+	size_t	index = 0;
 
+	while (line[index] == '\t' || line[index] == ' ')
+		++index;
+	line.erase(0, index);
+}
+
+
+#include <iostream>
 void VirtualServerConfig::print() {
 	std::cout << "VIRTUAL SERVER" << std::endl;
 	Config::print();
