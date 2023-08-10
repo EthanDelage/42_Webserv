@@ -77,8 +77,8 @@ public:
 	Config(Config const & other);
 	virtual ~Config() {};
 
-	virtual void parse(char* configFilename);
-	virtual void print();
+	void			parse(char* configFilename);
+	virtual void	print();
 };
 
 #endif

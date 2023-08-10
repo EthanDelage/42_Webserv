@@ -160,7 +160,7 @@ void Config::parseServer(std::ifstream &configFile) {
 	VirtualServerConfig*	newServerConfig = new VirtualServerConfig(*this);
 
 	newServerConfig->parse(configFile);
-	newServerConfig->print();
+//	newServerConfig->print();
 	_serverConfig.push_back(newServerConfig);
 }
 
@@ -173,7 +173,6 @@ std::string Config::parsePath(std::string &value) {
 	return (path);
 }
 
-#include <iostream>
 /**
  * @brief converts a 'size' formatted string to size_t
  * @return the converted value
@@ -183,7 +182,6 @@ size_t Config::parseSize(std::string &value) {
 	double	conversion = std::strtod(value.c_str(), &rest);
 	size_t	result = static_cast<size_t>(conversion);
 
-	std::cout << rest <<std::endl;
 	if (!std::isdigit(value[0])
 		|| conversion != round(conversion)
 		|| value.find('.') != std::string::npos)

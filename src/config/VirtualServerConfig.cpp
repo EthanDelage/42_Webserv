@@ -99,7 +99,6 @@ void VirtualServerConfig::router(std::string& directive, std::string& value) {
 
 void VirtualServerConfig::parseListen(std::string& value) {
 	double						conversion;
-	char*						endptr;
 	size_t						separator;
 	std::vector<std::string>	argv;
 
@@ -111,12 +110,13 @@ void VirtualServerConfig::parseListen(std::string& value) {
 	{
 		_address = value.substr(0, separator);
 		value.erase(0,separator + 1);
-		if (value.empty())
+		if (value.empty() || !isValidIP(_address))
 			throw (std::runtime_error(SYNTAX_LISTEN));
-	}
-	if (!isValidIP(value)) {
-		conversion = getPort(value);
-		_port = static_cast<uint8_t>(conversion);
+		_port = getPort(value);
+	} else if (isValidIP(value)) {
+		_address = value;
+	} else {
+		_port = getPort(value);
 	}
 }
 
@@ -129,49 +129,37 @@ void VirtualServerConfig::parseServerName(std::string& value) {
 		_serverNames.push_back(*it);
 }
 
-#include <iostream>
 bool	VirtualServerConfig::isValidIP(std::string const & str) {
 	size_t	index = 0;
 
-	try {
-		getIpByte(str, index);
-	} catch (std::runtime_error const & e) {
+	if (!isValidIpByte(str, index))
 		return (false);
-	}
 	for (int i = 0; i < 3; ++i) {
 		if (str[index] != '.')
 			return (false);
 		index++;
-		try {
-			getIpByte(str, index);
-		} catch (std::runtime_error const & e) {
+		if (!isValidIpByte(str, index))
 			return (false);
-		}
 	}
-	std::cout << "TRUE" << std::endl;
+	if (str[index])
+		return (false);
 	return (true);
 }
 
-uint8_t VirtualServerConfig::getIpByte(std::string const & address, size_t& index) {
+bool VirtualServerConfig::isValidIpByte(std::string const & address, size_t& index) {
 	uint8_t	byte = 0;
 
 	if (!std::isdigit(address[index]))
-		throw (std::runtime_error(SYNTAX_ADDRESS));
+		return (false);
 	for (int i = 0; i < 3 && std::isdigit(address[index]); ++i) {
-		std::cout << address.c_str() + index << " -> " << (int) byte << std::endl;
-		if ((byte * 10 + (address[index] - '0')) / 10 != byte) {
-			std::cout << "throw" << std::endl;
-			throw (std::runtime_error(SYNTAX_ADDRESS));
-		}
+		if (((uint8_t) (byte * 10 + (address[index] - '0'))) / 10 != byte)
+			return (false);
 		byte = byte * 10 + (address[index] - '0');
 		++index;
-		std::cout << "test" << std::endl;
 	}
 	if (std::isdigit(address[index]))
-		throw (std::runtime_error(SYNTAX_ADDRESS));
-	std::cout << address << " -> " << (int) byte << std::endl;
-	std::cout << "endl" << std::endl;
-	return (byte);
+		return (false);
+	return (true);
 }
 
 uint16_t VirtualServerConfig::getPort(std::string const & str) {
