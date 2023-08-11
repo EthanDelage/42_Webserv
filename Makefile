@@ -38,6 +38,7 @@ SRC_TEST	=		main.cpp	\
 					\
 						Config/ConfigTest.cpp	\
 						Config/VirtualServerConfigTest.cpp	\
+						Config/LocationConfigTest.cpp	\
 					\
 
 OBJ_TEST	=		$(addprefix $(TEST_DIR)$(BUILD_DIR), $(SRC_TEST:.cpp=.o))
@@ -94,7 +95,6 @@ leaks:				$(NAME)
 .PHONY:				test
 test:
 					$(MAKE) gtest
-					$(RM) $(OBJ)
 					$(MAKE) gtestRun CFLAGS+="-D UNIT_TESTING"
 
 .PHONY:				gtest

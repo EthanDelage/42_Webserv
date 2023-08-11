@@ -11,9 +11,13 @@
 /* ************************************************************************** */
 #include "LocationConfig.hpp"
 
+#ifdef UNIT_TESTING
+	LocationConfig::LocationConfig() : _allowedHttpMethod(DEFAULT_METHOD_MASK) {}
+#endif
+
 LocationConfig::LocationConfig(VirtualServerConfig const & virtualServerConfig)
 	: VirtualServerConfig(virtualServerConfig) {
-	_allowedHttpMethod = 0b00000111;
+	_allowedHttpMethod = DEFAULT_METHOD_MASK;
 }
 
 bool LocationConfig::getMethodStatus() const {
@@ -34,8 +38,12 @@ void LocationConfig::parse(std::ifstream& configFile) {
 	while (!configFile.eof())
 	{
 		std::getline(configFile, line);
-		if (!line.empty())
+		if (!line.empty()) {
+			removeHorizontalTabAndSpace(line);
+			if (line == "}")
+				return ;
 			parseLine(line);
+		}
 	}
 }
 
@@ -80,11 +88,21 @@ void LocationConfig::router(std::string& directive, std::string& value) {
 
 void LocationConfig::parseDeny(std::string& value) {
 	if (value == "GET")
-		_allowedHttpMethod &= !GET_METHOD_MASK;
+		_allowedHttpMethod &= (0b11111111 - GET_METHOD_MASK);
 	else if (value == "POST")
-		_allowedHttpMethod &= !POST_METHOD_MASK;
+		_allowedHttpMethod &= (0b11111111 - POST_METHOD_MASK);
 	else if (value == "DELETE")
-		_allowedHttpMethod &= !DELETE_METHOD_MASK;
+		_allowedHttpMethod &= (0b11111111 - DELETE_METHOD_MASK);
 	else
 		throw (std::runtime_error(SYNTAX_DENY));
+}
+
+#include <iostream>
+void LocationConfig::print() {
+	std::cout << "LOCATION" << std::endl;
+	VirtualServerConfig::print();
+	std::cout << getMethodStatus() << std::endl;
+	std::cout << "Get:    " << (getMethodStatus() ? "Allowed": "Denied") << std::endl;
+	std::cout << "Post:   " << (postMethodStatus() ? "Allowed": "Denied") << std::endl;
+	std::cout << "Delete: " << (deleteMethodStatus() ? "Allowed": "Denied") << std::endl;
 }

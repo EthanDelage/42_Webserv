@@ -117,16 +117,18 @@ TEST_F(VirtualServerConfigTest, parseListenInvalid) {
 
 std::vector<std::string> VirtualServerConfigTest::parseServerNameTest(char* line) {
 	std::string		lineStr(line);
+	std::ifstream*	empty;
 
-	virtualServerConfig.parseLine(lineStr);
+	virtualServerConfig.parseLine(lineStr, *empty);
 	return (virtualServerConfig._serverNames);
 }
 
 std::pair<std::string, uint8_t>	VirtualServerConfigTest::parseListenTest(char* line) {
 	std::string						lineStr(line);
+	std::ifstream*					empty;
 	std::pair<std::string, uint8_t>	ret;
 
-	virtualServerConfig.parseLine(lineStr);
+	virtualServerConfig.parseLine(lineStr, *empty);
 	ret.first = virtualServerConfig._address;
 	ret.second = virtualServerConfig._port;
 	return (ret);

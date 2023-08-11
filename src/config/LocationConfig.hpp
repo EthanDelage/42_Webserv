@@ -19,25 +19,33 @@
 # include <stdint.h>
 # include "VirtualServerConfig.hpp"
 
-# define GET_METHOD_MASK	0b00000001
-# define POST_METHOD_MASK	0b00000010
-# define DELETE_METHOD_MASK	0b00000100
+# define DEFAULT_METHOD_MASK	0b00000111
+# define GET_METHOD_MASK		0b00000001
+# define POST_METHOD_MASK		0b00000010
+# define DELETE_METHOD_MASK		0b00000100
 
 # define SYNTAX_DENY "Syntax: \"deny\" SP \"GET\" | \"POST\" | \"DELETE\" \";\""
 
 class LocationConfig: public VirtualServerConfig {
 	typedef void (LocationConfig::*parseFunctionType)(std::string&);
 
+# ifdef UNIT_TESTING
+	friend class LocationConfigTest;
+# endif
+
 private:
 	uint8_t	_allowedHttpMethod;
 
-	void parseLine(std::string& line);
-	void router(std::string& directive, std::string& value);
+	void 	parseLine(std::string& line);
+	void 	router(std::string& directive, std::string& value);
 
 protected:
 	void parseDeny(std::string& value);
 
 public:
+# ifdef UNIT_TESTING
+	LocationConfig();
+# endif
 	LocationConfig(VirtualServerConfig const & virtualServerConfig);
 	~LocationConfig() {};
 
@@ -46,6 +54,7 @@ public:
 	bool	deleteMethodStatus() const;
 
 	void	parse(std::ifstream& configFile);
+	void	print();
 };
 
 #endif

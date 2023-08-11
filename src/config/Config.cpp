@@ -55,7 +55,7 @@ void Config::parseLine(std::string& line, std::ifstream& configFile) {
 	if (line == "server {")
 	{
 		parseServer(configFile);
-		return;
+		return ;
 	}
 	lineLexer(line, directive, value);
 	try {

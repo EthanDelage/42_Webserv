@@ -53,16 +53,20 @@ void VirtualServerConfig::parse(std::ifstream& configFile) {
 			if (line == "}")
 				return ;
 			removeHorizontalTabAndSpace(line);
-			parseLine(line);
+			parseLine(line, configFile);
 		}
 	}
 	throw (std::runtime_error("Missing `}` to close the server"));
 }
 
-void VirtualServerConfig::parseLine(std::string& line) {
+void VirtualServerConfig::parseLine(std::string& line, std::ifstream& configFile) {
 	std::string	directive;
 	std::string	value;
 
+	if (line == "location {") {
+		parseLocation(configFile);
+		return ;
+	}
 	lineLexer(line, directive, value);
 	try {
 		router(directive, value);
@@ -131,6 +135,14 @@ void VirtualServerConfig::parseServerName(std::string& value) {
 	argv = Config::split(value, SYNTAX_SERVER_NAME);
 	for (it = argv.begin(); it != argv.end(); it++)
 		_serverNames.push_back(*it);
+}
+
+void VirtualServerConfig::parseLocation(std::ifstream& configFile) {
+	LocationConfig*	newLocationConfig = new LocationConfig(*this);
+
+	newLocationConfig->parse(configFile);
+	newLocationConfig->print();
+	_locationConfig.push_back(newLocationConfig);
 }
 
 bool	VirtualServerConfig::isValidIP(std::string const & str) {

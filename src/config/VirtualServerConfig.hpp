@@ -44,8 +44,9 @@ private:
 	uint16_t						_port;
 	std::vector<LocationConfig *>	_locationConfig;
 
-	void			parseLine(std::string& line);
+	void			parseLine(std::string& line, std::ifstream& configFile);
 	void			router(std::string& directive, std::string& value);
+	void			parseLocation(std::ifstream& configFile);
 	static bool		isValidIP(std::string const & str);
 	static bool		isValidIpByte(std::string const & address, size_t& index);
 	static uint16_t	getPort(std::string const & str);
@@ -64,7 +65,7 @@ public:
 	~VirtualServerConfig() {};
 
 	virtual void parse(std::ifstream& configFile);
-	void print();
+	virtual void print();
 };
 
 #endif
