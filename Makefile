@@ -27,7 +27,7 @@ BUILD_DIR	=		.build/
 SRC			=		\
 						config/Config.cpp				\
 						config/VirtualServerConfig.cpp	\
-#						config/LocationConfig.cpp		\
+						config/LocationConfig.cpp		\
 					\
 
 OBJ			=		$(addprefix $(BUILD_DIR), $(SRC:.cpp=.o))
@@ -94,6 +94,7 @@ leaks:				$(NAME)
 .PHONY:				test
 test:
 					$(MAKE) gtest
+					$(RM) $(OBJ)
 					$(MAKE) gtestRun CFLAGS+="-D UNIT_TESTING"
 
 .PHONY:				gtest
