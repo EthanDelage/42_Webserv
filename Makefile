@@ -95,7 +95,7 @@ leaks:				$(NAME)
 .PHONY:				test
 test:
 					$(MAKE) gtest
-					$(MAKE) gtestRun CFLAGS+="-D UNIT_TESTING"
+					$(MAKE) gtestRun CFLAGS="-D UNIT_TESTING"
 
 .PHONY:				gtest
 gtest:
@@ -123,7 +123,7 @@ $(NAME):			$(OBJ) .build/main.o
 -include			$(DEPS_TEST)
 
 $(NAME_TEST):		$(OBJ) $(OBJ_TEST)
-					$(CXX) -std=c++14 $(IFLAGS) -I $(LIB_DIR)googletest/googletest/include $^ -L$(LIB_DIR)googletest/.build/lib -lgtest -o $@
+					$(CXX) -no-pie -std=c++14 $(IFLAGS) -I $(LIB_DIR)googletest/googletest/include $^ -L$(LIB_DIR)googletest/.build/lib -lgtest -lpthread -o $@
 
 ##################
 #	OBJECTS FILES
