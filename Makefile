@@ -97,6 +97,10 @@ test:
 					$(MAKE) gtest
 					$(MAKE) gtestRun CFLAGS="$(CFLAGS) -D UNIT_TESTING"
 
+.PHONY:				retest
+retest:				fclean
+					$(MAKE) test
+
 .PHONY:				gtest
 gtest:
 					mkdir -p $(LIB_DIR)googletest/$(BUILD_DIR)
