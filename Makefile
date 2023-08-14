@@ -95,7 +95,7 @@ leaks:				$(NAME)
 .PHONY:				test
 test:
 					$(MAKE) gtest
-					$(MAKE) gtestRun CFLAGS="-D UNIT_TESTING"
+					$(MAKE) gtestRun CFLAGS="$(CFLAGS) -D UNIT_TESTING"
 
 .PHONY:				gtest
 gtest:
@@ -134,5 +134,5 @@ $(BUILD_DIR)%.o:	$(SRC_DIR)%.cpp
 					$(CXX) $(CFLAGS) $(DFLAGS) $(IFLAGS) -c $< -o $@
 
 $(TEST_DIR)$(BUILD_DIR)%.o:	$(TEST_DIR)%.cpp
-							mkdir -p $(shell dirname $@)
-							$(CXX) -std=c++14 -D UNIT_TESTING $(DFLAGS) $(IFLAGS) -I $(LIB_DIR)googletest/googletest/include -c $< -o $@
+					mkdir -p $(shell dirname $@)
+					$(CXX) -std=c++14 -D UNIT_TESTING $(DFLAGS) $(IFLAGS) -I $(LIB_DIR)googletest/googletest/include -c $< -o $@
