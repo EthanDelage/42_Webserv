@@ -25,41 +25,59 @@ Server::Server() {
 
 Server::~Server() {
 	if (_socketArray != NULL) {
-
+		for (size_t i = 0; i < _nbSocket; ++i) {
+			if (_socketArray[i].fd == -1)
+				close(_socketArray[i].fd);
+		}
+		delete[] _socketArray;
 	}
 }
 
-#include <iostream>
-void Server::init(const Config& config) {
-	std::vector<socketAddress_t>	socketAddresses;
-
-	socketAddresses = getSocketAddresses(config.getServerConfig());
-	_nbSocket = socketAddresses.size();
-	_socketArray = new int[_nbSocket];
+void Server::init(Config const & config) {
+	getAddressArray(config.getServerConfig());
+	_config = config;
+	_nbSocket = _addressArray.size();
+	_socketArray = new pollfd[_nbSocket];
 	for (size_t i = 0; i < _nbSocket; ++i) {
-		std::cout << "IP: " << socketAddresses[i].first << std::endl;
-		std::cout << "Port: " << socketAddresses[i].second << std::endl << std::endl;
+		_socketArray[i].fd = -1;
+	}
+	for (size_t i = 0; i < _nbSocket; ++i) {
 		try {
-			_socketArray[i] = initSocket(socketAddresses[i]);
+			_socketArray[i].fd = initSocket(_addressArray[i]);
+			_socketArray[i].events = POLLIN;
+			_socketArray[i].revents = POLL_DEFAULT;
 		} catch (std::runtime_error const & e) {
 			throw (std::runtime_error(std::string("initSocket() failed: ") + e.what()));
 		}
 	}
 }
 
-std::vector<socketAddress_t> Server::getSocketAddresses(std::vector<VirtualServerConfig*> serverConfig) {
-	std::vector<socketAddress_t>	result;
-	socketAddress_t					socketAddress;
+void Server::listener() {
+	int	clientSocketFd;
+
+	while (true) {
+		if (poll(_socketArray, _nbSocket, POLL_TIMEOUT) == -1)
+			throw (std::runtime_error("poll() failed"));
+		for (size_t i = 0; i < _nbSocket; ++i) {
+			if (_socketArray[i].revents != POLL_DEFAULT) {
+				clientSocketFd = acceptClient(_socketArray[i].fd);
+				(void) clientSocketFd;
+			}
+		}
+	}
+}
+
+void	Server::getAddressArray(std::vector<VirtualServerConfig*> serverConfig) {
+	socketAddress_t										socketAddress;
 	std::vector<VirtualServerConfig*>::const_iterator 	it;
 
 	for (it = serverConfig.begin(); it != serverConfig.end(); ++it) {
 		socketAddress = (*it)->getSocketAddress();
 		if (socketAddress.first == "*")
 			socketAddress.first = ANY_ADDRESS;
-		if (std::find(result.begin(), result.end(), socketAddress) == result.end())
-			result.push_back(socketAddress);
+		if (std::find(_addressArray.begin(), _addressArray.end(), socketAddress) == _addressArray.end())
+			_addressArray.push_back(socketAddress);
 	}
-	return (result);
 }
 
 int Server::initSocket(socketAddress_t const & socketAddress) {
@@ -76,8 +94,26 @@ int Server::initSocket(socketAddress_t const & socketAddress) {
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = inet_addr(socketAddress.first.c_str());
 	address.sin_port = htons(socketAddress.second);
-	if (bind(socketFd, (sockaddr*) &address, sizeof(address)) == -1) {
+	if (bind(socketFd, (struct sockaddr*) &address, sizeof(address)) == -1) {
 		close(socketFd);
 		throw (std::runtime_error("bind() failed"));
 	}
+	if (listen(socketFd, QUEUE_LENGTH) == -1) {
+		close(socketFd);
+		throw(std::runtime_error("listen() failed"));
+	}
+	return (socketFd);
+}
+
+#include "iostream"
+int Server::acceptClient(int socketFd) {
+	int 				clientSocketFd;
+	struct sockaddr_in	address;
+	socklen_t			addressLength;
+
+	clientSocketFd = accept(socketFd, (struct sockaddr*) &address, &addressLength);
+	if (clientSocketFd == -1)
+		throw (std::runtime_error("accept() failed"));
+	std::cout << ntohs(address.sin_port) << std::endl;
+	return (clientSocketFd);
 }

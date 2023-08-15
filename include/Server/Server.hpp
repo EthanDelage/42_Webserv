@@ -15,22 +15,31 @@
 # include "Config/Config.hpp"
 # include "Config/VirtualServerConfig.hpp"
 
+# include <poll.h>
+
 # define ANY_ADDRESS	"0.0.0.0"
+# define QUEUE_LENGTH	32
+# define POLL_TIMEOUT	100
+# define POLL_DEFAULT	0
 
 class Server {
 
 private:
-	int*	_socketArray;
-	size_t	_nbSocket;
+	pollfd*							_socketArray;
+	std::vector<socketAddress_t>	_addressArray;
+	size_t							_nbSocket;
+	Config							_config;
 
-	std::vector<socketAddress_t>	getSocketAddresses(std::vector<VirtualServerConfig*> serverConfig);
-	static int						initSocket(socketAddress_t const & socketAddress);
+	void		getAddressArray(std::vector<VirtualServerConfig*> serverConfig);
+	static int	initSocket(socketAddress_t const & socketAddress);
+	static int	acceptClient(int socketFd);
 
 public:
 	Server();
 	~Server();
 
 	void	init(Config const & config);
+	void	listener();
 
 };
 
