@@ -1,30 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   LocationConfigTest.hpp                             :+:      :+:    :+:   */
+/*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: edelage <edelage@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/11 14:03:00 by edelage           #+#    #+#             */
-/*   Updated: 2023/08/11 14:03:00 by edelage          ###   ########lyon.fr   */
+/*   Created: 2023/08/14 11:18:00 by edelage           #+#    #+#             */
+/*   Updated: 2023/08/14 11:18:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#ifndef LOCATIONCONFIGTEST_HPP
-# define LOCATIONCONFIGTEST_HPP
+#ifndef SERVER_HPP
+# define SERVER_HPP
 
-# include "gtest/gtest.h"
-# include "Config/LocationConfig.hpp"
+# include "Config/Config.hpp"
+# include "Config/VirtualServerConfig.hpp"
 
-class LocationConfigTest : public ::testing::Test {
+# define ANY_ADDRESS	"0.0.0.0"
+
+class Server {
 
 private:
-	LocationConfig	locationConfig;
+	int*	_socketArray;
+	size_t	_nbSocket;
+
+	std::vector<socketAddress_t>	getSocketAddresses(std::vector<VirtualServerConfig*> serverConfig);
+	static int						initSocket(socketAddress_t const & socketAddress);
 
 public:
-	uint8_t	parseDenyTest(char* line);
+	Server();
+	~Server();
 
-	uint8_t	getAllowedHttpMethod(void) {return (locationConfig._allowedHttpMethod); }
-	void	clearAllowedHttpMethod(void);
+	void	init(Config const & config);
+
 };
 
 #endif

@@ -29,6 +29,8 @@ SRC			=		\
 						config/VirtualServerConfig.cpp	\
 						config/LocationConfig.cpp		\
 					\
+						server/Server.cpp		\
+					\
 
 OBJ			=		$(addprefix $(BUILD_DIR), $(SRC:.cpp=.o))
 

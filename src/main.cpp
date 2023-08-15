@@ -9,7 +9,8 @@
 /*   Updated: 2023/07/06 21:04:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include <Config/Config.hpp>
+#include "Config/Config.hpp"
+#include "Server/Server.hpp"
 #include <iostream>
 
 int	main(int argc, char** argv) {
@@ -19,9 +20,13 @@ int	main(int argc, char** argv) {
 		return (1);
 	}
 	try {
-		Config config;
+		Config	config;
+		Server	server;
+
 		config.parse(argv[1]);
 		config.print();
+		std::cout << std::endl;
+		server.init(config);
 	} catch (std::exception const &e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return (1);

@@ -9,8 +9,8 @@
 /*   Updated: 2023/07/07 16:43:00 by ethan            ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include <Config/Config.hpp>
-#include "VirtualServerConfig.hpp"
+#include "Config/Config.hpp"
+#include "Config/VirtualServerConfig.hpp"
 
 #include <fstream>
 #include <cstring>
@@ -32,6 +32,10 @@ Config::Config(Config const & other) {
 	_errorPage = other._errorPage;
 	_maxBodySize = other._maxBodySize;
 	_autoindex = other._autoindex;
+}
+
+std::vector<VirtualServerConfig*> Config::getServerConfig() const {
+	return (_serverConfig);
 }
 
 void Config::parse(char* configFilename) {

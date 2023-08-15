@@ -17,7 +17,7 @@
 # include <map>
 # include <fstream>
 # include <stdint.h>
-# include <Config/Config.hpp>
+# include "Config.hpp"
 
 # define DEFAULT_PORT		80
 # define DEFAULT_ADDRESS	"*"
@@ -29,6 +29,7 @@
 
 class LocationConfig;
 
+typedef	std::pair<std::string, uint16_t> socketAddress_t;
 
 class VirtualServerConfig : public Config {
 	typedef void (VirtualServerConfig::*parseFunctionType)(std::string&);
@@ -63,6 +64,10 @@ public:
 	VirtualServerConfig(Config const & config);
 	VirtualServerConfig(VirtualServerConfig const & other);
 	~VirtualServerConfig() {};
+
+	std::string		getIp() const;
+	uint16_t		getPort() const;
+	socketAddress_t	getSocketAddress() const;
 
 	virtual void parse(std::ifstream& configFile);
 	virtual void print();

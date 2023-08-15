@@ -177,10 +177,10 @@ add_executable(Webserv
         lib/googletest/googletest/test/production.h
         src/config/Config.cpp
         src/config/LocationConfig.cpp
-        src/config/LocationConfig.hpp
+		include/Config/LocationConfig.hpp
         src/config/VirtualServerConfig.cpp
-        src/config/VirtualServerConfig.hpp
+		include/Config/VirtualServerConfig.hpp
         src/main.cpp
         test/main.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.hpp
         test/Config/VirtualServerConfigTest.hpp
-        test/Config/VirtualServerConfigTest.cpp test/Config/LocationConfigTest.cpp test/Config/LocationConfigTest.hpp)
+        test/Config/VirtualServerConfigTest.cpp test/Config/LocationConfigTest.cpp test/Config/LocationConfigTest.hpp src/server/Server.cpp include/Server/Server.hpp)

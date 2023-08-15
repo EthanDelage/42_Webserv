@@ -9,8 +9,8 @@
 /*   Updated: 2023/07/09 02:30:00 by ethan            ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "VirtualServerConfig.hpp"
-#include "LocationConfig.hpp"
+#include "Config/VirtualServerConfig.hpp"
+#include "Config/LocationConfig.hpp"
 #include <cstdlib>
 #include <limits>
 #include <cmath>
@@ -41,6 +41,11 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_address = other._address;
 	_port = other._port;
 	_locationConfig = other._locationConfig;
+}
+
+std::string 	VirtualServerConfig::getIp() const {return (_address);}
+uint16_t 		VirtualServerConfig::getPort() const {return (_port);}
+socketAddress_t VirtualServerConfig::getSocketAddress() const {return (socketAddress_t(getIp(), getPort()));
 }
 
 void VirtualServerConfig::parse(std::ifstream& configFile) {

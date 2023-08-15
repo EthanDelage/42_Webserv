@@ -43,7 +43,7 @@ class Config {
 # endif
 
 private:
-	std::vector<VirtualServerConfig *>	_serverConfig;
+	std::vector<VirtualServerConfig*>	_serverConfig;
 
 	void							parseLine(std::string& line, std::ifstream& configFile);
     void                			router(std::string& directive, std::string& value);
@@ -77,8 +77,11 @@ public:
 	Config(Config const & other);
 	virtual ~Config() {};
 
+
 	void			parse(char* configFilename);
 	virtual void	print();
+
+	std::vector<VirtualServerConfig*>	getServerConfig() const;
 };
 
 #endif
