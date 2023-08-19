@@ -183,4 +183,4 @@ add_executable(Webserv
         src/main.cpp
         test/main.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.hpp
         test/Config/VirtualServerConfigTest.hpp
-        test/Config/VirtualServerConfigTest.cpp test/Config/LocationConfigTest.cpp test/Config/LocationConfigTest.hpp src/server/Server.cpp include/Server/Server.hpp)
+        test/Config/VirtualServerConfigTest.cpp test/Config/LocationConfigTest.cpp test/Config/LocationConfigTest.hpp src/server/Server.cpp include/Server/Server.hpp src/server/message/Message.cpp include/Message/Message.hpp)
