@@ -1,7 +1,7 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Message.cpp                                        :+:      :+:    :+:   */
+/*   Message.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: edelage <edelage@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
@@ -9,16 +9,33 @@
 /*   Updated: 2023/08/17 16:11:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "message/Message.hpp"
+#ifndef MESSAGE_HPP
+# define MESSAGE_HPP
 
-Message::Message() {
-	_httpVersion.major = 0;
-	_httpVersion.minor = 0;
-}
+# include <string>
 
-Message::~Message() {}
+typedef struct httpVersion_s	httpVersion_t;
+struct httpVersion_s {
+	unsigned int	major;
+	unsigned int	minor;
+};
 
-std::string Message::httpVersionToString() const {
-//	return ("HTTP/" + std::to_string(_httpVersion.major) + '.' + std::to_string(_httpVersion.minor));
-	return ("");
-}
+class Message {
+
+# ifdef UNIT_TESTING
+	friend class RequestTest;
+# endif
+
+protected:
+	httpVersion_t	_httpVersion;
+
+public:
+	Message();
+	~Message();
+
+	//TODO: move httpToString in response Class
+	std::string	httpVersionToString() const;
+
+};
+
+#endif

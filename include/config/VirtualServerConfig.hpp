@@ -17,7 +17,7 @@
 # include <map>
 # include <fstream>
 # include <stdint.h>
-# include "Config.hpp"
+# include "config/Config.hpp"
 
 # define DEFAULT_PORT		80
 # define DEFAULT_ADDRESS	"*"

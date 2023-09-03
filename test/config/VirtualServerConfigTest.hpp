@@ -12,7 +12,7 @@
 #ifndef VIRTUALSERVERCONFIGTEST_HPP
 # define VIRTUALSERVERCONFIGTEST_HPP
 # include <gtest/gtest.h>
-# include "Config/VirtualServerConfig.hpp"
+# include "config/VirtualServerConfig.hpp"
 
 class VirtualServerConfigTest : public ::testing::Test {
 

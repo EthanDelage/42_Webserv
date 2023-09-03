@@ -12,7 +12,7 @@
 #ifndef CONFIGTEST_HPP
 # define CONFIGTEST_HPP
 # include <gtest/gtest.h>
-# include "Config/Config.hpp"
+# include "config/Config.hpp"
 
 class ConfigTest : public ::testing::Test {
 

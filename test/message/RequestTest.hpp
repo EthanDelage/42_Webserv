@@ -1,30 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   LocationConfigTest.hpp                             :+:      :+:    :+:   */
+/*   RequestTest.hpp                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: edelage <edelage@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/11 14:03:00 by edelage           #+#    #+#             */
-/*   Updated: 2023/08/11 14:03:00 by edelage          ###   ########lyon.fr   */
+/*   Created: 2023/09/03 15:17:00 by edelage           #+#    #+#             */
+/*   Updated: 2023/09/03 15:17:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#ifndef LOCATIONCONFIGTEST_HPP
-# define LOCATIONCONFIGTEST_HPP
+#ifndef REQUESTTEST_HPP
+# define REQUESTTEST_HPP
+# include <gtest/gtest.h>
+# include <message/Request.hpp>
 
-# include "gtest/gtest.h"
-# include "Config/LocationConfig.hpp"
-
-class LocationConfigTest : public ::testing::Test {
+class RequestTest : public ::testing::Test {
 
 private:
-	LocationConfig	locationConfig;
+	Request request;
 
-public:
-	uint8_t	parseDenyTest(char* line);
-
-	uint8_t	getAllowedHttpMethod(void) {return (locationConfig._allowedHttpMethod); }
-	void	clearAllowedHttpMethod(void);
+protected:
+	uint8_t						parseMethodTest(std::string const & arg);
+	httpVersion_t				parseHttpVersionTest(std::string const & arg);
+	std::vector<std::string>	splitTest(std::string const & str);
 };
 
 #endif

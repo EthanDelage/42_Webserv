@@ -18,11 +18,7 @@
 # include <fstream>
 # include <stdint.h>
 # include "VirtualServerConfig.hpp"
-
-# define DEFAULT_METHOD_MASK	0b00000111
-# define GET_METHOD_MASK		0b00000001
-# define POST_METHOD_MASK		0b00000010
-# define DELETE_METHOD_MASK		0b00000100
+# include "method.hpp"
 
 # define SYNTAX_DENY "Syntax: \"deny\" SP \"GET\" | \"POST\" | \"DELETE\" \";\""
 

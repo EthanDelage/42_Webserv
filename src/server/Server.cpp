@@ -9,7 +9,7 @@
 /*   Updated: 2023/08/14 11:18:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "Server/Server.hpp"
+#include "server/Server.hpp"
 
 #include <sys/socket.h>
 #include <sys/types.h>

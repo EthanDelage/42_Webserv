@@ -30,6 +30,10 @@ SRC			=		\
 						config/LocationConfig.cpp		\
 					\
 						server/Server.cpp		\
+						\
+							server/message/Message.cpp	\
+							server/message/Request.cpp	\
+						\
 					\
 
 OBJ			=		$(addprefix $(BUILD_DIR), $(SRC:.cpp=.o))
@@ -38,9 +42,11 @@ DEPS		=		$(OBJ:.o=.d)
 
 SRC_TEST	=		main.cpp	\
 					\
-						Config/ConfigTest.cpp	\
-						Config/VirtualServerConfigTest.cpp	\
-						Config/LocationConfigTest.cpp	\
+						config/ConfigTest.cpp	\
+						config/VirtualServerConfigTest.cpp	\
+						config/LocationConfigTest.cpp	\
+						\
+						message/RequestTest.cpp	\
 					\
 
 OBJ_TEST	=		$(addprefix $(TEST_DIR)$(BUILD_DIR), $(SRC_TEST:.cpp=.o))

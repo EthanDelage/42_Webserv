@@ -12,8 +12,8 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-# include "Config/Config.hpp"
-# include "Config/VirtualServerConfig.hpp"
+# include "config/Config.hpp"
+# include "config/VirtualServerConfig.hpp"
 
 # include <poll.h>
 

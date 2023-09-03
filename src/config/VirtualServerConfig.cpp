@@ -9,8 +9,8 @@
 /*   Updated: 2023/07/09 02:30:00 by ethan            ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "Config/VirtualServerConfig.hpp"
-#include "Config/LocationConfig.hpp"
+#include "config/VirtualServerConfig.hpp"
+#include "config/LocationConfig.hpp"
 #include <cstdlib>
 #include <limits>
 #include <cmath>

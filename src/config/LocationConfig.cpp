@@ -9,7 +9,7 @@
 /*   Updated: 2023/07/09 02:34:00 by ethan            ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "Config/LocationConfig.hpp"
+#include "config/LocationConfig.hpp"
 
 #ifdef UNIT_TESTING
 	LocationConfig::LocationConfig() : _allowedHttpMethod(DEFAULT_METHOD_MASK) {}

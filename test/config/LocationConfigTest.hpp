@@ -1,24 +1,30 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Message.cpp                                        :+:      :+:    :+:   */
+/*   LocationConfigTest.hpp                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: edelage <edelage@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/17 16:11:00 by edelage           #+#    #+#             */
-/*   Updated: 2023/08/17 16:11:00 by edelage          ###   ########lyon.fr   */
+/*   Created: 2023/08/11 14:03:00 by edelage           #+#    #+#             */
+/*   Updated: 2023/08/11 14:03:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "message/Message.hpp"
+#ifndef LOCATIONCONFIGTEST_HPP
+# define LOCATIONCONFIGTEST_HPP
 
-Message::Message() {
-	_httpVersion.major = 0;
-	_httpVersion.minor = 0;
-}
+# include "gtest/gtest.h"
+# include "config/LocationConfig.hpp"
 
-Message::~Message() {}
+class LocationConfigTest : public ::testing::Test {
 
-std::string Message::httpVersionToString() const {
-//	return ("HTTP/" + std::to_string(_httpVersion.major) + '.' + std::to_string(_httpVersion.minor));
-	return ("");
-}
+private:
+	LocationConfig	locationConfig;
+
+public:
+	uint8_t	parseDenyTest(char* line);
+
+	uint8_t	getAllowedHttpMethod(void) {return (locationConfig._allowedHttpMethod); }
+	void	clearAllowedHttpMethod(void);
+};
+
+#endif

@@ -19,7 +19,7 @@ include_directories(lib/googletest/googletest/src)
 include_directories(lib/googletest/googletest/test)
 
 add_executable(Webserv
-        include/Config/Config.hpp
+		include/config/Config.hpp
         lib/googletest/googlemock/include/gmock/internal/custom/gmock-generated-actions.h
         lib/googletest/googlemock/include/gmock/internal/custom/gmock-matchers.h
         lib/googletest/googlemock/include/gmock/internal/custom/gmock-port.h
@@ -177,10 +177,10 @@ add_executable(Webserv
         lib/googletest/googletest/test/production.h
         src/config/Config.cpp
         src/config/LocationConfig.cpp
-		include/Config/LocationConfig.hpp
+		include/config/LocationConfig.hpp
         src/config/VirtualServerConfig.cpp
-		include/Config/VirtualServerConfig.hpp
+		include/config/VirtualServerConfig.hpp
         src/main.cpp
-        test/main.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.cpp test/Config/ConfigTest.hpp
-        test/Config/VirtualServerConfigTest.hpp
-        test/Config/VirtualServerConfigTest.cpp test/Config/LocationConfigTest.cpp test/Config/LocationConfigTest.hpp src/server/Server.cpp include/Server/Server.hpp src/server/message/Message.cpp include/Message/Message.hpp)
+        test/main.cpp test/config/ConfigTest.cpp test/config/ConfigTest.cpp test/config/ConfigTest.hpp
+		test/config/VirtualServerConfigTest.hpp
+		test/config/VirtualServerConfigTest.cpp test/config/LocationConfigTest.cpp test/config/LocationConfigTest.hpp src/server/Server.cpp include/server/Server.hpp src/server/message/Message.cpp include/message/Message.hpp src/server/message/Request.cpp include/message/Request.hpp include/method.hpp test/message/MessageTest.cpp test/message/MessageTest.hpp test/message/RequestTest.cpp test/message/RequestTest.hpp)

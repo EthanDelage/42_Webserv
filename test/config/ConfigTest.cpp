@@ -41,6 +41,7 @@ TEST_F(ConfigTest, parseMaxBodySizeValid) {
 
 TEST_F(ConfigTest, parseMaxBodySizeInvalid) {
 	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size ;"), std::runtime_error);
+	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size ; "), std::runtime_error);
 	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size m;"), std::runtime_error);
 	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size k;"), std::runtime_error);
 	EXPECT_THROW(parseMaxBodySizeTest("client_max_body_size 1024M;"), std::runtime_error);
