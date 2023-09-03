@@ -32,7 +32,8 @@ class Request : public Message {
 # endif
 
 private:
-	uint8_t	_method;
+	uint8_t		_method;
+	std::string	_requestURI;
 
 	void	parseRequestLine(std::string const & line);
 	void	parseMethod(std::string const & arg);

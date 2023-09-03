@@ -29,6 +29,7 @@ void Request::parseRequestLine(std::string const & line) {
 	if (argv.size() != 3)
 		throw (std::runtime_error("Invalid number of arguments"));
 	parseMethod(argv[0]);
+	_requestURI = argv[1];
 	parseHttpVersion(argv[2]);
 }
 
