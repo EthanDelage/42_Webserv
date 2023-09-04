@@ -33,6 +33,7 @@ SRC			=		\
 						\
 							server/message/Message.cpp	\
 							server/message/Request.cpp	\
+							server/message/Header.cpp	\
 						\
 					\
 
