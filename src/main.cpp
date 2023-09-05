@@ -9,8 +9,8 @@
 /*   Updated: 2023/07/06 21:04:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "Config/Config.hpp"
-#include "Server/Server.hpp"
+#include "config/Config.hpp"
+#include "server/Server.hpp"
 #include <iostream>
 
 int	main(int argc, char** argv) {
