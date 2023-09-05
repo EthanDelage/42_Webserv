@@ -10,9 +10,3 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "HeaderTest.hpp"
-
-HeaderTest::HeaderTest() {
-
-}
-
-HeaderTest::~HeaderTest() {}
