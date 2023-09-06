@@ -17,6 +17,7 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <algorithm>
+#include "message/Request.hpp"
 
 Server::Server() {
 	_socketArray = NULL;
@@ -53,7 +54,8 @@ void Server::init(Config const & config) {
 }
 
 void Server::listener() {
-	int	clientSocketFd;
+	int			clientSocketFd;
+	Request*	request;
 
 	while (true) {
 		if (poll(_socketArray, _nbSocket, POLL_TIMEOUT) == -1)
@@ -61,7 +63,10 @@ void Server::listener() {
 		for (size_t i = 0; i < _nbSocket; ++i) {
 			if (_socketArray[i].revents != POLL_DEFAULT) {
 				clientSocketFd = acceptClient(_socketArray[i].fd);
-				(void) clientSocketFd;
+				request = new Request(clientSocketFd);
+				request->print();
+				delete request;
+				close(clientSocketFd);
 			}
 		}
 	}

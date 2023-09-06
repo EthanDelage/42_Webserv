@@ -41,10 +41,13 @@ private:
 
 	static uint8_t					getMethod(std::string const & method);
 	static std::vector<std::string> split(std::string const & str);
+	static std::string				getLine(int fd);
 
 public:
-	Request();
+	Request(int socketFd);
 	~Request();
+
+	void print() const;
 
 };
 
