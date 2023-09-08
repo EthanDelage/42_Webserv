@@ -48,6 +48,7 @@ void Server::init(Config const & config) {
 			_socketArray[i].events = POLLIN;
 			_socketArray[i].revents = POLL_DEFAULT;
 		} catch (std::runtime_error const & e) {
+			_socketArray[i].fd = -1;
 			throw (std::runtime_error(std::string("initSocket() failed: ") + e.what()));
 		}
 	}
@@ -57,6 +58,13 @@ void Server::listener() {
 	int			clientSocketFd;
 	Request*	request;
 
+	for (size_t i = 0; i < _nbSocket; ++i) {
+		if (listen(_socketArray[i].fd, QUEUE_LENGTH) == -1) {
+			close(_socketArray[i].fd);
+			_socketArray[i].fd = -1;
+			throw(std::runtime_error("listen() failed"));
+		}
+	}
 	while (true) {
 		if (poll(_socketArray, _nbSocket, POLL_TIMEOUT) == -1)
 			throw (std::runtime_error("poll() failed"));
@@ -102,10 +110,6 @@ int Server::initSocket(socketAddress_t const & socketAddress) {
 	if (bind(socketFd, (struct sockaddr*) &address, sizeof(address)) == -1) {
 		close(socketFd);
 		throw (std::runtime_error("bind() failed"));
-	}
-	if (listen(socketFd, QUEUE_LENGTH) == -1) {
-		close(socketFd);
-		throw(std::runtime_error("listen() failed"));
 	}
 	return (socketFd);
 }

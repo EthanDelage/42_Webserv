@@ -18,15 +18,15 @@
 #ifdef UNIT_TESTING
 VirtualServerConfig::VirtualServerConfig() : Config() {
 	_isDefault = true;
-	_address = DEFAULT_ADDRESS;
-	_port = DEFAULT_PORT;
+	_socketAddress.first = DEFAULT_ADDRESS;
+	_socketAddress.second = DEFAULT_PORT;
 }
 #endif
 
 VirtualServerConfig::VirtualServerConfig(Config const & config) : Config(config) {
 	_isDefault = true;
-	_address = DEFAULT_ADDRESS;
-	_port = DEFAULT_PORT;
+	_socketAddress.first = DEFAULT_ADDRESS;
+	_socketAddress.second = DEFAULT_PORT;
 }
 
 VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Config() {
@@ -38,13 +38,12 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_autoindex = other._autoindex;
 	_isDefault = other._isDefault;
 	_serverNames = other._serverNames;
-	_address = other._address;
-	_port = other._port;
+	_socketAddress = other._socketAddress;
 	_locationConfig = other._locationConfig;
 }
 
-std::string 	VirtualServerConfig::getIp() const {return (_address);}
-uint16_t 		VirtualServerConfig::getPort() const {return (_port);}
+std::string 	VirtualServerConfig::getIp() const {return (_socketAddress.first);}
+uint16_t 		VirtualServerConfig::getPort() const {return (_socketAddress.second);}
 socketAddress_t VirtualServerConfig::getSocketAddress() const {return (socketAddress_t(getIp(), getPort()));
 }
 
@@ -121,15 +120,15 @@ void VirtualServerConfig::parseListen(std::string& value) {
 	separator = value.find(':');
 	if (separator != std::string::npos)
 	{
-		_address = value.substr(0, separator);
+		_socketAddress.first = value.substr(0, separator);
 		value.erase(0,separator + 1);
-		if (value.empty() || !isValidIP(_address))
+		if (value.empty() || !isValidIP(_socketAddress.first))
 			throw (std::runtime_error(SYNTAX_LISTEN));
-		_port = getPort(value);
+		_socketAddress.second = getPort(value);
 	} else if (isValidIP(value)) {
-		_address = value;
+		_socketAddress.first = value;
 	} else {
-		_port = getPort(value);
+		_socketAddress.second = getPort(value);
 	}
 }
 
@@ -209,8 +208,8 @@ void VirtualServerConfig::removeHorizontalTabAndSpace(std::string& line) {
 void VirtualServerConfig::print() {
 	std::cout << "VIRTUAL SERVER" << std::endl;
 	Config::print();
-	std::cout << "Port: " << _port << std::endl;
-	std::cout << "Address: " << _address << std::endl;
+	std::cout << "Port: " << _socketAddress.second << std::endl;
+	std::cout << "Address: " << _socketAddress.first << std::endl;
 	std::cout << "Server Names: ";
 	for (std::vector<std::string>::iterator i = _serverNames.begin(); i !=  _serverNames.end(); i++)
 		std::cout << *i << " | ";

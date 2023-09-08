@@ -63,7 +63,7 @@ TEST_F(VirtualServerConfigTest, defaultListen) {
 }
 
 TEST_F(VirtualServerConfigTest, parseListenSingle) {
-	std::pair<std::string, uint8_t>	listen;
+	socketAddress_t	listen;
 
 	listen.first = "127.0.0.1";
 	listen.second = 42;
@@ -71,7 +71,7 @@ TEST_F(VirtualServerConfigTest, parseListenSingle) {
 }
 
 TEST_F(VirtualServerConfigTest, ParseListenSingleAddress) {
-	std::pair<std::string, uint8_t>	listen;
+	socketAddress_t	listen;
 
 	listen.first = "127.0.0.1";
 	listen.second = DEFAULT_PORT;
@@ -79,7 +79,7 @@ TEST_F(VirtualServerConfigTest, ParseListenSingleAddress) {
 }
 
 TEST_F(VirtualServerConfigTest, parseListenSinglePort) {
-	std::pair<std::string, uint8_t>	listen;
+	socketAddress_t	listen;
 
 	listen.first = DEFAULT_ADDRESS;
 	listen.second = 42;
@@ -123,13 +123,10 @@ std::vector<std::string> VirtualServerConfigTest::parseServerNameTest(char* line
 	return (virtualServerConfig._serverNames);
 }
 
-std::pair<std::string, uint8_t>	VirtualServerConfigTest::parseListenTest(char* line) {
+socketAddress_t	VirtualServerConfigTest::parseListenTest(char* line) {
 	std::string						lineStr(line);
 	std::ifstream*					empty;
-	std::pair<std::string, uint8_t>	ret;
 
 	virtualServerConfig.parseLine(lineStr, *empty);
-	ret.first = virtualServerConfig._address;
-	ret.second = virtualServerConfig._port;
-	return (ret);
+	return (virtualServerConfig._socketAddress);
 }

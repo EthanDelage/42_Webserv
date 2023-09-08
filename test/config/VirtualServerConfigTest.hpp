@@ -21,11 +21,11 @@ private:
 
 protected:
 	std::vector<std::string>		parseServerNameTest(char* line);
-	std::pair<std::string, uint8_t>	parseListenTest(char* line);
+	socketAddress_t					parseListenTest(char* line);
 
 	std::vector<std::string>	getServerName() const {return (virtualServerConfig._serverNames);}
-	std::string					getAddress() const {return (virtualServerConfig._address);}
-	uint16_t					getPort() const {return (virtualServerConfig._port);}
+	std::string					getAddress() const {return (virtualServerConfig._socketAddress.first);}
+	uint16_t					getPort() const {return (virtualServerConfig._socketAddress.second);}
 };
 
 #endif

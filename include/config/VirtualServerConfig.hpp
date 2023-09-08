@@ -41,8 +41,7 @@ class VirtualServerConfig : public Config {
 private:
 	bool							_isDefault;
 	std::vector<std::string>		_serverNames;
-	std::string						_address;
-	uint16_t						_port;
+	socketAddress_t					_socketAddress;
 	std::vector<LocationConfig *>	_locationConfig;
 
 	void			parseLine(std::string& line, std::ifstream& configFile);

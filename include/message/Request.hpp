@@ -29,6 +29,9 @@ class Request : public Message {
 
 # ifdef UNIT_TESTING
 	friend class RequestTest;
+
+public:
+	Request() {};
 # endif
 
 private:
