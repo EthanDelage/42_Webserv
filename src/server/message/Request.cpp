@@ -31,6 +31,9 @@ Request::Request(int socketFd) {
 
 Request::~Request() {}
 
+uint8_t Request::getMethod() const {return (_method);}
+httpVersion_t	Request::getHttpVersion() const {return (_httpVersion);}
+
 /**
  * @brief Parse line in the following format:
  * 			 Request-Line = Method SP Request-URI SP HTTP-Version CRLF
@@ -53,7 +56,7 @@ void Request::parseMethod(std::string const & arg) {
 	while (arg[index] && arg[index] != ' ')
 		++index;
 	method = arg.substr(0, index);
-	_method = getMethod(method);
+	_method = getMethodByName(method);
 }
 
 /**
@@ -86,11 +89,11 @@ void Request::parseHttpVersion(const std::string& arg) {
 		throw (std::runtime_error("HTTP Version not supported"));
 }
 
-uint8_t Request::getMethod(const std::string& method) {
-	std::string	methodList[] = {"GET", "POST", "DELETE", ""};
+uint8_t Request::getMethodByName(const std::string& method) {
+	std::string	methodList[] = {"GET", "POST", "DELETE"};
 	uint8_t		methodMask[] = {GET_METHOD_MASK, POST_METHOD_MASK, DELETE_METHOD_MASK};
 
-	for (size_t i = 0; methodList[i] != ""; ++i) {
+	for (size_t i = 0; i < sizeof(methodList) / sizeof(*methodList); ++i) {
 		if (method == methodList[i])
 			return (methodMask[i]);
 	}

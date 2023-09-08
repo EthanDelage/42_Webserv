@@ -42,13 +42,16 @@ private:
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
 
-	static uint8_t					getMethod(std::string const & method);
+	static uint8_t					getMethodByName(std::string const & method);
 	static std::vector<std::string> split(std::string const & str);
 	static std::string				getLine(int fd);
 
 public:
 	Request(int socketFd);
 	~Request();
+
+	uint8_t	getMethod() const;
+	httpVersion_t	getHttpVersion() const;
 
 	void print() const;
 

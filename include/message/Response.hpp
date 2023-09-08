@@ -1,19 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Message.cpp                                        :+:      :+:    :+:   */
+/*   Response.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: edelage <edelage@student.42lyon.fr>        +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/08/17 16:11:00 by edelage           #+#    #+#             */
-/*   Updated: 2023/08/17 16:11:00 by edelage          ###   ########lyon.fr   */
+/*   Created: 2023/09/08 15:13:00 by edelage           #+#    #+#             */
+/*   Updated: 2023/09/08 15:13:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "message/Message.hpp"
+#ifndef RESPONSE_HPP
+# define RESPONSE_HPP
 
-Message::Message() {
-	_httpVersion.major = 0;
-	_httpVersion.minor = 0;
-}
+# include "message/Request.hpp"
 
-Message::~Message() {}
+class Response {
+	typedef void (Response::*responseFunction_t)();
+
+private:
+	Request	_request;
+
+	void router();
+	void getResponse();
+	void postResponse();
+	void deleteResponse();
+
+	std::string	httpVersionToString() const;
+	static std::string uitoa(unsigned int n);
+
+public:
+	Response(Request request);
+	~Response();
+
+};
+
+#endif

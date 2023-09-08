@@ -33,9 +33,6 @@ public:
 	Message();
 	~Message();
 
-	//TODO: move httpToString in response Class
-	std::string	httpVersionToString() const;
-
 };
 
 #endif
