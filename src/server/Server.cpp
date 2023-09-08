@@ -93,7 +93,7 @@ int Server::initSocket(socketAddress_t const & socketAddress) {
 	socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (socketFd == -1)
 		throw (std::runtime_error("socket() failed"));
-	if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
+	if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) == -1) {
 		throw (std::runtime_error("setsockopt() failed"));
 	}
 	address.sin_family = AF_INET;
@@ -116,6 +116,7 @@ int Server::acceptClient(int socketFd) {
 	struct sockaddr_in	address;
 	socklen_t			addressLength;
 
+	addressLength = sizeof(address);
 	clientSocketFd = accept(socketFd, (struct sockaddr*) &address, &addressLength);
 	if (clientSocketFd == -1)
 		throw (std::runtime_error("accept() failed"));
