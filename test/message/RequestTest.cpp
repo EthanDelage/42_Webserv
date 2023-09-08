@@ -32,39 +32,40 @@ TEST_F(RequestTest, parseHttpVersionValid) {
 	httpVersion_t	versionReturned;
 
 	versionExpect = {1, 1};
-	versionReturned = parseHttpVersionTest("HTTP/1.1");
+	versionReturned = parseHttpVersionTest("HTTP/1.1\r\n");
+	std::cout << versionReturned.major << "." << versionReturned.minor << std::endl;
 	EXPECT_EQ(versionReturned.major, versionExpect.major);
 	EXPECT_EQ(versionReturned.minor, versionExpect.minor);
 	versionExpect = {0, 1};
-	versionReturned = parseHttpVersionTest("HTTP/0.1");
+	versionReturned = parseHttpVersionTest("HTTP/0.1\r\n");
 	EXPECT_EQ(versionReturned.major, versionExpect.major);
 	EXPECT_EQ(versionReturned.minor, versionExpect.minor);
 	versionExpect = {0, 13};
-	versionReturned = parseHttpVersionTest("HTTP/0.13");
+	versionReturned = parseHttpVersionTest("HTTP/0.13\r\n");
 	EXPECT_EQ(versionReturned.major, versionExpect.major);
 	EXPECT_EQ(versionReturned.minor, versionExpect.minor);
 	versionExpect = {1, 0};
-	versionReturned = parseHttpVersionTest("HTTP/1.0");
+	versionReturned = parseHttpVersionTest("HTTP/1.0\r\n");
 	EXPECT_EQ(versionReturned.major, versionExpect.major);
 	EXPECT_EQ(versionReturned.minor, versionExpect.minor);
 }
 
 TEST_F(RequestTest, parseHttpVersionInvalid) {
-	EXPECT_THROW(parseHttpVersionTest(""), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/ "), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1.1 "), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1 .1"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1. 1"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/ 1.1"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/-1.1"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1.-1"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1.2"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/2.0"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTPP/1.0"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTP/1.0"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP1.0"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("http/.0"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/ \r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1.1 \r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1 .1\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1. 1\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/ 1.1\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/-1.1\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1.-1\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1.2\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/2.0\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTPP/1.0\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTP/1.0\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("HTTP1.0\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("http/.0\r\n"), std::runtime_error);
 }
 
 TEST_F(RequestTest, splitValid) {
