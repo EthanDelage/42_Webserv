@@ -16,6 +16,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cmath>
+#include <algorithm>
 
 Config::Config() {
 	_index.push_back(DEFAULT_INDEX);
@@ -34,9 +35,9 @@ Config::Config(Config const & other) {
 	_autoindex = other._autoindex;
 }
 
-std::vector<VirtualServerConfig*> Config::getServerConfig() const {
-	return (_serverConfig);
-}
+std::vector<VirtualServerConfig*> Config::getServerConfig() const {return (_serverConfig);}
+
+std::string Config::getRoot() const {return (_root);}
 
 void Config::parse(char* configFilename) {
 	std::ifstream	configFile(configFilename);
@@ -200,6 +201,51 @@ size_t Config::parseSize(std::string &value) {
 		throw (std::runtime_error(SYNTAX_SIZE));
 }
 
+#include "iostream"
+VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddress, std::string const & host) const {
+	std::vector<VirtualServerConfig*>	serverConfig;
+
+	serverConfig = findServerConfigBySocketAddress(socketAddress);
+	if (host != "")
+		serverConfig = findServerConfigByHost(serverConfig, host);
+	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
+		std::cout << (*it)->getSocketAddress().first << ':' << (*it)->getSocketAddress().second << ", " << host<< std::endl;
+	}
+	return (_serverConfig[0]);
+}
+
+std::vector<VirtualServerConfig*> Config::findServerConfigBySocketAddress(socketAddress_t const & socketAddress) const {
+	std::vector<VirtualServerConfig*>	serverConfig;
+	socketAddress_t						currentSocketAddress;
+
+	for (std::vector<VirtualServerConfig*>::const_iterator it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
+		currentSocketAddress = (*it)->getSocketAddress();
+		if (currentSocketAddress.first == DEFAULT_ADDRESS && currentSocketAddress.second == DEFAULT_PORT)
+			serverConfig.push_back(*it);
+		else if (currentSocketAddress.first == DEFAULT_ADDRESS && socketAddress.second == currentSocketAddress.second)
+			serverConfig.push_back(*it);
+		else if (socketAddress.first == currentSocketAddress.first && currentSocketAddress.second == DEFAULT_PORT)
+			serverConfig.push_back(*it);
+		else if (socketAddress == currentSocketAddress) {
+			serverConfig.push_back(*it);
+		}
+	}
+	return (serverConfig);
+}
+
+std::vector<VirtualServerConfig*>
+	Config::findServerConfigByHost(std::vector<VirtualServerConfig*> serverConfig, std::string const & host) {
+	std::vector<VirtualServerConfig*>	result;
+	std::vector<std::string>			currentServerNames;
+
+	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
+		currentServerNames = (*it)->getServerNames();
+		if (std::find(currentServerNames.begin(), currentServerNames.end(), host) != currentServerNames.end())
+			result.push_back(*it);
+	}
+	return (result);
+}
+
 /**
  * @brief takes a string and removes quotes (", ').
  *  Also handles \" and \'
@@ -307,7 +353,6 @@ std::vector<std::string> Config::split(std::string& str, std::string const synta
 }
 
 #include <iostream>
-
 void Config::print() {
 	std::cout << "CONFIG" << std::endl;
 	std::cout << "Autoindex: " << _autoindex << std::endl;

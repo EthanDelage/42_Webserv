@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include "message/Request.hpp"
+#include "message/Response.hpp"
 
 Server::Server() {
 	_socketArray = NULL;
@@ -55,16 +56,14 @@ void Server::init(Config const & config) {
 }
 
 void Server::listener() {
-	int			clientSocketFd;
-	Request*	request;
+	int					clientSocketFd;
+	VirtualServerConfig	*virtualServerConfig;
+	Request*			request;
+	Response*			response;
 
 	for (size_t i = 0; i < _nbSocket; ++i) {
-		if (listen(_socketArray[i].fd, QUEUE_LENGTH) == -1) {
-			//TODO Check if all fds are closed
-			close(_socketArray[i].fd);
-			_socketArray[i].fd = -1;
+		if (listen(_socketArray[i].fd, QUEUE_LENGTH) == -1)
 			throw(std::runtime_error("listen() failed"));
-		}
 	}
 	while (true) {
 		if (poll(_socketArray, _nbSocket, POLL_TIMEOUT) == -1)
@@ -74,7 +73,11 @@ void Server::listener() {
 				clientSocketFd = acceptClient(_socketArray[i].fd);
 				request = new Request(clientSocketFd);
 				request->print();
+				virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");
+				response = new Response(*request, *virtualServerConfig);
 				delete request;
+//				response->send(clientSocketFd);
+				delete response;
 				close(clientSocketFd);
 			}
 		}
@@ -115,7 +118,6 @@ int Server::initSocket(socketAddress_t const & socketAddress) {
 	return (socketFd);
 }
 
-#include "iostream"
 int Server::acceptClient(int socketFd) {
 	int 				clientSocketFd;
 	struct sockaddr_in	address;
@@ -125,6 +127,5 @@ int Server::acceptClient(int socketFd) {
 	clientSocketFd = accept(socketFd, (struct sockaddr*) &address, &addressLength);
 	if (clientSocketFd == -1)
 		throw (std::runtime_error("accept() failed"));
-	std::cout << ntohs(address.sin_port) << std::endl;
 	return (clientSocketFd);
 }

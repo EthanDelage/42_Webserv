@@ -1,6 +1,6 @@
 NAME		=		webserv
 
-ARG			=		ressources/webserv.conf
+ARG			=		resources/webserv.conf
 
 NAME_TEST	=		webservTest
 
@@ -33,6 +33,7 @@ SRC			=		\
 						\
 							server/message/Message.cpp	\
 							server/message/Request.cpp	\
+							server/message/Response.cpp	\
 							server/message/Header.cpp	\
 						\
 					\

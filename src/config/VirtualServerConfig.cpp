@@ -17,14 +17,12 @@
 
 #ifdef UNIT_TESTING
 VirtualServerConfig::VirtualServerConfig() : Config() {
-	_isDefault = true;
 	_socketAddress.first = DEFAULT_ADDRESS;
 	_socketAddress.second = DEFAULT_PORT;
 }
 #endif
 
 VirtualServerConfig::VirtualServerConfig(Config const & config) : Config(config) {
-	_isDefault = true;
 	_socketAddress.first = DEFAULT_ADDRESS;
 	_socketAddress.second = DEFAULT_PORT;
 }
@@ -36,16 +34,20 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_errorPage = other._errorPage;
 	_maxBodySize = other._maxBodySize;
 	_autoindex = other._autoindex;
-	_isDefault = other._isDefault;
 	_serverNames = other._serverNames;
 	_socketAddress = other._socketAddress;
 	_locationConfig = other._locationConfig;
 }
 
-std::string 	VirtualServerConfig::getIp() const {return (_socketAddress.first);}
-uint16_t 		VirtualServerConfig::getPort() const {return (_socketAddress.second);}
-socketAddress_t VirtualServerConfig::getSocketAddress() const {return (socketAddress_t(getIp(), getPort()));
-}
+std::string						VirtualServerConfig::getIp() const {return (_socketAddress.first);}
+
+uint16_t						VirtualServerConfig::getPort() const {return (_socketAddress.second);}
+
+socketAddress_t					VirtualServerConfig::getSocketAddress() const {return (socketAddress_t(getIp(), getPort()));}
+
+std::vector<LocationConfig *>	VirtualServerConfig::getLocationConfig() const {return (_locationConfig);}
+
+std::vector<std::string>		VirtualServerConfig::getServerNames() const {return (_serverNames);}
 
 void VirtualServerConfig::parse(std::ifstream& configFile) {
 	std::string	line;
@@ -67,9 +69,9 @@ void VirtualServerConfig::parseLine(std::string& line, std::ifstream& configFile
 	std::string	directive;
 	std::string	value;
 
-	if (line == "location {") {
-		parseLocation(configFile);
-		return ;
+	if (line.find("location") == 0) {
+		parseLocation(configFile, line);
+		return;
 	}
 	lineLexer(line, directive, value);
 	try {
@@ -141,12 +143,17 @@ void VirtualServerConfig::parseServerName(std::string& value) {
 		_serverNames.push_back(*it);
 }
 
-void VirtualServerConfig::parseLocation(std::ifstream& configFile) {
-	LocationConfig*	newLocationConfig = new LocationConfig(*this);
+void VirtualServerConfig::parseLocation(std::ifstream& configFile, std::string& line) {
+	LocationConfig*				locationConfig;
+	std::vector<std::string>	argv;
 
-	newLocationConfig->parse(configFile);
-	newLocationConfig->print();
-	_locationConfig.push_back(newLocationConfig);
+	argv = split(line, SYNTAX_LOCATION);
+	if (argv.size() != 3 && argv[3] != "}")
+		throw (std::runtime_error(SYNTAX_LOCATION));
+	locationConfig = new LocationConfig(*this, argv[1]);
+	locationConfig->parse(configFile);
+	locationConfig->print();
+	_locationConfig.push_back(locationConfig);
 }
 
 bool	VirtualServerConfig::isValidIP(std::string const & str) {

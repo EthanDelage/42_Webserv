@@ -24,29 +24,29 @@
 
 # define SYNTAX_LISTEN		"Syntax: \"listen\" SP port | ( address [ \":\" port ] ) \";\""
 # define SYNTAX_SERVER_NAME	"Syntax: \"server_name\" 1*( SP hostname | address ) \";\""
+# define SYNTAX_LOCATION	"Syntax: \"location\" SP uri SP \"{\" 1*( LF *( HT | SP ) <rules with location in context> ) LF *HT \"}\""
 # define SYNTAX_ADDRESS		"Syntax: 1*3DIGIT 3 ( \".\" 1*3DIGIT )"
 # define SYNTAX_PORT		"Syntax: 1*DIGIT"
 
 class LocationConfig;
-
-typedef	std::pair<std::string, uint16_t> socketAddress_t;
 
 class VirtualServerConfig : public Config {
 	typedef void (VirtualServerConfig::*parseFunctionType)(std::string&);
 
 # ifdef UNIT_TESTING
 	friend class VirtualServerConfigTest;
+public:
+	VirtualServerConfig();
 # endif
 
 private:
-	bool							_isDefault;
 	std::vector<std::string>		_serverNames;
 	socketAddress_t					_socketAddress;
 	std::vector<LocationConfig *>	_locationConfig;
 
 	void			parseLine(std::string& line, std::ifstream& configFile);
 	void			router(std::string& directive, std::string& value);
-	void			parseLocation(std::ifstream& configFile);
+	void			parseLocation(std::ifstream& configFile, std::string& line);
 	static bool		isValidIP(std::string const & str);
 	static bool		isValidIpByte(std::string const & address, size_t& index);
 	static uint16_t	getPort(std::string const & str);
@@ -57,16 +57,15 @@ protected:
 	static void	removeHorizontalTabAndSpace(std::string& line);
 
 public:
-# ifdef UNIT_TESTING
-	VirtualServerConfig();
-# endif
 	VirtualServerConfig(Config const & config);
 	VirtualServerConfig(VirtualServerConfig const & other);
 	~VirtualServerConfig() {};
 
-	std::string		getIp() const;
-	uint16_t		getPort() const;
-	socketAddress_t	getSocketAddress() const;
+	std::string						getIp() const;
+	uint16_t						getPort() const;
+	socketAddress_t					getSocketAddress() const;
+	std::vector<LocationConfig *>	getLocationConfig() const;
+	std::vector<std::string>		getServerNames() const;
 
 	virtual void parse(std::ifstream& configFile);
 	virtual void print();

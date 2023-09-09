@@ -17,3 +17,5 @@ Message::Message() {
 }
 
 Message::~Message() {}
+
+httpVersion_t	Message::getHttpVersion() const {return (_httpVersion);}

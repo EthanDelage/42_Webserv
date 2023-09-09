@@ -31,8 +31,9 @@ Request::Request(int socketFd) {
 
 Request::~Request() {}
 
-uint8_t Request::getMethod() const {return (_method);}
-httpVersion_t	Request::getHttpVersion() const {return (_httpVersion);}
+uint8_t			Request::getMethod() const {return (_method);}
+
+std::string 	Request::getRequestUri() const {return (_requestURI);}
 
 /**
  * @brief Parse line in the following format:

@@ -33,6 +33,7 @@ public:
 	Message();
 	~Message();
 
+	httpVersion_t	getHttpVersion() const;
 };
 
 #endif

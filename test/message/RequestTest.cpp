@@ -33,7 +33,6 @@ TEST_F(RequestTest, parseHttpVersionValid) {
 
 	versionExpect = {1, 1};
 	versionReturned = parseHttpVersionTest("HTTP/1.1\r\n");
-	std::cout << versionReturned.major << "." << versionReturned.minor << std::endl;
 	EXPECT_EQ(versionReturned.major, versionExpect.major);
 	EXPECT_EQ(versionReturned.minor, versionExpect.minor);
 	versionExpect = {0, 1};

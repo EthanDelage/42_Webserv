@@ -15,10 +15,13 @@
 	LocationConfig::LocationConfig() : _allowedHttpMethod(DEFAULT_METHOD_MASK) {}
 #endif
 
-LocationConfig::LocationConfig(VirtualServerConfig const & virtualServerConfig)
-	: VirtualServerConfig(virtualServerConfig) {
+LocationConfig::LocationConfig(VirtualServerConfig const & virtualServerConfig, std::string& uri) :
+	VirtualServerConfig(virtualServerConfig),
+	_uri(uri) {
 	_allowedHttpMethod = DEFAULT_METHOD_MASK;
 }
+
+std::string LocationConfig::getUri() const {return (_uri);}
 
 bool LocationConfig::getMethodStatus() const {
 	return (_allowedHttpMethod & GET_METHOD_MASK);
@@ -101,7 +104,7 @@ void LocationConfig::parseDeny(std::string& value) {
 void LocationConfig::print() {
 	std::cout << "LOCATION" << std::endl;
 	VirtualServerConfig::print();
-	std::cout << getMethodStatus() << std::endl;
+	std::cout << "Uri:    " << _uri << std::endl;
 	std::cout << "Get:    " << (getMethodStatus() ? "Allowed": "Denied") << std::endl;
 	std::cout << "Post:   " << (postMethodStatus() ? "Allowed": "Denied") << std::endl;
 	std::cout << "Delete: " << (deleteMethodStatus() ? "Allowed": "Denied") << std::endl;

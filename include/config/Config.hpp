@@ -20,7 +20,7 @@
 # include <stdint.h>
 
 # define DEFAULT_MAX_BODY_SIZE	(1 << 20)
-# define PREFIX					"/var/www/"
+# define PREFIX					"./resources/www/"
 # define DEFAULT_ROOT			"html"
 # define DEFAULT_INDEX			"index.html"
 # define DEFAULT_AUTOINDEX		false
@@ -34,6 +34,8 @@
 # define SYNTAX_ROOT			"Syntax: \"root\" SP path \";\""
 
 class VirtualServerConfig;
+
+typedef	std::pair<std::string, uint16_t> socketAddress_t;
 
 class Config {
 	typedef void (Config::*parseFunctionType)(std::string&);
@@ -77,11 +79,15 @@ public:
 	Config(Config const & other);
 	virtual ~Config() {};
 
+	std::vector<VirtualServerConfig*>	getServerConfig() const;
+	std::string							getRoot() const;
 
 	void			parse(char* configFilename);
 	virtual void	print();
 
-	std::vector<VirtualServerConfig*>	getServerConfig() const;
+	VirtualServerConfig*						findServerConfig(socketAddress_t const & socketAddress, std::string const & host) const;
+	std::vector<VirtualServerConfig*>			findServerConfigBySocketAddress(socketAddress_t const & socketAddress) const;
+	static std::vector<VirtualServerConfig*>	findServerConfigByHost(std::vector<VirtualServerConfig*> serverConfig, std::string const & host);
 };
 
 #endif
