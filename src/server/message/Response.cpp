@@ -23,12 +23,11 @@ void Response::router() {
 
 	for (int i = 0; i < sizeof(httpMethods) / sizeof(*httpMethods); i++) {
 		if (httpMethods[i] == _request.getMethod())
-			responseFunction[i]();
+			(this->*responseFunction[i])();
 	}
 }
 
 void Response::getResponse() {
-
 }
 
 void Response::postResponse() {
@@ -41,7 +40,7 @@ std::string Response::httpVersionToString() const {
 	httpVersion_t	httpVersion;
 
 	httpVersion = _request.getHttpVersion();
-	wreturn ("HTTP/" + uitoa(httpVersion.major) + '.' + uitoa(httpVersion.minor));
+	return ("HTTP/" + uitoa(httpVersion.major) + '.' + uitoa(httpVersion.minor));
 }
 
 std::string Response::uitoa(unsigned int n) {

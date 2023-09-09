@@ -60,6 +60,7 @@ void Server::listener() {
 
 	for (size_t i = 0; i < _nbSocket; ++i) {
 		if (listen(_socketArray[i].fd, QUEUE_LENGTH) == -1) {
+			//TODO Check if all fds are closed
 			close(_socketArray[i].fd);
 			_socketArray[i].fd = -1;
 			throw(std::runtime_error("listen() failed"));
