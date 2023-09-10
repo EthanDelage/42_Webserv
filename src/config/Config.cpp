@@ -39,6 +39,8 @@ std::vector<VirtualServerConfig*> Config::getServerConfig() const {return (_serv
 
 std::string Config::getRoot() const {return (_root);}
 
+std::vector<std::string>	Config::getIndex() const {return (_index);}
+
 void Config::parse(char* configFilename) {
 	std::ifstream	configFile(configFilename);
 	std::string		line;

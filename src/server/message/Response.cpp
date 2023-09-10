@@ -11,18 +11,21 @@
 /* ************************************************************************** */
 #include <vector>
 #include <sys/socket.h>
+#include <unistd.h>
+#include <sstream>
 #include "message/Response.hpp"
 #include "config/LocationConfig.hpp"
 
 Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request), _virtualServerConfig(virtualServerConfig) {
-//	router();
+	router();
 }
 
 Response::~Response() {}
 
 void Response::send(int clientSocket) {
-	recv(clientSocket, (void *)_body.c_str(), _body.size(), 0);
+	write(clientSocket, _body.c_str(), _body.size());
 }
+
 
 void Response::router() {
 	uint8_t	httpMethods[] = {GET_METHOD_MASK, POST_METHOD_MASK, DELETE_METHOD_MASK};
@@ -36,21 +39,23 @@ void Response::router() {
 
 #include "iostream"
 void Response::responseGet() {
-	std::string		root;
-	std::ifstream	resource;
-	char			buffer[4096];
+	std::string					path;
+	std::ifstream				resource;
+	std::stringstream			buffer;
+	std::vector<std::string>	index;
 
-	root = getResponseRoot();
-	std::cout << root << std::endl;
-	resource.open(root.c_str());
-
+	path = getResponseRoot();
+	std::cout << path << std::endl;
+	index = _virtualServerConfig.getIndex();
+	for (size_t i = 0; i < index.size(); i++) {
+		resource.open((path + index[i]).c_str());
+		if (resource.is_open())
+			break;
+	}
 	if (!resource.is_open())
 		throw(ClientException());
-	while (!resource.eof())
-	{
-		resource.read(buffer, sizeof(buffer));
-		_body.append(buffer, sizeof(buffer));
-	}
+	buffer << resource.rdbuf();
+	_body = buffer.str();
 }
 
 void Response::responsePost() {

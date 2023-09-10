@@ -55,6 +55,7 @@ void Server::init(Config const & config) {
 	}
 }
 
+#include "iostream"
 void Server::listener() {
 	int					clientSocketFd;
 	VirtualServerConfig	*virtualServerConfig;
@@ -76,7 +77,7 @@ void Server::listener() {
 				virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");
 				response = new Response(*request, *virtualServerConfig);
 				delete request;
-//				response->send(clientSocketFd);
+				response->send(clientSocketFd);
 				delete response;
 				close(clientSocketFd);
 			}

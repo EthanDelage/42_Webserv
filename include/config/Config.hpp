@@ -81,6 +81,7 @@ public:
 
 	std::vector<VirtualServerConfig*>	getServerConfig() const;
 	std::string							getRoot() const;
+	std::vector<std::string>			getIndex() const;
 
 	void			parse(char* configFilename);
 	virtual void	print();
