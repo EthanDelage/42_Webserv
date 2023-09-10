@@ -33,6 +33,10 @@
 # define SYNTAX_INDEX			"Syntax: \"index\" 1*( SP file ) \";\""
 # define SYNTAX_ROOT			"Syntax: \"root\" SP path \";\""
 
+# define PORT_SCORE				1
+# define IP_SCORE				2
+# define HOST_SCORE				4
+
 class VirtualServerConfig;
 
 typedef	std::pair<std::string, uint16_t> socketAddress_t;
@@ -56,6 +60,10 @@ private:
 	static std::string				getNextFile(std::string& value);
 	static uint16_t					getErrorCode(std::string& value);
 	static void						skipQuotes(std::string& str, size_t& index);
+
+	std::vector<VirtualServerConfig*>			findServerConfigBySocketAddress(socketAddress_t const & socketAddress) const;
+	static std::vector<VirtualServerConfig*>	findServerConfigByHost(std::vector<VirtualServerConfig*> serverConfig, std::string const & host);
+	static uint8_t								serverConfigGetScore(VirtualServerConfig* serverConfig, std::string const & host);
 
 protected:
 	bool								_autoindex;
@@ -86,9 +94,7 @@ public:
 	void			parse(char* configFilename);
 	virtual void	print();
 
-	VirtualServerConfig*						findServerConfig(socketAddress_t const & socketAddress, std::string const & host) const;
-	std::vector<VirtualServerConfig*>			findServerConfigBySocketAddress(socketAddress_t const & socketAddress) const;
-	static std::vector<VirtualServerConfig*>	findServerConfigByHost(std::vector<VirtualServerConfig*> serverConfig, std::string const & host);
+	VirtualServerConfig*	findServerConfig(socketAddress_t const & socketAddress, std::string const & host) const;
 };
 
 #endif

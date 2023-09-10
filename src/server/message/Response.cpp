@@ -53,7 +53,7 @@ void Response::responseGet() {
 			break;
 	}
 	if (!resource.is_open())
-		throw(ClientException());
+		throw(clientException());
 	buffer << resource.rdbuf();
 	_body = buffer.str();
 }
@@ -63,6 +63,8 @@ void Response::responsePost() {
 
 void Response::responseDelete() {
 }
+
+
 
 std::string Response::getResponseRoot() {
 	std::string						requestURI;
@@ -75,7 +77,7 @@ std::string Response::getResponseRoot() {
 		if (locationConfig[i]->getUri() == requestURI)
 			return (locationConfig[i]->getRoot() + requestURI);
 	}
-	return ("");
+	throw(clientException());
 }
 
 std::string Response::httpVersionToString() const {

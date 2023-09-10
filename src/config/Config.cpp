@@ -206,14 +206,31 @@ size_t Config::parseSize(std::string &value) {
 #include "iostream"
 VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddress, std::string const & host) const {
 	std::vector<VirtualServerConfig*>	serverConfig;
+	VirtualServerConfig*				result;
+	uint8_t								bestScore;
+	uint8_t								currentScore;
 
 	serverConfig = findServerConfigBySocketAddress(socketAddress);
-	if (host != "")
+	if (!serverConfig.empty() || !host.empty())
 		serverConfig = findServerConfigByHost(serverConfig, host);
+	std::cout << std::endl << "ServerConfig:" << std::endl;
 	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
 		std::cout << (*it)->getSocketAddress().first << ':' << (*it)->getSocketAddress().second << ", " << host<< std::endl;
 	}
-	return (_serverConfig[0]);
+	if (serverConfig.empty())
+		return (_serverConfig[0]);
+	bestScore = 0;
+	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
+		currentScore = serverConfigGetScore(*it, host);
+		if (currentScore > bestScore) {
+			bestScore = currentScore;
+			result = *it;
+		}
+	}
+	std::cout << "Server chooses:" << std::endl;
+	std::cout << result->getSocketAddress().first << ':' << result->getSocketAddress().second << ", " << host<< std::endl;
+	std::cout << std::endl;
+	return (result);
 }
 
 std::vector<VirtualServerConfig*> Config::findServerConfigBySocketAddress(socketAddress_t const & socketAddress) const {
@@ -246,6 +263,17 @@ std::vector<VirtualServerConfig*>
 			result.push_back(*it);
 	}
 	return (result);
+}
+
+uint8_t Config::serverConfigGetScore(VirtualServerConfig *serverConfig, std::string const & host) {
+	uint8_t	score;
+
+	score = PORT_SCORE;
+	if (serverConfig->getIp() != DEFAULT_ADDRESS)
+		score += IP_SCORE;
+	if (!host.empty())
+		score += HOST_SCORE;
+	return (score);
 }
 
 /**

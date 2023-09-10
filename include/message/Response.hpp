@@ -23,7 +23,7 @@ private:
 	Request				_request;
 	VirtualServerConfig	_virtualServerConfig;
 
-	class ClientException : public std::exception {};
+	class clientException : public std::exception {};
 
 	void router();
 	void responseGet();
