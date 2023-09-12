@@ -64,20 +64,46 @@ void Response::responsePost() {
 void Response::responseDelete() {
 }
 
+/**
+ * DOC
+ * @return
+ */
+void	Response::openResourceStream(std::ifstream& resource) {
+	std::string					root;
+	std::vector<std::string>	index;
 
-
-std::string Response::getResponseRoot() {
-	std::string						requestURI;
-	std::vector<LocationConfig *>	locationConfig;
-
-	requestURI = _request.getRequestUri();
-	locationConfig = _virtualServerConfig.getLocationConfig();
-	for (size_t i = 0; i < locationConfig.size(); i++)
-	{
-		if (locationConfig[i]->getUri() == requestURI)
-			return (locationConfig[i]->getRoot() + requestURI);
+	root = getResponseRoot();
+	index = _virtualServerConfig.getIndex();
+	for (size_t i = 0; i < index.size(); i++) {
+		if (index[i][0] == '/')
+			resource.open(index[i].c_str());
+		else
+			resource.open((root + index[i]).c_str());
+		if (resource.is_open())
+			return;
 	}
 	throw(clientException());
+}
+
+LocationConfig*	Response::getResponseLocation() {
+	std::vector<LocationConfig*>	locationConfig;
+	std::string						requestURI;
+
+	locationConfig = _virtualServerConfig.getLocationConfig();
+	requestURI = _request.getRequestUri();
+	for (size_t i = 0; i < locationConfig.size(); i++)
+		if (locationConfig[i]->getUri() == requestURI)
+			return (locationConfig[i]);
+	throw(clientException());
+}
+
+std::string Response::getResponseRoot() {
+	std::string		requestURI;
+	std::string 	locationRoot;
+
+	requestURI = _request.getRequestUri();
+	locationRoot = getResponseLocation()->getRoot();
+	return (locationRoot + requestURI);
 }
 
 std::string Response::httpVersionToString() const {

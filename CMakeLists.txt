@@ -183,4 +183,6 @@ add_executable(Webserv
         src/main.cpp
         test/main.cpp test/config/ConfigTest.cpp test/config/ConfigTest.cpp test/config/ConfigTest.hpp
 		test/config/VirtualServerConfigTest.hpp
-		test/config/VirtualServerConfigTest.cpp test/config/LocationConfigTest.cpp test/config/LocationConfigTest.hpp src/server/Server.cpp include/server/Server.hpp src/server/message/Message.cpp include/message/Message.hpp src/server/message/Request.cpp include/message/Request.hpp include/method.hpp test/message/MessageTest.cpp test/message/MessageTest.hpp test/message/RequestTest.cpp test/message/RequestTest.hpp src/server/message/Header.cpp include/message/Header.hpp test/message/HeaderTest.cpp test/message/HeaderTest.hpp src/server/message/Response.cpp include/message/Response.hpp)
+		test/config/VirtualServerConfigTest.cpp test/config/LocationConfigTest.cpp test/config/LocationConfigTest.hpp src/server/Server.cpp include/server/Server.hpp src/server/message/Message.cpp include/message/Message.hpp src/server/message/Request.cpp include/message/Request.hpp include/method.hpp test/message/MessageTest.cpp test/message/MessageTest.hpp test/message/RequestTest.cpp test/message/RequestTest.hpp src/server/message/Header.cpp include/message/Header.hpp test/message/HeaderTest.cpp test/message/HeaderTest.hpp src/server/message/Response.cpp include/message/Response.hpp
+        include/utils.hpp
+		src/utils/utils.cpp)
