@@ -139,8 +139,9 @@ void VirtualServerConfig::parseServerName(std::string& value) {
 	std::vector<std::string>::iterator	it;
 
 	argv = Config::split(value, SYNTAX_SERVER_NAME);
-	for (it = argv.begin(); it != argv.end(); it++)
-		_serverNames.push_back(*it);
+	for (it = argv.begin(); it != argv.end(); it++) {
+		_serverNames.push_back(toLower(*it));
+	}
 }
 
 void VirtualServerConfig::parseLocation(std::ifstream& configFile, std::string& line) {
@@ -208,6 +209,14 @@ void VirtualServerConfig::removeHorizontalTabAndSpace(std::string& line) {
 	while (line[index] == '\t' || line[index] == ' ')
 		++index;
 	line.erase(0, index);
+}
+
+std::string VirtualServerConfig::toLower(std::string const & str) {
+	std::string result;
+
+	for (size_t i = 0; i < str.size(); ++i)
+		result[i] = static_cast<char>(tolower(str[i]));
+	return (result);
 }
 
 

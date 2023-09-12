@@ -204,7 +204,7 @@ size_t Config::parseSize(std::string &value) {
 		throw (std::runtime_error(SYNTAX_SIZE));
 }
 
-#include "iostream"
+#include <iostream>
 VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddress, std::string const & host) const {
 	std::vector<VirtualServerConfig*>	serverConfig;
 	VirtualServerConfig*				result;
@@ -213,10 +213,10 @@ VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddr
 
 	serverConfig = findServerConfigBySocketAddress(socketAddress);
 	if (!serverConfig.empty() || !host.empty())
-		serverConfig = findServerConfigByHost(serverConfig, host);
+		serverConfig = findServerConfigByHost(serverConfig, VirtualServerConfig::toLower(host));
 	std::cout << std::endl << "ServerConfig:" << std::endl;
 	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
-		std::cout << (*it)->getSocketAddress().first << ':' << (*it)->getSocketAddress().second << ", " << host<< std::endl;
+		std::cout << (*it)->getSocketAddress().first << ':' << (*it)->getSocketAddress().second << ", " << host << std::endl;
 	}
 	if (serverConfig.empty())
 		return (_serverConfig[0]);
