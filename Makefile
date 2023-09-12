@@ -92,6 +92,10 @@ re:					fclean
 run:				$(NAME)
 					./$(NAME) $(ARG)
 
+.PHONY:				rerun
+rerun:				fclean
+					$(MAKE) run
+
 .PHONY:				debug
 debug:
 					$(MAKE) re CFLAGS="$(CFLAGS) -fsanitize=address -g3"

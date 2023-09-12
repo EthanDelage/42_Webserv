@@ -32,7 +32,7 @@ Context: location
 ### error_page:
 Define error pages to be sent in response when a client request result in an error.
 ```
-error_page = "error_page" 1*( SP code ) SP uri ";"
+error_page = "error_page" 1*( SP code ) SP uri ";" ; handled code: 300, 400 and 500
 Default: ——
 Context: main, server, location
 ```
@@ -77,6 +77,7 @@ root = "root" SP path ";"
 Default: root html;
 Context: main, server, location
 ```
+
 ### server:
 Set the configuration for a virtual server.
 ```

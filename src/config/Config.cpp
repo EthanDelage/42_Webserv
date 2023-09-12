@@ -17,12 +17,13 @@
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
+#include <iostream>
 
 Config::Config() {
 	_index.push_back(DEFAULT_INDEX);
 	_isDefaultIndex = true;
 	_root = std::string(PREFIX) + DEFAULT_ROOT;
-	_errorPage[404] = "404.html";
+	_errorPage[400] = "400.html";
 	_maxBodySize = DEFAULT_MAX_BODY_SIZE;
 	_autoindex = DEFAULT_AUTOINDEX;
 }
@@ -134,14 +135,21 @@ void Config::parseErrorPage(std::string &value) {
 	std::vector<std::string>			argv;
 	std::string							uri;
 	std::vector<std::string>::iterator	it;
+	uint16_t							errorCode;
 
 	argv = split(value, SYNTAX_ERROR_PAGE);
 	if (argv.size() <= 1)
 		throw (std::runtime_error(SYNTAX_ERROR_PAGE));
 	uri = argv.back();
 	argv.pop_back();
-	for (it = argv.begin(); it != argv.end(); it++)
-		_errorPage[getErrorCode(*it)] = uri;
+	for (it = argv.begin(); it != argv.end(); it++) {
+		errorCode = getErrorCode(*it);
+		if (errorCode % 100 == 0)
+			_errorPage[errorCode] = uri;
+		else
+			std::cerr << "Webserv: [warn] error code `" << static_cast<int>(errorCode)
+				<< "` is not handled, ignored" << std::endl;
+	}
 }
 
 void Config::parseIndex(std::string &value) {
@@ -160,7 +168,9 @@ void Config::parseIndex(std::string &value) {
 }
 
 void Config::parseRoot(std::string &value) {
-	_root = parsePath(value);
+	_root = removeQuote(value);
+	if (_root[0] != '/')
+		_root = PREFIX + _root;
 }
 
 void Config::parseServer(std::ifstream &configFile) {
@@ -169,15 +179,6 @@ void Config::parseServer(std::ifstream &configFile) {
 	newServerConfig->parse(configFile);
 	newServerConfig->print();
 	_serverConfig.push_back(newServerConfig);
-}
-
-std::string Config::parsePath(std::string &value) {
-	std::string	path;
-
-	path = removeQuote(value);
-	if (path[0] != '/')
-		path = PREFIX + path;
-	return (path);
 }
 
 /**
