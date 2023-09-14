@@ -13,19 +13,25 @@
 #include <vector>
 #include <iostream>
 
-std::vector<std::string> split(std::string str, char c) {
+std::vector<std::string> split_path(std::string str) {
 	std::vector<std::string>	argv;
 	std::string					arg;
 	size_t						start;
+	size_t						i;
 
-	for (size_t i = 0; i < str.size(); i++) {
-		if (str[i] == c)
-			throw (std::runtime_error("split()"));
+	i = 0;
+	while (str[i]) {
+		if (str[i] != '/')
+			throw (std::runtime_error("split_path()"));
+		i++;
 		start = i;
-		while (str[i] && str[i] != c)
+		while (str[i] != '/')
 			i++;
+		if (start == i)
+			throw (std::runtime_error("split_path()"));
 		arg = str.substr(start, i - start);
 		argv.push_back(arg);
+		i++;
 	}
 	return (argv);
 }
