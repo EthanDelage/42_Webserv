@@ -215,7 +215,7 @@ std::string VirtualServerConfig::toLower(std::string const & str) {
 	std::string result;
 
 	for (size_t i = 0; i < str.size(); ++i)
-		result[i] = static_cast<char>(tolower(str[i]));
+		result += static_cast<char>(tolower(str[i]));
 	return (result);
 }
 
