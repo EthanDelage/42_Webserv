@@ -132,62 +132,52 @@ TEST_F(ConfigTest, parseIndexInvalid) {
 TEST_F(ConfigTest, parseDefaultErrorPage) {
 	std::map<uint16_t, std::string>	errorPage;
 
-	errorPage[404] = "404.html";
+	errorPage[400] = "400.html";
 	EXPECT_EQ(getErrorPage(), errorPage);
 }
 
 TEST_F(ConfigTest, parseSingleErrorPage) {
 	std::map<uint16_t, std::string>	errorPage;
 
-	errorPage[404] = "404.html";
-	errorPage[502] = "50x.html";
-	EXPECT_EQ(parseErrorPage("error_page 502 50x.html;"), errorPage);
+	errorPage[400] = "400.html";
+	errorPage[500] = "50x.html";
+	EXPECT_EQ(parseErrorPage("error_page 500 50x.html;"), errorPage);
 }
 
 TEST_F(ConfigTest, parseMultipleCodeErrorPage) {
 	std::map<uint16_t, std::string>	errorPage;
 
-	errorPage[404] = "404.html";
-	errorPage[502] = "50x.html";
-	errorPage[503] = "50x.html";
-	errorPage[504] = "50x.html";
-	errorPage[505] = "50x.html";
-	EXPECT_EQ(parseErrorPage("error_page 502 503 504 505 50x.html;"), errorPage);
+	errorPage[400] = "400.html";
+	errorPage[300] = "x00.html";
+	errorPage[500] = "x00.html";
+	EXPECT_EQ(parseErrorPage("error_page 300 500 x00.html;"), errorPage);
 }
 
 TEST_F(ConfigTest, parseMultipleErrorPageDirectives) {
 	std::map<uint16_t, std::string>	errorPage;
 
-	errorPage[404] = "404.html";
-	errorPage[502] = "50x.html";
-	errorPage[503] = "50x.html";
-	errorPage[504] = "50x.html";
-	errorPage[505] = "50x.html";
-	EXPECT_EQ(parseErrorPage("error_page 502 503 504 505 50x.html;"), errorPage);
-	errorPage[302] = "302.html";
-	EXPECT_EQ(parseErrorPage("error_page 302 302.html;"), errorPage);
-	errorPage[403] = "403.html";
-	EXPECT_EQ(parseErrorPage("error_page 403 403.html;"), errorPage);
+	errorPage[400] = "400.html";
+	errorPage[500] = "500.html";
+	EXPECT_EQ(parseErrorPage("error_page 500 500.html;"), errorPage);
+	errorPage[300] = "300.html";
+	EXPECT_EQ(parseErrorPage("error_page 300 300.html;"), errorPage);
+	errorPage[400] = "test.html";
+	EXPECT_EQ(parseErrorPage("error_page 400 test.html;"), errorPage);
 }
 
 TEST_F(ConfigTest, parseOverrideCodeErrorPage) {
 	std::map<uint16_t, std::string>	errorPage;
 
-	errorPage[404] = "404.html";
-	errorPage[302] = "302.html";
-	EXPECT_EQ(parseErrorPage("error_page 302 302.html;"), errorPage);
-	errorPage[302] = "foo.html";
-	EXPECT_EQ(parseErrorPage("error_page 302 foo.html;"), errorPage);
-	errorPage[404] = "test.html";
-	errorPage[502] = "test.html";
-	EXPECT_EQ(parseErrorPage("error_page 404 502 test.html;"), errorPage);
-	errorPage[502] = "50x.html";
-	errorPage[503] = "50x.html";
-	errorPage[504] = "50x.html";
-	errorPage[505] = "50x.html";
-	EXPECT_EQ(parseErrorPage("error_page 502 503 504 505 50x.html;"), errorPage);
-	errorPage[505] = "505.html";
-	EXPECT_EQ(parseErrorPage("error_page 505 505.html;"), errorPage);
+	errorPage[400] = "400.html";
+	errorPage[300] = "300.html";
+	EXPECT_EQ(parseErrorPage("error_page 300 300.html;"), errorPage);
+	errorPage[300] = "foo.html";
+	EXPECT_EQ(parseErrorPage("error_page 300 foo.html;"), errorPage);
+	errorPage[400] = "test.html";
+	errorPage[500] = "test.html";
+	EXPECT_EQ(parseErrorPage("error_page 400 500 test.html;"), errorPage);
+	errorPage[500] = "500.html";
+	EXPECT_EQ(parseErrorPage("error_page 500 500.html;"), errorPage);
 }
 
 TEST_F(ConfigTest, parseErrorPageInvalid) {
