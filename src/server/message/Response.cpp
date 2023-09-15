@@ -18,15 +18,20 @@
 #include "config/LocationConfig.hpp"
 
 Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request), _virtualServerConfig(virtualServerConfig) {
-	router();
+	try {
+		router();
+	}
+	catch (clientException const & e) {
+		responseCLienError();
+	}
 }
 
 Response::~Response() {}
 
 void Response::send(int clientSocket) {
+	write(clientSocket, _statusLine.c_str(), _statusLine.size());
 	write(clientSocket, _body.c_str(), _body.size());
 }
-
 
 void Response::router() {
 	uint8_t	httpMethods[] = {GET_METHOD_MASK, POST_METHOD_MASK, DELETE_METHOD_MASK};
@@ -38,25 +43,29 @@ void Response::router() {
 	}
 }
 
-#include "iostream"
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 	std::stringstream			buffer;
 
 	path = getResourcePath();
-	std::cout << "Path: " << path << std::endl;
 	resource.open(path.c_str());
 	if (!resource.is_open())
 		throw(clientException());
 	buffer << resource.rdbuf();
-	_body = buffer.str();
+	setStatusLine(SUCCESS_STATUS_CODE);
+	_body += buffer.str();
 }
 
 void Response::responsePost() {
 }
 
 void Response::responseDelete() {
+}
+
+void Response::responseCLienError() {
+	setStatusLine(CLIENT_ERROR_STATUS_CODE);
+	_body = "Bad Request\n";
 }
 
 /**
@@ -100,23 +109,22 @@ LocationConfig*	Response::getResponseLocation() {
 		requestUri.erase(requestUri.find('/') + 1);
 	}
 	requestUriDirectories = split_path(requestUri);
-	 do {
+	 while (requestUriDirectories.size() != 0) {
 		for (size_t i = 0; i < locationConfig.size(); i++)
 			if (locationConfig[i]->getUriDirectories() == requestUriDirectories)
 				return (locationConfig[i]);
 		requestUriDirectories.pop_back();
-	} while (requestUriDirectories.size() != 0);
+	}
 	throw(clientException());
 }
 
-std::string Response::getResponseRoot() {
-	std::string		requestURI;
-	std::string 	locationRoot;
-
-	requestURI = _request.getRequestUri();
-	locationRoot = getResponseLocation()->getRoot();
-	return (locationRoot + requestURI);
+void Response::setStatusLine(uint16_t statusCode) {
+	_statusLine = httpVersionToString() + ' ';
+	_statusLine += statusCodeToString(statusCode) + ' ';
+	_statusLine += getReasonPhrase(statusCode);
+	addCRLF(_statusLine);
 }
+
 
 std::string Response::httpVersionToString() const {
 	httpVersion_t	httpVersion;
@@ -126,13 +134,36 @@ std::string Response::httpVersionToString() const {
 }
 
 std::string Response::getReasonPhrase(uint16_t code) {
-	std::string	reasonsPhrases[] = {"Continue", "Ok", "Multiple Choice", "Bad Request", "Internal Server Error"};
-	uint16_t	codes[] = {100, 200, 300, 400, 500};
+	uint16_t	codes[] = {
+			INFORMATIONAL_STATUS_CODE,
+			SUCCESS_STATUS_CODE,
+			REDIRECTION_STATUS_CODE,
+			CLIENT_ERROR_STATUS_CODE,
+			SERVER_ERROR_STATUS_CODE
+	};
+	std::string	reasonsPhrases[] = {
+			INFORMATIONAL_REASON_PHRASE,
+			SUCCESS_REASON_PHRASE,
+			REDIRECTION_REASON_PHRASE,
+			CLIENT_ERROR_REASON_PHRASE,
+			SERVER_ERROR_REASON_PHRASE
+	};
 
 	for (size_t i = 0; sizeof(reasonsPhrases) / sizeof(*reasonsPhrases); ++i) {
 		if (code == codes[i])
 			return (reasonsPhrases[i]);
 	}
+}
+
+std::string Response::statusCodeToString(unsigned int statusCode) {
+	std::string	result;
+
+	result += statusCode / 100 + '0';
+	statusCode %= 100;
+	result += statusCode / 10 + '0';
+	statusCode %= 10;
+	result += statusCode + '0';
+	return (result);
 }
 
 std::string Response::uitoa(unsigned int n) {

@@ -61,7 +61,7 @@ DEPS_TEST	=		$(OBJ_TEST:.o=.d)
 #	FLAGS
 #######################
 
-CFLAGS		=		-Wall -Werror -Wextra -std=c++98 -g3
+CFLAGS		=		-Wall -Werror -Wextra -std=c++98
 
 IFLAGS		=		-I $(INC_DIR)
 

@@ -15,15 +15,17 @@
 
 /**
  * @brief Split the string in a vector of strings that represent every directory.
+ * The first string of the vector will always be an empty string representing the current directory.
  * The path must start and end with '/'.
  * @throw runtime_error Thrown when the path is badly formatted.
  */
-std::vector<std::string> split_path(std::string path) {
+std::vector<std::string> split_path(std::string& path) {
 	std::vector<std::string>	argv;
 	std::string					arg;
 	size_t						start;
 	size_t						i;
 
+	argv.push_back("");
 	i = 0;
 	while (path[i]) {
 		if (path[i] != '/')
@@ -40,4 +42,12 @@ std::vector<std::string> split_path(std::string path) {
 		}
 	}
 	return (argv);
+}
+
+/**
+ * add a CRLF to a string.\n
+ * A CRLF represent the end of line in the HTTP protocol and correspond to "\\r\\n".
+ */
+void addCRLF(std::string& str) {
+	str += "\r\n";
 }

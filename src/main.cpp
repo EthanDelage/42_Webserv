@@ -25,7 +25,7 @@ int	main(int argc, char** argv) {
 		config.parse(argv[1]);
 		server.init(config);
 		server.listener();
-	} catch (std::exception const &e) {
+	} catch (std::exception const & e) {
 		std::cerr << "Error: " << e.what() << std::endl;
 		return (1);
 	}
