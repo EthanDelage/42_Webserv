@@ -30,7 +30,7 @@ private:
 	void responsePost();
 	void responseDelete();
 
-	void				openResourceStream(std::ifstream& resource);
+	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation();
 	std::string			getResponseRoot();
 	std::string			httpVersionToString() const;

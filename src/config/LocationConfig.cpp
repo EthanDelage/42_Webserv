@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "config/LocationConfig.hpp"
+#include "utils.hpp"
 
 #ifdef UNIT_TESTING
 	LocationConfig::LocationConfig() : _allowedHttpMethod(DEFAULT_METHOD_MASK) {}
@@ -18,10 +19,17 @@
 LocationConfig::LocationConfig(VirtualServerConfig const & virtualServerConfig, std::string& uri) :
 	VirtualServerConfig(virtualServerConfig),
 	_uri(uri) {
-	_allowedHttpMethod = DEFAULT_METHOD_MASK;
+		if (uri[0] != '/')
+			throw (std::runtime_error("Bad URI"));
+		if (uri[uri.size() - 1] != '/')
+			uri.erase(uri.find('/') + 1);
+		_uriDirectories = split_path(uri);
+		_allowedHttpMethod = DEFAULT_METHOD_MASK;
 }
 
 std::string LocationConfig::getUri() const {return (_uri);}
+
+std::vector<std::string> LocationConfig::getUriDirectories() const {return (_uriDirectories);}
 
 bool LocationConfig::getMethodStatus() const {
 	return (_allowedHttpMethod & GET_METHOD_MASK);

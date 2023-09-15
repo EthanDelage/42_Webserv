@@ -13,6 +13,7 @@
 #include <sys/socket.h>
 #include <unistd.h>
 #include <sstream>
+#include "utils.hpp"
 #include "message/Response.hpp"
 #include "config/LocationConfig.hpp"
 
@@ -42,16 +43,10 @@ void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 	std::stringstream			buffer;
-	std::vector<std::string>	index;
 
-	path = getResponseRoot();
-	std::cout << path << std::endl;
-	index = _virtualServerConfig.getIndex();
-	for (size_t i = 0; i < index.size(); i++) {
-		resource.open((path + index[i]).c_str());
-		if (resource.is_open())
-			break;
-	}
+	path = getResourcePath();
+	std::cout << "Path: " << path << std::endl;
+	resource.open(path.c_str());
 	if (!resource.is_open())
 		throw(clientException());
 	buffer << resource.rdbuf();
@@ -65,35 +60,52 @@ void Response::responseDelete() {
 }
 
 /**
- * DOC
- * @return
+ * Returns the path of the resource requested.
+ * @throw clientException Thrown if the the requestURI is badly formatted or if the resource can't be found.
  */
-void	Response::openResourceStream(std::ifstream& resource) {
-	std::string					root;
+std::string Response::getResourcePath() {
+	std::string 				requestUri;
+	std::string 				path;
 	std::vector<std::string>	index;
+	LocationConfig*				location;
 
-	root = getResponseRoot();
-	index = _virtualServerConfig.getIndex();
+	requestUri = _request.getRequestUri();
+	location = getResponseLocation();
+	if (requestUri[requestUri.size() - 1] != '/')
+		return (location->getRoot() + requestUri);
+	index = location->getIndex();
 	for (size_t i = 0; i < index.size(); i++) {
-		if (index[i][0] == '/')
-			resource.open(index[i].c_str());
-		else
-			resource.open((root + index[i]).c_str());
-		if (resource.is_open())
-			return;
+		if (index[i][0] == '/') {
+			if (access(index[i].c_str(), F_OK) == 0)
+				return (index[i]);
+		}
+		else {
+			path = location->getRoot() + '/';
+			path += (requestUri.erase(0, location->getUri().size())) + index[i];
+			if (access(path.c_str(), F_OK) == 0)
+				return (path);
+		}
 	}
 	throw(clientException());
 }
 
 LocationConfig*	Response::getResponseLocation() {
 	std::vector<LocationConfig*>	locationConfig;
-	std::string						requestURI;
+	std::string						requestUri;
+	std::vector<std::string>		requestUriDirectories;
 
 	locationConfig = _virtualServerConfig.getLocationConfig();
-	requestURI = _request.getRequestUri();
-	for (size_t i = 0; i < locationConfig.size(); i++)
-		if (locationConfig[i]->getUri() == requestURI)
-			return (locationConfig[i]);
+	requestUri = _request.getRequestUri();
+	if (requestUri[requestUri.size() - 1] != '/') {
+		requestUri.erase(requestUri.find('/') + 1);
+	}
+	requestUriDirectories = split_path(requestUri);
+	 do {
+		for (size_t i = 0; i < locationConfig.size(); i++)
+			if (locationConfig[i]->getUriDirectories() == requestUriDirectories)
+				return (locationConfig[i]);
+		requestUriDirectories.pop_back();
+	} while (requestUriDirectories.size() != 0);
 	throw(clientException());
 }
 

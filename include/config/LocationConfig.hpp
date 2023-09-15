@@ -30,8 +30,9 @@ class LocationConfig: public VirtualServerConfig {
 # endif
 
 private:
-	std::string const	_uri;
-	uint8_t				_allowedHttpMethod;
+	std::string const			_uri;
+	std::vector<std::string> 	_uriDirectories;
+	uint8_t						_allowedHttpMethod;
 
 	void 	parseLine(std::string& line);
 	void 	router(std::string& directive, std::string& value);
@@ -46,10 +47,11 @@ public:
 	LocationConfig(VirtualServerConfig const & virtualServerConfig, std::string& uri);
 	~LocationConfig() {};
 
-	std::string	getUri() const;
-	bool		getMethodStatus() const;
-	bool		postMethodStatus() const;
-	bool		deleteMethodStatus() const;
+	std::string					getUri() const;
+	std::vector<std::string>	getUriDirectories() const;
+	bool						getMethodStatus() const;
+	bool						postMethodStatus() const;
+	bool						deleteMethodStatus() const;
 
 	void	parse(std::ifstream& configFile);
 	void	print();

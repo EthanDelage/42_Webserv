@@ -36,6 +36,8 @@ SRC			=		\
 							server/message/Response.cpp	\
 							server/message/Header.cpp	\
 						\
+						utils/utils.cpp	\
+						\
 					\
 
 OBJ			=		$(addprefix $(BUILD_DIR), $(SRC:.cpp=.o))
@@ -59,7 +61,7 @@ DEPS_TEST	=		$(OBJ_TEST:.o=.d)
 #	FLAGS
 #######################
 
-CFLAGS		=		-Wall -Werror -Wextra -std=c++98
+CFLAGS		=		-Wall -Werror -Wextra -std=c++98 -g3
 
 IFLAGS		=		-I $(INC_DIR)
 

@@ -15,6 +15,6 @@
 # include <string>
 # include <vector>
 
-std::vector<std::string> split(std::string str, char c);
+std::vector<std::string> split_path(std::string path);
 
 #endif

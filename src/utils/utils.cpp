@@ -13,25 +13,31 @@
 #include <vector>
 #include <iostream>
 
-std::vector<std::string> split_path(std::string str) {
+/**
+ * @brief Split the string in a vector of strings that represent every directory.
+ * The path must start and end with '/'.
+ * @throw runtime_error Thrown when the path is badly formatted.
+ */
+std::vector<std::string> split_path(std::string path) {
 	std::vector<std::string>	argv;
 	std::string					arg;
 	size_t						start;
 	size_t						i;
 
 	i = 0;
-	while (str[i]) {
-		if (str[i] != '/')
+	while (path[i]) {
+		if (path[i] != '/')
 			throw (std::runtime_error("split_path()"));
 		i++;
 		start = i;
-		while (str[i] != '/')
+		while (path[i] && path[i] != '/')
 			i++;
-		if (start == i)
+		if (path[i] && start == i)
 			throw (std::runtime_error("split_path()"));
-		arg = str.substr(start, i - start);
-		argv.push_back(arg);
-		i++;
+		if (start != i) {
+			arg = path.substr(start, i - start);
+			argv.push_back(arg);
+		}
 	}
 	return (argv);
 }
