@@ -57,6 +57,7 @@ public:
 	~Response();
 
 	void send(int clientSocket);
+	void print() const;
 };
 
 #endif

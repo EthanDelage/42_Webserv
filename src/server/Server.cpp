@@ -77,6 +77,7 @@ void Server::listener() {
 				virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");
 				response = new Response(*request, *virtualServerConfig);
 				delete request;
+				response->print();
 				response->send(clientSocketFd);
 				delete response;
 				close(clientSocketFd);

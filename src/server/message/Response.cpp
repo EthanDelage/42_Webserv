@@ -176,3 +176,12 @@ std::string Response::uitoa(unsigned int n) {
 	}
 	return (result);
 }
+
+#include <iostream>
+void Response::print() const {
+	std::cout << "Response:" << std::endl;
+	std::cout << _statusLine;
+	std::cout << std::endl;
+	std::cout << _body;
+	std::cout << "End" << std::endl;
+}
