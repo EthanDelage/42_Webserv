@@ -15,6 +15,7 @@
 #include <sstream>
 #include "utils.hpp"
 #include "message/Response.hpp"
+#include "error/Error.hpp"
 
 Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request), _virtualServerConfig(virtualServerConfig) {
 	try {

@@ -38,8 +38,6 @@ private:
 	VirtualServerConfig	_virtualServerConfig;
 	LocationConfig*		_locationConfig;
 
-	class clientException : public std::exception {};
-
 	void router();
 	void responseGet();
 	void responsePost();

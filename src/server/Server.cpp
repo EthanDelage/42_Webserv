@@ -72,6 +72,7 @@ void Server::listener() {
 		for (size_t i = 0; i < _nbSocket; ++i) {
 			if (_socketArray[i].revents != POLL_DEFAULT) {
 				clientSocketFd = acceptClient(_socketArray[i].fd);
+				//TODO Handle clientException when request is badly formatted
 				request = new Request(clientSocketFd);
 				request->print();
 				virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");

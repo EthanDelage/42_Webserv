@@ -9,9 +9,10 @@
 /*   Updated: 2023/09/03 13:34:00 by edelage          ###   ########lyon.fr   */
 /*                                                                            */
 /* ************************************************************************** */
-#include "message/Request.hpp"
 #include <iostream>
 #include <unistd.h>
+#include "message/Request.hpp"
+#include "error/Error.hpp"
 
 Request::Request(int socketFd) {
 	std::string	line;
@@ -44,7 +45,7 @@ void Request::parseRequestLine(std::string const & line) {
 
 	argv = split(line);
 	if (argv.size() != 3)
-		throw (std::runtime_error("Invalid number of arguments"));
+		throw (clientException());
 	parseMethod(argv[0]);
 	_requestURI = argv[1];
 	parseHttpVersion(argv[2]);
