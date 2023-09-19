@@ -34,13 +34,22 @@ void Response::send(int clientSocket) {
 }
 
 void Response::router() {
-	uint8_t	httpMethods[] = {GET_METHOD_MASK, POST_METHOD_MASK, DELETE_METHOD_MASK};
-	responseFunction_t responseFunction[] = {&Response::responseGet, &Response::responsePost, &Response::responseDelete};
+	uint8_t	httpMethods[] = {
+			GET_METHOD_MASK,
+			POST_METHOD_MASK,
+			DELETE_METHOD_MASK
+	};
+	responseFunction_t responseFunction[] = {
+			&Response::responseGet,
+			&Response::responsePost,
+			&Response::responseDelete
+	};
 
 	for (size_t i = 0; i < sizeof(httpMethods) / sizeof(*httpMethods); i++) {
 		if (httpMethods[i] == _request.getMethod())
 			(this->*responseFunction[i])();
 	}
+	throw (clientException());
 }
 
 void Response::responseGet() {
