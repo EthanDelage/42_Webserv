@@ -133,7 +133,7 @@ LocationConfig*	Response::getResponseLocation() {
 	if (requestUri[requestUri.size() - 1] != '/')
 		requestUri.erase(requestUri.rfind('/') + 1);
 	requestUriDirectories = split_path(requestUri);
-	 while (requestUriDirectories.size() != 0) {
+	 while (!requestUriDirectories.empty()) {
 		for (size_t i = 0; i < locationConfig.size(); i++)
 			if (locationConfig[i]->getUriDirectories() == requestUriDirectories)
 				return (locationConfig[i]);
