@@ -29,7 +29,7 @@ Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) :
 Response::~Response() {}
 
 void Response::send(int clientSocket) {
-	write(clientSocket, _statusLine.c_str(), _statusLine.size());
+	//write(clientSocket, _statusLine.c_str(), _statusLine.size());
 	write(clientSocket, _body.c_str(), _body.size());
 }
 
@@ -39,6 +39,11 @@ void Response::router() {
 			POST_METHOD_MASK,
 			DELETE_METHOD_MASK
 	};
+	uint8_t	allowedMethods[] = {
+			_locationConfig->getMethodStatus(),
+			_locationConfig->postMethodStatus(),
+			_locationConfig->deleteMethodStatus()
+	};
 	responseFunction_t responseFunction[] = {
 			&Response::responseGet,
 			&Response::responsePost,
@@ -46,8 +51,12 @@ void Response::router() {
 	};
 
 	for (size_t i = 0; i < sizeof(httpMethods) / sizeof(*httpMethods); i++) {
-		if (httpMethods[i] == _request.getMethod())
+		if (httpMethods[i] == _request.getMethod()) {
+			if (!allowedMethods[i])
+				throw (clientException());
 			(this->*responseFunction[i])();
+			return;
+		}
 	}
 	throw (clientException());
 }
