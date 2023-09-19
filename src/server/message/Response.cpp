@@ -46,18 +46,22 @@ void Response::router() {
 	};
 
 	for (size_t i = 0; i < sizeof(httpMethods) / sizeof(*httpMethods); i++) {
-		if (httpMethods[i] == _request.getMethod())
+		if (httpMethods[i] == _request.getMethod()) {
 			(this->*responseFunction[i])();
+			return ;
+		}
 	}
 	throw (clientException());
 }
 
+#include <iostream>
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 	std::stringstream			buffer;
 
 	path = getResourcePath();
+	std::cout << path << std::endl;
 	resource.open(path.c_str());
 	if (!resource.is_open())
 		throw(clientException());
@@ -74,7 +78,7 @@ void Response::responseDelete() {
 	std::string requestUri;
 
 	requestUri = _request.getRequestUri();
-	path = _locationConfig->getRoot() + requestUri;
+	path = _locationConfig->getRoot() + '/' + requestUri.erase(0, _locationConfig->getUri().size());
 	if (remove(path.c_str()) != 0)
 		throw (clientException());
 }
@@ -95,7 +99,7 @@ std::string Response::getResourcePath() {
 
 	requestUri = _request.getRequestUri();
 	if (requestUri[requestUri.size() - 1] != '/')
-		return (_locationConfig->getRoot() + requestUri);
+		return (_locationConfig->getRoot() + '/' + requestUri.erase(0, _locationConfig->getUri().size()));
 	index = _locationConfig->getIndex();
 	for (size_t i = 0; i < index.size(); i++) {
 		if (index[i][0] == '/') {
@@ -119,9 +123,8 @@ LocationConfig*	Response::getResponseLocation() {
 
 	locationConfig = _virtualServerConfig.getLocationConfig();
 	requestUri = _request.getRequestUri();
-	if (requestUri[requestUri.size() - 1] != '/') {
-		requestUri.erase(requestUri.find('/') + 1);
-	}
+	if (requestUri[requestUri.size() - 1] != '/')
+		requestUri.erase(requestUri.rfind('/') + 1);
 	requestUriDirectories = split_path(requestUri);
 	 while (requestUriDirectories.size() != 0) {
 		for (size_t i = 0; i < locationConfig.size(); i++)
