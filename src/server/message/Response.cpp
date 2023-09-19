@@ -70,6 +70,13 @@ void Response::responsePost() {
 }
 
 void Response::responseDelete() {
+	std::string	path;
+	std::string requestUri;
+
+	requestUri = _request.getRequestUri();
+	path = _locationConfig->getRoot() + requestUri;
+	if (remove(path.c_str()) != 0)
+		throw (clientException());
 }
 
 void Response::responseCLienError() {
