@@ -100,7 +100,7 @@ rerun:				fclean
 
 .PHONY:				debug
 debug:
-					$(MAKE) re CFLAGS="$(CFLAGS) -fsanitize=address -g3"
+					$(MAKE) re CFLAGS="$(CFLAGS) -g3"
 
 .PHONY:				leaks
 leaks:				$(NAME)
