@@ -15,10 +15,10 @@
 #include <sstream>
 #include "utils.hpp"
 #include "message/Response.hpp"
-#include "config/LocationConfig.hpp"
 
 Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request), _virtualServerConfig(virtualServerConfig) {
 	try {
+		_locationConfig = getResponseLocation();
 		router();
 	}
 	catch (clientException const & e) {
@@ -76,21 +76,19 @@ std::string Response::getResourcePath() {
 	std::string 				requestUri;
 	std::string 				path;
 	std::vector<std::string>	index;
-	LocationConfig*				location;
 
 	requestUri = _request.getRequestUri();
-	location = getResponseLocation();
 	if (requestUri[requestUri.size() - 1] != '/')
-		return (location->getRoot() + requestUri);
-	index = location->getIndex();
+		return (_locationConfig->getRoot() + requestUri);
+	index = _locationConfig->getIndex();
 	for (size_t i = 0; i < index.size(); i++) {
 		if (index[i][0] == '/') {
 			if (access(index[i].c_str(), F_OK) == 0)
 				return (index[i]);
 		}
 		else {
-			path = location->getRoot() + '/';
-			path += (requestUri.erase(0, location->getUri().size())) + index[i];
+			path = _locationConfig->getRoot() + '/';
+			path += (requestUri.erase(0, _locationConfig->getUri().size())) + index[i];
 			if (access(path.c_str(), F_OK) == 0)
 				return (path);
 		}

@@ -14,6 +14,7 @@
 
 # include "message/Request.hpp"
 # include "config/VirtualServerConfig.hpp"
+# include "config/LocationConfig.hpp"
 
 # define INFORMATIONAL_STATUS_CODE		100
 # define SUCCESS_STATUS_CODE			200
@@ -35,6 +36,7 @@ private:
 	std::string			_body;
 	Request				_request;
 	VirtualServerConfig	_virtualServerConfig;
+	LocationConfig*		_locationConfig;
 
 	class clientException : public std::exception {};
 
