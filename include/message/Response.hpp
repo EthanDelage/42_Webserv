@@ -42,7 +42,7 @@ private:
 	void responseGet();
 	void responsePost();
 	void responseDelete();
-	void responseCLienError();
+	void responseClientError();
 
 	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation();
@@ -51,6 +51,7 @@ private:
 	static std::string	getReasonPhrase(uint16_t code);
 	static std::string	statusCodeToString(unsigned int statusCode);
 	static std::string	uitoa(unsigned int n);
+	static bool			removeDirectory(std::string const & dirName);
 
 public:
 	Response(Request& request, VirtualServerConfig& virtualServerConfig);

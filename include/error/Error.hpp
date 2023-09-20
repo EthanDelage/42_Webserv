@@ -14,6 +14,7 @@
 
 # include <exception>
 
-class clientException : std::exception {};
+class clientException : public std::exception {};
+class serverException : public std::exception {};
 
 #endif
