@@ -86,9 +86,9 @@ void Response::responseDelete() {
 		if (path[path.size() - 1] != '/')
 			path += '/';
 		if (!removeDirectory(path))
-			throw (std::exception());
+			throw (serverException());
 	} else if (std::remove(path.c_str()) != 0) {
-		throw (std::exception());
+		throw (serverException());
 	}
 }
 
@@ -203,11 +203,18 @@ std::string Response::uitoa(unsigned int n) {
 	return (result);
 }
 
+/**
+ * @brief delete a directory and all the files/directories it contains
+ * @param dirName name of directory to be deleted
+ * @return true on success and false if at least one files/directories could not be removed
+ */
 bool Response::removeDirectory(std::string const & dirName) {
 	DIR*	dir;
 	int		dirFd;
 	dirent*	dirEntry;
+	bool	success;
 
+	success = true;
 	dir = opendir(dirName.c_str());
 	if (dir == NULL)
 		return (false);
@@ -216,22 +223,18 @@ bool Response::removeDirectory(std::string const & dirName) {
 		if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0) {
 			dirFd = open((dirName + dirEntry->d_name).c_str(), O_DIRECTORY);
 			if (dirFd != -1) {
-				if (!removeDirectory(dirName + dirEntry->d_name + '/')) {
-					closedir(dir);
-					return (false);
-				}
+				if (!removeDirectory(dirName + dirEntry->d_name + '/'))
+					success = false;
 			} else {
-				if (std::remove((dirName + dirEntry->d_name).c_str()) == -1) {
-					closedir(dir);
-					return (false);
-				}
+				if (std::remove((dirName + dirEntry->d_name).c_str()) == -1)
+					success = false;
 			}
 		}
 		dirEntry = readdir(dir);
 	}
 	closedir(dir);
 	remove(dirName.c_str());
-	return (true);
+	return (success);
 }
 
 #include <iostream>

@@ -39,6 +39,7 @@ private:
 	LocationConfig*		_locationConfig;
 
 	class clientException : public std::exception {};
+	class serverException : public std::exception {};
 
 	void router();
 	void responseGet();
