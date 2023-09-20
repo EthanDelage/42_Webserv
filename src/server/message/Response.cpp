@@ -18,13 +18,8 @@
 #include "error/Error.hpp"
 
 Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request), _virtualServerConfig(virtualServerConfig) {
-	try {
-		_locationConfig = getResponseLocation();
-		router();
-	}
-	catch (clientException const & e) {
-		responseCLienError();
-	}
+	_locationConfig = getResponseLocation();
+	router();
 }
 
 Response::~Response() {}
@@ -74,7 +69,7 @@ void Response::responseGet() {
 	if (!resource.is_open())
 		throw(clientException());
 	buffer << resource.rdbuf();
-	setStatusLine(SUCCESS_STATUS_CODE);
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 	_body += buffer.str();
 }
 
@@ -91,9 +86,41 @@ void Response::responseDelete() {
 		throw (clientException());
 }
 
-void Response::responseCLienError() {
-	setStatusLine(CLIENT_ERROR_STATUS_CODE);
-	_body = "Bad Request\n";
+void Response::sendContinue(int clientSocket) {
+	std::string	statusLine;
+
+	statusLine = statusCodeToLine(INFORMATIONAL_STATUS_CODE);
+	write(clientSocket, statusLine.c_str(), statusLine.size());
+}
+
+void Response::sendRedirection(int clientSocket) {
+	std::string	statusLine;
+	std::string	body;
+
+	statusLine = statusCodeToLine(INFORMATIONAL_STATUS_CODE);
+	body = std::string(INFORMATIONAL_REASON_PHRASE) + '\n';
+	write(clientSocket, statusLine.c_str(), statusLine.size());
+	write(clientSocket, body.c_str(), body.size());
+}
+
+void Response::sendServerError(int clientSocket) {
+	std::string	statusLine;
+	std::string	body;
+
+	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
+	body = std::string(SERVER_ERROR_REASON_PHRASE) + '\n';
+	write(clientSocket, statusLine.c_str(), statusLine.size());
+	write(clientSocket, body.c_str(), body.size());
+}
+
+void Response::sendClientError(int clientSocket) {
+	std::string	statusLine;
+	std::string	body;
+
+	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
+	body = std::string(CLIENT_ERROR_REASON_PHRASE) + '\n';
+	write(clientSocket, statusLine.c_str(), statusLine.size());
+	write(clientSocket, body.c_str(), body.size());
 }
 
 /**
@@ -143,19 +170,19 @@ LocationConfig*	Response::getResponseLocation() {
 	throw(clientException());
 }
 
-void Response::setStatusLine(uint16_t statusCode) {
-	_statusLine = httpVersionToString() + ' ';
-	_statusLine += statusCodeToString(statusCode) + ' ';
-	_statusLine += getReasonPhrase(statusCode);
-	addCRLF(_statusLine);
+std::string	Response::statusCodeToLine(uint16_t statusCode) {
+	std::string	statusLine;
+
+	statusLine = httpVersionToString() + ' ';
+	statusLine += statusCodeToString(statusCode) + ' ';
+	statusLine += getReasonPhrase(statusCode);
+	addCRLF(statusLine);
+	return (statusLine);
 }
 
 
-std::string Response::httpVersionToString() const {
-	httpVersion_t	httpVersion;
-
-	httpVersion = _request.getHttpVersion();
-	return ("HTTP/" + uitoa(httpVersion.major) + '.' + uitoa(httpVersion.minor));
+std::string Response::httpVersionToString(){
+	return ("HTTP/" + uitoa(HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED) + '.' + uitoa(HTTP_HIGHEST_MINOR_VERSION_SUPPORTED));
 }
 
 std::string Response::getReasonPhrase(uint16_t code) {

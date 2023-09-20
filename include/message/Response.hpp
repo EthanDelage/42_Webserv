@@ -42,12 +42,11 @@ private:
 	void responseGet();
 	void responsePost();
 	void responseDelete();
-	void responseCLienError();
 
 	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation();
-	void				setStatusLine(uint16_t statusCode);
-	std::string			httpVersionToString() const;
+	static std::string	httpVersionToString();
+	static std::string	statusCodeToLine(uint16_t statusCode);
 	static std::string	getReasonPhrase(uint16_t code);
 	static std::string	statusCodeToString(unsigned int statusCode);
 	static std::string	uitoa(unsigned int n);
@@ -58,6 +57,11 @@ public:
 
 	void send(int clientSocket);
 	void print() const;
+
+	static void sendContinue(int clientSocket);
+	static void sendRedirection(int clientSocket);
+	static void sendClientError(int clientSocket);
+	static void sendServerError(int clientSocket);
 };
 
 #endif
