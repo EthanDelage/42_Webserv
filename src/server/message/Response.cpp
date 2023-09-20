@@ -10,9 +10,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include <vector>
-#include <sys/socket.h>
 #include <unistd.h>
 #include <sstream>
+#include <dirent.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include "utils.hpp"
 #include "message/Response.hpp"
 
@@ -22,7 +24,7 @@ Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) :
 		router();
 	}
 	catch (clientException const & e) {
-		responseCLienError();
+		responseClientError();
 	}
 }
 
@@ -54,14 +56,12 @@ void Response::router() {
 	throw (clientException());
 }
 
-#include <iostream>
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 	std::stringstream			buffer;
 
 	path = getResourcePath();
-	std::cout << path << std::endl;
 	resource.open(path.c_str());
 	if (!resource.is_open())
 		throw(clientException());
@@ -76,14 +76,23 @@ void Response::responsePost() {
 void Response::responseDelete() {
 	std::string	path;
 	std::string requestUri;
+	int			dirFd;
 
 	requestUri = _request.getRequestUri();
 	path = _locationConfig->getRoot() + '/' + requestUri.erase(0, _locationConfig->getUri().size());
-	if (remove(path.c_str()) != 0)
-		throw (clientException());
+	dirFd = open(path.c_str(), O_DIRECTORY);
+	if (dirFd != -1) {
+		close(dirFd);
+		if (path[path.size() - 1] != '/')
+			path += '/';
+		if (!removeDirectory(path))
+			throw (std::exception());
+	} else if (std::remove(path.c_str()) != 0) {
+		throw (std::exception());
+	}
 }
 
-void Response::responseCLienError() {
+void Response::responseClientError() {
 	setStatusLine(CLIENT_ERROR_STATUS_CODE);
 	_body = "Bad Request\n";
 }
@@ -126,7 +135,7 @@ LocationConfig*	Response::getResponseLocation() {
 	if (requestUri[requestUri.size() - 1] != '/')
 		requestUri.erase(requestUri.rfind('/') + 1);
 	requestUriDirectories = split_path(requestUri);
-	 while (requestUriDirectories.size() != 0) {
+	 while (!requestUriDirectories.empty()) {
 		for (size_t i = 0; i < locationConfig.size(); i++)
 			if (locationConfig[i]->getUriDirectories() == requestUriDirectories)
 				return (locationConfig[i]);
@@ -192,6 +201,37 @@ std::string Response::uitoa(unsigned int n) {
 		result += static_cast<char>(n + '0');
 	}
 	return (result);
+}
+
+bool Response::removeDirectory(std::string const & dirName) {
+	DIR*	dir;
+	int		dirFd;
+	dirent*	dirEntry;
+
+	dir = opendir(dirName.c_str());
+	if (dir == NULL)
+		return (false);
+	dirEntry = readdir(dir);
+	while (dirEntry) {
+		if (strcmp(dirEntry->d_name, ".") != 0 && strcmp(dirEntry->d_name, "..") != 0) {
+			dirFd = open((dirName + dirEntry->d_name).c_str(), O_DIRECTORY);
+			if (dirFd != -1) {
+				if (!removeDirectory(dirName + dirEntry->d_name + '/')) {
+					closedir(dir);
+					return (false);
+				}
+			} else {
+				if (std::remove((dirName + dirEntry->d_name).c_str()) == -1) {
+					closedir(dir);
+					return (false);
+				}
+			}
+		}
+		dirEntry = readdir(dir);
+	}
+	closedir(dir);
+	remove(dirName.c_str());
+	return (true);
 }
 
 #include <iostream>
