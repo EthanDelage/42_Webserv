@@ -75,7 +75,7 @@ void Response::responseGet() {
 		throw(clientException());
 	buffer << resource.rdbuf();
 	setStatusLine(SUCCESS_STATUS_CODE);
-	_body += buffer.str();
+	_body = buffer.str();
 }
 
 void Response::responsePost() {
