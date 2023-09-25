@@ -15,6 +15,8 @@
 # include <string>
 # include "message/Header.hpp"
 
+# define CRLF "\r\n"
+
 typedef struct httpVersion_s	httpVersion_t;
 struct httpVersion_s {
 	unsigned int	major;
@@ -30,6 +32,7 @@ class Message{
 protected:
 	Header			_header;
 	httpVersion_t	_httpVersion;
+	std::string		_body;
 
 public:
 	Message();

@@ -28,12 +28,12 @@
 # define CLIENT_ERROR_REASON_PHRASE		"Bad Request"
 # define SERVER_ERROR_REASON_PHRASE		"Internal Server Error"
 
-class Response {
+class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
 
 private:
+	int					_clientSocket;
 	std::string			_statusLine;
-	std::string			_body;
 	Request				_request;
 	VirtualServerConfig	_virtualServerConfig;
 	LocationConfig*		_locationConfig;
@@ -60,9 +60,7 @@ public:
 	void print() const;
 
 	static void sendContinue(int clientSocket);
-	static void sendRedirection(int clientSocket);
 	static void sendClientError(int clientSocket);
-	static void sendServerError(int clientSocket);
 };
 
 #endif
