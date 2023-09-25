@@ -14,20 +14,10 @@
 #include "message/Request.hpp"
 #include "error/Error.hpp"
 
-Request::Request(int socketFd) {
-	std::string	line;
+Request::Request(int clientSocket) {
+	_clientSocket = clientSocket;
 
-	line = getLine(socketFd);
-	while (!line.empty() && line == "\r\n")
-		line = getLine(socketFd);
-	if (line.empty())
-		return;
-	std::cout << line;
-	parseRequestLine(line);
-	while (line != "\r\n") {
-		line = getLine(socketFd);
-		std::cout << line;
-	}
+	parseRequest();
 }
 
 Request::~Request() {}
@@ -35,6 +25,22 @@ Request::~Request() {}
 uint8_t			Request::getMethod() const {return (_method);}
 
 std::string 	Request::getRequestUri() const {return (_requestURI);}
+
+void Request::parseRequest() {
+	std::string	line;
+
+	line = getLine(_clientSocket);
+	while (!line.empty() && line == CRLF)
+		line = getLine(_clientSocket);
+	if (line.empty())
+		return;
+	std::cout << line;
+	parseRequestLine(line);
+	while (line != CRLF) {
+		line = getLine(_clientSocket);
+		std::cout << line;
+	}
+}
 
 /**
  * @brief Parse line in the following format:

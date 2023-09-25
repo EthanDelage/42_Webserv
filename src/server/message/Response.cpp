@@ -93,26 +93,6 @@ void Response::sendContinue(int clientSocket) {
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 }
 
-void Response::sendRedirection(int clientSocket) {
-	std::string	statusLine;
-	std::string	body;
-
-	statusLine = statusCodeToLine(INFORMATIONAL_STATUS_CODE);
-	body = std::string(INFORMATIONAL_REASON_PHRASE) + '\n';
-	write(clientSocket, statusLine.c_str(), statusLine.size());
-	write(clientSocket, body.c_str(), body.size());
-}
-
-void Response::sendServerError(int clientSocket) {
-	std::string	statusLine;
-	std::string	body;
-
-	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
-	body = std::string(SERVER_ERROR_REASON_PHRASE) + '\n';
-	write(clientSocket, statusLine.c_str(), statusLine.size());
-	write(clientSocket, body.c_str(), body.size());
-}
-
 void Response::sendClientError(int clientSocket) {
 	std::string	statusLine;
 	std::string	body;
@@ -179,7 +159,6 @@ std::string	Response::statusCodeToLine(uint16_t statusCode) {
 	addCRLF(statusLine);
 	return (statusLine);
 }
-
 
 std::string Response::httpVersionToString(){
 	return ("HTTP/" + uitoa(HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED) + '.' + uitoa(HTTP_HIGHEST_MINOR_VERSION_SUPPORTED));

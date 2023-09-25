@@ -35,9 +35,11 @@ public:
 # endif
 
 private:
+	int				_clientSocket;
 	uint8_t			_method;
 	std::string		_requestURI;
 
+	void	parseRequest();
 	void	parseRequestLine(std::string const & line);
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
@@ -47,7 +49,7 @@ private:
 	static std::string				getLine(int fd);
 
 public:
-	Request(int socketFd);
+	Request(int clientSocket);
 	~Request();
 
 	uint8_t			getMethod() const;
