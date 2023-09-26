@@ -13,6 +13,7 @@
 # define MESSAGE_HPP
 
 # include <string>
+# include "message/Header.hpp"
 
 typedef struct httpVersion_s	httpVersion_t;
 struct httpVersion_s {
@@ -20,13 +21,14 @@ struct httpVersion_s {
 	unsigned int	minor;
 };
 
-class Message {
+class Message{
 
 # ifdef UNIT_TESTING
 	friend class RequestTest;
 # endif
 
 protected:
+	Header			_header;
 	httpVersion_t	_httpVersion;
 
 public:
@@ -34,6 +36,7 @@ public:
 	~Message();
 
 	httpVersion_t	getHttpVersion() const;
+
 };
 
 #endif

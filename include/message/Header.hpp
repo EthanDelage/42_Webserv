@@ -13,10 +13,7 @@
 # define HEADER_HPP
 
 # include <string>
-# include <cstring>
-# include <ctime>
-# include <vector>
-# include <iostream>
+# include <map>
 # include <exception>
 
 class Header {
@@ -26,8 +23,19 @@ class Header {
 # endif
 
 public:
+	class headerException : public std::exception {};
+
+	std::string	getHeaderByKey(std::string const & key);
+
+	void		parseHeader(std::string const &line);
+	void		addHeader(std::string const & key, std::string const & value);
+	std::string toString() const;
 
 private:
+	std::map<std::string, std::string>	_header;
+
+	std::string	trim(std::string & str);
+	static bool	isValidHeader(std::string const & headerKey);
 
 };
 

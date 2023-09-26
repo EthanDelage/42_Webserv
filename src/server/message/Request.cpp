@@ -26,8 +26,11 @@ Request::Request(int socketFd) {
 	parseRequestLine(line);
 	while (line != "\r\n") {
 		line = getLine(socketFd);
+		if (line != "\r\n" && line.find(':') != std::string::npos)
+			_header.parseHeader(line);
 		std::cout << line;
 	}
+	std::cout << _header.toString() << std::endl;
 }
 
 Request::~Request() {}
