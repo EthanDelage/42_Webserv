@@ -27,34 +27,70 @@ uint8_t			Request::getMethod() const {return (_method);}
 std::string 	Request::getRequestUri() const {return (_requestURI);}
 
 void Request::parseRequest() {
-	std::string	line;
-
-	line = getLine(_clientSocket);
-	while (!line.empty() && line == CRLF)
-		line = getLine(_clientSocket);
-	if (line.empty())
-		return;
-	std::cout << line;
-	parseRequestLine(line);
-	while (line != CRLF) {
-		line = getLine(_clientSocket);
-		std::cout << line;
-	}
+	parseRequestLine();
+	parseRequestHeader();
+	std::cout << _header.toString() << std::endl;
+	parseRequestBody();
+	std::cout << "body:\n" << _body;
 }
 
 /**
  * @brief Parse line in the following format:
  * 			 Request-Line = Method SP Request-URI SP HTTP-Version CRLF
  */
-void Request::parseRequestLine(std::string const & line) {
+void Request::parseRequestLine() {
 	std::vector<std::string>	argv;
+	std::string	line;
 
+	do
+		line = getLine(_clientSocket);
+	while (line == CRLF);
+	if (line.empty())
+		return;
+	std::cout << line;
 	argv = split(line);
 	if (argv.size() != 3)
 		throw (clientException());
 	parseMethod(argv[0]);
 	_requestURI = argv[1];
 	parseHttpVersion(argv[2]);
+}
+
+void Request::parseRequestHeader() {
+	std::string	line;
+
+	line = getLine(_clientSocket);
+	while (line != CRLF) {
+		_header.parseHeader(line);
+		line = getLine(_clientSocket);
+	}
+}
+
+void Request::parseRequestBody() {
+	size_t	size;
+	size_t	readSize;
+	ssize_t ret;
+	char	buf[BUFFER_SIZE];
+
+	try {
+		size = std::strtoul(_header.getHeaderByKey("Content-Length").c_str(), NULL, 10);
+		readSize = 0;
+		while (readSize != size) {
+			if (size > BUFFER_SIZE)
+				ret = read(_clientSocket, buf, BUFFER_SIZE - 1);
+			else
+				ret = read(_clientSocket, buf, size - readSize);
+			//TODO: test if the throw is caught properly
+			if (ret == -1)
+				throw (std::runtime_error("read()"));
+			buf[ret] = '\0';
+			readSize += ret;
+			_body += buf;
+		}
+	}
+	catch (headerException const & e) {
+		return;
+	}
 }
 
 void Request::parseMethod(std::string const & arg) {

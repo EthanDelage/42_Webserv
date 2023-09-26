@@ -24,6 +24,7 @@
 
 # define HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED	1
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
+# define BUFFER_SIZE							2048
 
 class Request : public Message {
 
@@ -40,7 +41,9 @@ private:
 	std::string		_requestURI;
 
 	void	parseRequest();
-	void	parseRequestLine(std::string const & line);
+	void	parseRequestLine();
+	void	parseRequestHeader();
+	void	parseRequestBody();
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
 
