@@ -194,6 +194,49 @@ TEST_F(ConfigTest, parseErrorPageInvalid) {
 	EXPECT_THROW(parseErrorPage("error_page 404 302 foo ;"), std::runtime_error);
 }
 
+TEST_F(ConfigTest, parseSingleType) {
+	std::map<std::string, std::string>	types;
+
+	types["html"] = "text/html";
+	EXPECT_EQ(parseTypeTest("type text/html html;"), types);
+}
+
+TEST_F(ConfigTest, parseTypeCaseInsensitive) {
+	std::map<std::string, std::string>	types;
+
+	types["html"] = "text/html";
+	EXPECT_EQ(parseTypeTest("type text/html HTML;"), types);
+}
+
+TEST_F(ConfigTest, parseSingleTypeWithMultipleExtension) {
+	std::map<std::string, std::string>	types;
+
+	types["html"] = "text/html";
+	types["htm"] = "text/html";
+	types["htmlx"] = "text/html";
+	EXPECT_EQ(parseTypeTest("type text/html html htm htmlx;"), types);
+}
+
+TEST_F(ConfigTest, parseMultipleType) {
+	std::map<std::string, std::string>	types;
+
+	types["html"] = "text/html";
+	parseTypeTest("type text/html html;");
+	types["css"] = "text/css";
+	EXPECT_EQ(parseTypeTest("type text/css css;"), types);
+	types["bin"] = "application/octet-stream";
+	types["dll"] = "application/octet-stream";
+	EXPECT_EQ(parseTypeTest("type application/octet-stream bin dll;"), types);
+}
+
+TEST_F(ConfigTest, parseTypeInvalid) {
+	EXPECT_THROW(parseTypeTest("type ;"), std::runtime_error);
+	EXPECT_THROW(parseTypeTest("type text/html;"), std::runtime_error);
+	EXPECT_THROW(parseTypeTest("type text/html                   ;"), std::runtime_error);
+	EXPECT_THROW(parseTypeTest("type text/html                   css;"), std::runtime_error);
+	EXPECT_THROW(parseTypeTest("type text/html css dll html ;"), std::runtime_error);
+}
+
 int ConfigTest::parseAutoindexTest(char* line) {
 	std::string 	lineStr(line);
 	std::ifstream*	empty;
@@ -232,4 +275,12 @@ std::map<uint16_t, std::string> ConfigTest::parseErrorPage(char *line) {
 
 	config.parseLine(lineStr, *empty);
 	return (config._errorPage);
+}
+
+std::map<std::string, std::string> ConfigTest::parseTypeTest(char *line) {
+	std::string	lineStr(line);
+	std::ifstream*	empty;
+
+	config.parseLine(lineStr, *empty);
+	return (config._types);
 }

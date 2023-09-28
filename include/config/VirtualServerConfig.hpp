@@ -67,7 +67,6 @@ public:
 	std::vector<LocationConfig *>	getLocationConfig() const;
 	std::vector<std::string>		getServerNames() const;
 
-	static std::string toLower(std::string const & str);
 
 	virtual void	parse(std::ifstream& configFile);
 	virtual void	print();

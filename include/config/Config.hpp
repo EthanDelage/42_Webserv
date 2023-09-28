@@ -32,6 +32,7 @@
 # define SYNTAX_ERROR_CODE		"Syntax: code = 3DIGIT"
 # define SYNTAX_INDEX			"Syntax: \"index\" 1*( SP file ) \";\""
 # define SYNTAX_ROOT			"Syntax: \"root\" SP path \";\""
+# define SYNTAX_TYPE			"Syntax: \"type\" SP mime 1*( SP extension ) \";\""
 
 # define PORT_SCORE				1
 # define IP_SCORE				2
@@ -71,15 +72,18 @@ protected:
 	std::vector<std::string>			_index;
 	bool								_isDefaultIndex;
 	std::string 						_root;
+	std::map<std::string, std::string>	_types;
 
 	void	lineLexer(std::string& line, std::string& directive, std::string& value);
-	void	parseAutoindex(std::string& line);
-	void	parseMaxBodySize(std::string& line);
-	void	parseErrorPage(std::string& line);
-	void	parseIndex(std::string& line);
-	void	parseRoot(std::string& line);
+	void	parseAutoindex(std::string& value);
+	void	parseMaxBodySize(std::string& value);
+	void	parseErrorPage(std::string& value);
+	void	parseIndex(std::string& value);
+	void	parseRoot(std::string& value);
+	void	parseType(std::string& value);
 
 	static std::vector<std::string>	split(std::string& str, std::string const syntax);
+	static std::string 				toLower(std::string const & str);
 
 public:
 	Config();

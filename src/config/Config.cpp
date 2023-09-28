@@ -20,6 +20,7 @@
 #include <iostream>
 
 Config::Config() {
+	//TODO change default valued for errorPage
 	_index.push_back(DEFAULT_INDEX);
 	_isDefaultIndex = true;
 	_root = std::string(PREFIX) + DEFAULT_ROOT;
@@ -29,11 +30,13 @@ Config::Config() {
 }
 
 Config::Config(Config const & other) {
-	_index = other._index;
-	_root = other._root;
-	_errorPage = other._errorPage;
-	_maxBodySize = other._maxBodySize;
 	_autoindex = other._autoindex;
+	_maxBodySize = other._maxBodySize;
+	_errorPage = other._errorPage;
+	_index = other._index;
+	_isDefaultIndex = other._isDefaultIndex;
+	_root = other._root;
+	_types = other._types;
 }
 
 std::vector<VirtualServerConfig*> Config::getServerConfig() const {return (_serverConfig);}
@@ -96,14 +99,16 @@ void Config::router(std::string& directive, std::string& value) {
 		"client_max_body_size",
 		"error_page",
 		"index",
-		"root"
+		"root",
+		"type"
 	};
     parseFunctionType	parseFunction[] = {
 		&Config::parseAutoindex,
 		&Config::parseMaxBodySize,
 		&Config::parseErrorPage,
 		&Config::parseIndex,
-		&Config::parseRoot
+		&Config::parseRoot,
+		&Config::parseType
 	};
 
 	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {
@@ -181,7 +186,20 @@ void Config::parseServer(std::ifstream &configFile) {
 	_serverConfig.push_back(newServerConfig);
 }
 
-/**
+void Config::parseType(std::string& value) {
+	std::vector<std::string>	args;
+	std::string					mime;
+
+	args = split(value, SYNTAX_TYPE);
+	if (args.size() < 2)
+		throw (std::runtime_error(SYNTAX_TYPE));
+	mime = removeQuote(args[0]);
+	for (size_t i = 1; i != args.size(); ++i) {
+		_types[toLower(removeQuote(args[i]))] = mime;
+	}
+}
+
+/*(args[i])*
  * @brief converts a 'size' formatted string to size_t
  * @return the converted value
  */
@@ -381,6 +399,14 @@ std::vector<std::string> Config::split(std::string& str, std::string const synta
 			throw (std::runtime_error(syntax));
 	}
 	return (argv);
+}
+
+std::string Config::toLower(std::string const & str) {
+	std::string result;
+
+	for (size_t i = 0; i < str.size(); ++i)
+		result += static_cast<char>(tolower(str[i]));
+	return (result);
 }
 
 #include <iostream>

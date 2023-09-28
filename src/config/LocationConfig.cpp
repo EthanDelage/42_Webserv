@@ -79,6 +79,7 @@ void LocationConfig::router(std::string& directive, std::string& value) {
 			"error_page",
 			"index",
 			"root",
+			"type",
 	};
 	parseFunctionType	parseFunction[] = {
 			&LocationConfig::parseAutoindex,
@@ -86,6 +87,7 @@ void LocationConfig::router(std::string& directive, std::string& value) {
 			&LocationConfig::parseErrorPage,
 			&LocationConfig::parseIndex,
 			&LocationConfig::parseRoot,
+			&LocationConfig::parseType,
 	};
 
 	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {

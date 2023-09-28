@@ -37,6 +37,7 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_serverNames = other._serverNames;
 	_socketAddress = other._socketAddress;
 	_locationConfig = other._locationConfig;
+	_types = other._types;
 }
 
 std::string						VirtualServerConfig::getIp() const {return (_socketAddress.first);}
@@ -91,7 +92,8 @@ void VirtualServerConfig::router(std::string& directive, std::string& value) {
 		"index",
 		"listen",
 		"root",
-		"server_name"
+		"server_name",
+		"type"
 	};
 	parseFunctionType	parseFunction[] = {
 		&VirtualServerConfig::parseAutoindex,
@@ -101,6 +103,7 @@ void VirtualServerConfig::router(std::string& directive, std::string& value) {
 		&VirtualServerConfig::parseListen,
 		&VirtualServerConfig::parseRoot,
 		&VirtualServerConfig::parseServerName,
+		&VirtualServerConfig::parseType
 	};
 
 	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {
@@ -210,15 +213,6 @@ void VirtualServerConfig::removeHorizontalTabAndSpace(std::string& line) {
 		++index;
 	line.erase(0, index);
 }
-
-std::string VirtualServerConfig::toLower(std::string const & str) {
-	std::string result;
-
-	for (size_t i = 0; i < str.size(); ++i)
-		result += static_cast<char>(tolower(str[i]));
-	return (result);
-}
-
 
 #include <iostream>
 void VirtualServerConfig::print() {
