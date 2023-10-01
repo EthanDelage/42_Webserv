@@ -32,8 +32,8 @@ class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
 
 private:
+	int					_clientSocket;
 	std::string			_statusLine;
-	std::string			_body;
 	Request				_request;
 	LocationConfig*		_locationConfig;
 
@@ -41,14 +41,12 @@ private:
 	void responseGet();
 	void responsePost();
 	void responseDelete();
-	void responseClientError();
 
 	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
-	void				setStatusLine(uint16_t statusCode);
-	std::string			httpVersionToString() const;
 	std::string			getContentType(std::string const & path) const;
-
+	static std::string	statusCodeToLine(uint16_t statusCode);
+	static std::string	httpVersionToString();
 	static std::string	getReasonPhrase(uint16_t code);
 	static std::string	statusCodeToString(unsigned int statusCode);
 	static std::string	uitoa(unsigned int n);
@@ -60,6 +58,9 @@ public:
 
 	void send(int clientSocket);
 	void print() const;
+
+	static void sendContinue(int clientSocket);
+	static void sendClientError(int clientSocket);
 };
 
 #endif

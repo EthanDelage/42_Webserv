@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 #include "message/Header.hpp"
 #include "utils.hpp"
+#include "error/Error.hpp"
 
 std::string Header::getHeaderByKey(std::string const & key) {
 	std::map<std::string, std::string>::iterator	value;
@@ -30,7 +31,7 @@ void Header::parseHeader(std::string const & line) {
 	separatorIndex = line.find(':');
 	key = line.substr(0, separatorIndex);
 	if (!isValidHeader(key)) {
-		std::cout << "not valid header" << std::endl;
+		std::cout << "invalid header" << std::endl;
 		return;
 	}
 	value = line.substr(separatorIndex + 1, line.size() - (separatorIndex + 2));

@@ -24,6 +24,7 @@
 
 # define HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED	1
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
+# define BUFFER_SIZE							2048
 
 class Request : public Message {
 
@@ -35,10 +36,14 @@ public:
 # endif
 
 private:
+	int				_clientSocket;
 	uint8_t			_method;
 	std::string		_requestURI;
 
-	void	parseRequestLine(std::string const & line);
+	void	parseRequest();
+	void	parseRequestLine();
+	void	parseRequestHeader();
+	void	parseRequestBody();
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
 
@@ -47,7 +52,7 @@ private:
 	static std::string				getLine(int fd);
 
 public:
-	Request(int socketFd);
+	Request(int clientSocket);
 	~Request();
 
 	uint8_t			getMethod() const;

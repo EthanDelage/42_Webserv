@@ -20,13 +20,8 @@
 #include "error/Error.hpp"
 
 Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request) {
-	try {
-		_locationConfig = getResponseLocation(virtualServerConfig);
-		router();
-	}
-	catch (clientException const & e) {
-		responseClientError();
-	}
+	_locationConfig = getResponseLocation(virtualServerConfig);
+	router();
 }
 
 Response::~Response() {}
@@ -79,7 +74,7 @@ void Response::responseGet() {
 	if (!resource.is_open())
 		throw(clientException());
 	buffer << resource.rdbuf();
-	setStatusLine(SUCCESS_STATUS_CODE);
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 	_body = buffer.str();
 	_header.addHeader("Content-Type", getContentType(path));
 	contentLength << _body.size();
@@ -87,6 +82,19 @@ void Response::responseGet() {
 }
 
 void Response::responsePost() {
+	std::ofstream	file;
+	std::string		path;
+
+	path = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
+	if (access(path.c_str(), F_OK) == 0) {
+		throw (clientException());
+	}
+	file.open(path.c_str());
+	if (!file.is_open())
+		throw (serverException());
+	file << _request.getBody();
+	file.close();
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 }
 
 void Response::responseDelete() {
@@ -106,11 +114,24 @@ void Response::responseDelete() {
 	} else if (std::remove(path.c_str()) != 0) {
 		throw (serverException());
 	}
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 }
 
-void Response::responseClientError() {
-	setStatusLine(CLIENT_ERROR_STATUS_CODE);
-	_body = "Bad Request\n";
+void Response::sendContinue(int clientSocket) {
+	std::string	statusLine;
+
+	statusLine = statusCodeToLine(INFORMATIONAL_STATUS_CODE);
+	write(clientSocket, statusLine.c_str(), statusLine.size());
+}
+
+void Response::sendClientError(int clientSocket) {
+	std::string	statusLine;
+	std::string	body;
+
+	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
+	body = std::string(CLIENT_ERROR_REASON_PHRASE) + '\n';
+	write(clientSocket, statusLine.c_str(), statusLine.size());
+	write(clientSocket, body.c_str(), body.size());
 }
 
 /**
@@ -160,19 +181,18 @@ LocationConfig*	Response::getResponseLocation(VirtualServerConfig const & virtua
 	throw(clientException());
 }
 
-void Response::setStatusLine(uint16_t statusCode) {
-	_statusLine = httpVersionToString() + ' ';
-	_statusLine += statusCodeToString(statusCode) + ' ';
-	_statusLine += getReasonPhrase(statusCode);
-	addCRLF(_statusLine);
+std::string	Response::statusCodeToLine(uint16_t statusCode) {
+	std::string	statusLine;
+
+	statusLine = httpVersionToString() + ' ';
+	statusLine += statusCodeToString(statusCode) + ' ';
+	statusLine += getReasonPhrase(statusCode);
+	addCRLF(statusLine);
+	return (statusLine);
 }
 
-
-std::string Response::httpVersionToString() const {
-	httpVersion_t	httpVersion;
-
-	httpVersion = _request.getHttpVersion();
-	return ("HTTP/" + uitoa(httpVersion.major) + '.' + uitoa(httpVersion.minor));
+std::string Response::httpVersionToString() {
+	return ("HTTP/" + uitoa(HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED) + '.' + uitoa(HTTP_HIGHEST_MINOR_VERSION_SUPPORTED));
 }
 
 std::string Response::getContentType(std::string const & path) const {

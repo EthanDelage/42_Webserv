@@ -16,5 +16,6 @@
 
 class clientException : public std::exception {};
 class serverException : public std::exception {};
+class headerException : public std::exception {};
 
 #endif

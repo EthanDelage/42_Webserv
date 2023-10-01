@@ -19,6 +19,7 @@
 #include <algorithm>
 #include "message/Request.hpp"
 #include "message/Response.hpp"
+#include "error/Error.hpp"
 
 Server::Server() {
 	_socketArray = NULL;
@@ -55,7 +56,8 @@ void Server::init(Config const & config) {
 	}
 }
 
-#include "iostream"
+#include <iostream>
+
 void Server::listener() {
 	int					clientSocketFd;
 	VirtualServerConfig	*virtualServerConfig;
@@ -72,15 +74,19 @@ void Server::listener() {
 		for (size_t i = 0; i < _nbSocket; ++i) {
 			if (_socketArray[i].revents != POLL_DEFAULT) {
 				clientSocketFd = acceptClient(_socketArray[i].fd);
-				//TODO Handle clientException when request is badly formatted
-				request = new Request(clientSocketFd);
-				request->print();
-				virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");
-				response = new Response(*request, *virtualServerConfig);
-				delete request;
-				response->print();
-				response->send(clientSocketFd);
-				delete response;
+				try {
+					request = new Request(clientSocketFd);
+					request->print();
+					virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");
+					response = new Response(*request, *virtualServerConfig);
+					delete request;
+					response->print();
+					response->send(clientSocketFd);
+					delete response;
+				}
+				catch (clientException const & e) {
+					Response::sendClientError(clientSocketFd);
+				}
 				close(clientSocketFd);
 			}
 		}

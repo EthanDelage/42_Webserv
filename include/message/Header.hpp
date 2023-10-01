@@ -23,8 +23,6 @@ class Header {
 # endif
 
 public:
-	class headerException : public std::exception {};
-
 	std::string	getHeaderByKey(std::string const & key);
 
 	void		parseHeader(std::string const &line);
