@@ -51,6 +51,7 @@ std::string Header::toString() const {
 		result += (it->first + ": " + it->second);
 		addCRLF(result);
 	}
+	addCRLF(result);
 	return (result);
 }
 

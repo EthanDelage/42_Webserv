@@ -28,7 +28,7 @@
 # define CLIENT_ERROR_REASON_PHRASE		"Bad Request"
 # define SERVER_ERROR_REASON_PHRASE		"Internal Server Error"
 
-class Response {
+class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
 
 private:
@@ -47,6 +47,8 @@ private:
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	void				setStatusLine(uint16_t statusCode);
 	std::string			httpVersionToString() const;
+	std::string			getContentType(std::string const & path) const;
+
 	static std::string	getReasonPhrase(uint16_t code);
 	static std::string	statusCodeToString(unsigned int statusCode);
 	static std::string	uitoa(unsigned int n);

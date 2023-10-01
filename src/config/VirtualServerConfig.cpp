@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <limits>
 #include <cmath>
+#include "utils.hpp"
 
 #ifdef UNIT_TESTING
 VirtualServerConfig::VirtualServerConfig() : Config() {

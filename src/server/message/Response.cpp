@@ -32,7 +32,11 @@ Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) :
 Response::~Response() {}
 
 void Response::send(int clientSocket) {
-	//write(clientSocket, _statusLine.c_str(), _statusLine.size());
+	std::string	header;
+
+	header = _header.toString();
+	write(clientSocket, _statusLine.c_str(), _statusLine.size());
+	write(clientSocket, header.c_str(), header.size());
 	write(clientSocket, _body.c_str(), _body.size());
 }
 
@@ -76,6 +80,7 @@ void Response::responseGet() {
 	buffer << resource.rdbuf();
 	setStatusLine(SUCCESS_STATUS_CODE);
 	_body = buffer.str();
+	_header.addHeader("Content-Type", getContentType(path));
 }
 
 void Response::responsePost() {
@@ -165,6 +170,23 @@ std::string Response::httpVersionToString() const {
 
 	httpVersion = _request.getHttpVersion();
 	return ("HTTP/" + uitoa(httpVersion.major) + '.' + uitoa(httpVersion.minor));
+}
+
+std::string Response::getContentType(std::string const & path) const {
+	std::string											extension;
+	size_t												indexExtension;
+	std::map<std::string, std::string>					types;
+	std::map<std::string, std::string>::const_iterator 	it;
+
+	indexExtension = path.rfind('.');
+	if (indexExtension == std::string::npos)
+		return ("text/plain");
+	extension = toLower(path.substr(indexExtension + 1, path.size() - (indexExtension + 1)));
+	types = _locationConfig->getTypes();
+	it = types.find(extension);
+	if (it != types.end())
+		return (it->second);
+	return ("text/plain");
 }
 
 std::string Response::getReasonPhrase(uint16_t code) {
