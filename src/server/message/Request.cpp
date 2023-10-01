@@ -56,11 +56,14 @@ void Request::parseRequestLine() {
 	parseHttpVersion(argv[2]);
 }
 
+#include <iostream>
+
 void Request::parseRequestHeader() {
 	std::string	line;
 
 	line = getLine(_clientSocket);
 	while (line != CRLF) {
+		std::cout << line;
 		_header.parseHeader(line);
 		line = getLine(_clientSocket);
 	}

@@ -27,7 +27,7 @@ Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) :
 Response::~Response() {}
 
 void Response::send(int clientSocket) {
-	//write(clientSocket, _statusLine.c_str(), _statusLine.size());
+	write(clientSocket, _statusLine.c_str(), _statusLine.size());
 	write(clientSocket, _body.c_str(), _body.size());
 }
 
@@ -74,6 +74,19 @@ void Response::responseGet() {
 }
 
 void Response::responsePost() {
+	std::ofstream	file;
+	std::string		path;
+
+	path = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
+	if (access(path.c_str(), F_OK) == 0) {
+		throw (clientException());
+	}
+	file.open(path.c_str());
+	if (!file.is_open())
+		throw (serverException());
+	file << _request.getBody();
+	file.close();
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 }
 
 void Response::responseDelete() {
@@ -93,6 +106,7 @@ void Response::responseDelete() {
 	} else if (std::remove(path.c_str()) != 0) {
 		throw (serverException());
 	}
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 }
 
 void Response::sendContinue(int clientSocket) {

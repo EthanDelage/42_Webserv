@@ -19,3 +19,7 @@ Message::Message() {
 Message::~Message() {}
 
 httpVersion_t	Message::getHttpVersion() const {return (_httpVersion);}
+
+std::string Message::getBody() const {return (_body);}
+
+Header Message::getHeader() const {return(_header);}

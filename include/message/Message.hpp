@@ -33,13 +33,15 @@ class Message{
 
 protected:
 	Header			_header;
-	httpVersion_t	_httpVersion;
 	std::string		_body;
+	httpVersion_t	_httpVersion;
 
 public:
 	Message();
 	~Message();
 
+	std::string		getBody() const;
+	Header			getHeader() const;
 	httpVersion_t	getHttpVersion() const;
 
 };
