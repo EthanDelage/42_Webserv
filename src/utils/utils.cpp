@@ -51,3 +51,11 @@ std::vector<std::string> split_path(std::string& path) {
 void addCRLF(std::string& str) {
 	str += "\r\n";
 }
+
+std::string toLower(std::string const & str) {
+	std::string result;
+
+	for (size_t i = 0; i < str.size(); ++i)
+		result += static_cast<char>(tolower(str[i]));
+	return (result);
+}

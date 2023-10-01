@@ -18,6 +18,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include "utils.hpp"
 
 Config::Config() {
 	//TODO change default valued for errorPage
@@ -44,6 +45,8 @@ std::vector<VirtualServerConfig*> Config::getServerConfig() const {return (_serv
 std::string Config::getRoot() const {return (_root);}
 
 std::vector<std::string>	Config::getIndex() const {return (_index);}
+
+std::map<std::string, std::string> Config::getTypes() const {return (_types);}
 
 void Config::parse(char* configFilename) {
 	std::ifstream	configFile(configFilename);
@@ -231,7 +234,7 @@ VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddr
 
 	serverConfig = findServerConfigBySocketAddress(socketAddress);
 	if (!serverConfig.empty() || !host.empty())
-		serverConfig = findServerConfigByHost(serverConfig, VirtualServerConfig::toLower(host));
+		serverConfig = findServerConfigByHost(serverConfig, toLower(host));
 	std::cout << std::endl << "ServerConfig:" << std::endl;
 	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
 		std::cout << (*it)->getSocketAddress().first << ':' << (*it)->getSocketAddress().second << ", " << host << std::endl;
@@ -399,14 +402,6 @@ std::vector<std::string> Config::split(std::string& str, std::string const synta
 			throw (std::runtime_error(syntax));
 	}
 	return (argv);
-}
-
-std::string Config::toLower(std::string const & str) {
-	std::string result;
-
-	for (size_t i = 0; i < str.size(); ++i)
-		result += static_cast<char>(tolower(str[i]));
-	return (result);
 }
 
 #include <iostream>

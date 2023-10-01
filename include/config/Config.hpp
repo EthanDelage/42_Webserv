@@ -83,7 +83,6 @@ protected:
 	void	parseType(std::string& value);
 
 	static std::vector<std::string>	split(std::string& str, std::string const syntax);
-	static std::string 				toLower(std::string const & str);
 
 public:
 	Config();
