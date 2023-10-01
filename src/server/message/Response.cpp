@@ -19,9 +19,9 @@
 #include "message/Response.hpp"
 #include "error/Error.hpp"
 
-Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request), _virtualServerConfig(virtualServerConfig) {
+Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request) {
 	try {
-		_locationConfig = getResponseLocation();
+		_locationConfig = getResponseLocation(virtualServerConfig);
 		router();
 	}
 	catch (clientException const & e) {
@@ -133,12 +133,12 @@ std::string Response::getResourcePath() {
 	throw(clientException());
 }
 
-LocationConfig*	Response::getResponseLocation() {
+LocationConfig*	Response::getResponseLocation(VirtualServerConfig const & virtualServerConfig) {
 	std::vector<LocationConfig*>	locationConfig;
 	std::string						requestUri;
 	std::vector<std::string>		requestUriDirectories;
 
-	locationConfig = _virtualServerConfig.getLocationConfig();
+	locationConfig = virtualServerConfig.getLocationConfig();
 	requestUri = _request.getRequestUri();
 	if (requestUri[requestUri.size() - 1] != '/')
 		requestUri.erase(requestUri.rfind('/') + 1);

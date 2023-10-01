@@ -35,7 +35,6 @@ private:
 	std::string			_statusLine;
 	std::string			_body;
 	Request				_request;
-	VirtualServerConfig	_virtualServerConfig;
 	LocationConfig*		_locationConfig;
 
 	void router();
@@ -45,7 +44,7 @@ private:
 	void responseClientError();
 
 	std::string 		getResourcePath();
-	LocationConfig*		getResponseLocation();
+	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	void				setStatusLine(uint16_t statusCode);
 	std::string			httpVersionToString() const;
 	static std::string	getReasonPhrase(uint16_t code);
