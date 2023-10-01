@@ -19,11 +19,12 @@ int	main(int argc, char** argv) {
 		return (1);
 	}
 	try {
-		Config	config;
+		Config	*config;
 		Server	server;
 
-		config.parse(argv[1]);
-		server.init(config);
+		config = new Config;
+		config->parse(argv[1]);
+		server.init(*config);
 		server.listener();
 	} catch (std::exception const & e) {
 		std::cerr << "Error: " << e.what() << std::endl;
