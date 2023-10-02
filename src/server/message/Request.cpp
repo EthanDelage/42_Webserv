@@ -14,9 +14,7 @@
 #include "message/Request.hpp"
 #include "error/Error.hpp"
 
-Request::Request(int clientSocket) {
-	_clientSocket = clientSocket;
-
+Request::Request(int clientSocket) : Message(clientSocket) {
 	parseRequest();
 }
 

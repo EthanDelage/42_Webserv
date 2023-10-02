@@ -20,7 +20,6 @@ class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
 
 private:
-	int					_clientSocket;
 	std::string			_statusLine;
 	Request				_request;
 	LocationConfig*		_locationConfig;
@@ -48,7 +47,7 @@ public:
 	Response(Request& request, VirtualServerConfig& virtualServerConfig);
 	~Response();
 
-	void send(int clientSocket);
+	void send();
 	void print() const;
 
 	static void sendContinue(int clientSocket);

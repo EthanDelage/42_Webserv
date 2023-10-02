@@ -32,17 +32,19 @@ class Message{
 # endif
 
 protected:
+	int				_clientSocket;
 	Header			_header;
 	std::string		_body;
 	httpVersion_t	_httpVersion;
 
 public:
-	Message();
+	Message(int clientSocket);
 	~Message();
 
 	std::string		getBody() const;
 	Header			getHeader() const;
 	httpVersion_t	getHttpVersion() const;
+	int 			getClientSocket() const;
 
 };
 

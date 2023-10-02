@@ -11,9 +11,10 @@
 /* ************************************************************************** */
 #include "message/Message.hpp"
 
-Message::Message() {
+Message::Message(int clientSocket) {
 	_httpVersion.major = 0;
 	_httpVersion.minor = 0;
+	_clientSocket = clientSocket;
 }
 
 Message::~Message() {}
@@ -23,3 +24,5 @@ httpVersion_t	Message::getHttpVersion() const {return (_httpVersion);}
 std::string Message::getBody() const {return (_body);}
 
 Header Message::getHeader() const {return(_header);}
+
+int Message::getClientSocket() const {return (_clientSocket);}

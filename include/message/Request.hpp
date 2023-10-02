@@ -32,11 +32,10 @@ class Request : public Message {
 	friend class RequestTest;
 
 public:
-	Request() {};
+	Request() : Message(STDOUT_FILENO) {};
 # endif
 
 private:
-	int				_clientSocket;
 	uint8_t			_method;
 	std::string		_requestURI;
 

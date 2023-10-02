@@ -81,7 +81,7 @@ void Server::listener() {
 					response = new Response(*request, *virtualServerConfig);
 					delete request;
 					response->print();
-					response->send(clientSocketFd);
+					response->send();
 					delete response;
 				}
 				catch (clientException const & e) {

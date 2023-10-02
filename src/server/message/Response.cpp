@@ -20,20 +20,20 @@
 #include "error/Error.hpp"
 #include <sys/stat.h>
 
-Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request) {
+Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : Message(request.getClientSocket()), _request(request) {
 	_locationConfig = getResponseLocation(virtualServerConfig);
 	router();
 }
 
 Response::~Response() {}
 
-void Response::send(int clientSocket) {
+void Response::send() {
 	std::string	header;
 
 	header = _header.toString();
-	write(clientSocket, _statusLine.c_str(), _statusLine.size());
-	write(clientSocket, header.c_str(), header.size());
-	write(clientSocket, _body.c_str(), _body.size());
+	write(_clientSocket, _statusLine.c_str(), _statusLine.size());
+	write(_clientSocket, header.c_str(), header.size());
+	write(_clientSocket, _body.c_str(), _body.size());
 }
 
 void Response::router() {
