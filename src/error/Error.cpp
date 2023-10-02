@@ -26,3 +26,11 @@ serverException::serverException(Config const * config) {
 serverException::~serverException() throw() {}
 
 std::string serverException::getErrorPage() const {return (_errorPage);}
+
+redirectionException::redirectionException(const Config *config) {
+	_errorPage = config->getRoot() + '/' + config->getErrorPage()[REDIRECTION_STATUS_CODE];
+}
+
+redirectionException::~redirectionException() throw() {}
+
+std::string redirectionException::getErrorPage() const {return (_errorPage);}

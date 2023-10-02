@@ -37,6 +37,7 @@ public:
 
 	std::string	getErrorPage() const;
 };
+
 class serverException : public std::exception {
 private:
 	std::string	_errorPage;
@@ -46,6 +47,17 @@ public:
 
 	std::string	getErrorPage() const;
 };
+
 class headerException : public std::exception {};
+
+class redirectionException : public std::exception {
+private:
+	std::string _errorPage;
+public:
+	redirectionException(Config const * config);
+	~redirectionException() throw();
+
+	std::string	getErrorPage() const;
+};
 
 #endif

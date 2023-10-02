@@ -71,6 +71,12 @@ void Response::responseGet() {
 
 	try {
 		path = getResourcePath();
+		if (isDirectory(path)) {
+			_header.addHeader("Location", path + '/');
+			throw (redirectionException(_locationConfig));
+		} else if (!isFile(path)) {
+			throw (redirectionException(_locationConfig));
+		}
 		resource.open(path.c_str());
 		if (!resource.is_open())
 			throw (clientException(_locationConfig));
@@ -79,13 +85,15 @@ void Response::responseGet() {
 		_body = buffer.str();
 		_header.addHeader("Content-Type", getContentType(path));
 		_header.addContentLength(_body.size());
-	} catch (clientException const& e) {
+	} catch (clientException const & e) {
 		if (_locationConfig->getAutoindex()) {
 			_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 			listingDirectory();
 		}
 		else
 			throw (e);
+	} catch (redirectionException const & e) {
+		responseRedirectionError(e.getErrorPage());
 	}
 }
 
@@ -154,6 +162,21 @@ void Response::sendClientError(int clientSocket, std::string path) {
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 	write(clientSocket, header.toString().c_str(), header.toString().size());
 	write(clientSocket, body.c_str(), body.size());
+}
+
+void Response::responseRedirectionError(std::string const & pathErrorPage) {
+	std::ifstream		errorPage;
+	std::stringstream	buffer;
+
+	_statusLine = statusCodeToLine(300);
+	errorPage.open(pathErrorPage.c_str());
+	if (!errorPage.is_open()) {
+		//TODO
+	}
+	buffer << errorPage.rdbuf();
+	_body = buffer.str();
+	_header.addHeader("Content-Type", getContentType(pathErrorPage));
+	_header.addContentLength(_body.size());
 }
 
 /**
@@ -368,7 +391,7 @@ bool Response::isFile(std::string const & path) {
 void Response::print() const {
 	std::cout << "Response:" << std::endl;
 	std::cout << _statusLine;
-	std::cout << std::endl;
+	std::cout << _header.toString();
 	std::cout << _body;
 	std::cout << "End" << std::endl;
 }

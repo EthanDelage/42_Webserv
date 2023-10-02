@@ -52,6 +52,7 @@ public:
 
 	static void sendContinue(int clientSocket);
 	static void sendClientError(int clientSocket, std::string path);
+	void		responseRedirectionError(std::string const & pathErrorPage);
 };
 
 #endif
