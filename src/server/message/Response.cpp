@@ -73,7 +73,7 @@ void Response::responseGet() {
 		path = getResourcePath();
 		resource.open(path.c_str());
 		if (!resource.is_open())
-			throw(clientException(_locationConfig));
+			throw (clientException(_locationConfig));
 		buffer << resource.rdbuf();
 		_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 		_body = buffer.str();
