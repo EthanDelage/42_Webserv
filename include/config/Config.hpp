@@ -92,6 +92,7 @@ public:
 	std::vector<VirtualServerConfig*>	getServerConfig() const;
 	std::string							getRoot() const;
 	std::vector<std::string>			getIndex() const;
+	std::map<uint16_t, std::string>		getErrorPage() const;
 	std::map<std::string, std::string>	getTypes() const;
 	bool								getAutoindex() const;
 

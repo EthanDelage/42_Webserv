@@ -16,18 +16,6 @@
 # include "config/VirtualServerConfig.hpp"
 # include "config/LocationConfig.hpp"
 
-# define INFORMATIONAL_STATUS_CODE		100
-# define SUCCESS_STATUS_CODE			200
-# define REDIRECTION_STATUS_CODE		300
-# define CLIENT_ERROR_STATUS_CODE		400
-# define SERVER_ERROR_STATUS_CODE		500
-
-# define INFORMATIONAL_REASON_PHRASE	"Continue"
-# define SUCCESS_REASON_PHRASE			"Ok"
-# define REDIRECTION_REASON_PHRASE		"Multiple Choices"
-# define CLIENT_ERROR_REASON_PHRASE		"Bad Request"
-# define SERVER_ERROR_REASON_PHRASE		"Internal Server Error"
-
 class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
 
@@ -52,8 +40,9 @@ private:
 	static std::string	statusCodeToString(unsigned int statusCode);
 	static std::string	uitoa(unsigned int n);
 	static bool			removeDirectory(std::string const & dirName);
-	static bool			isDirectory(std::string const & path);
-	static bool			isFile(std::string const & path);
+
+	bool				isDirectory(std::string const & path);
+	bool				isFile(std::string const & path);
 
 public:
 	Response(Request& request, VirtualServerConfig& virtualServerConfig);
@@ -63,7 +52,7 @@ public:
 	void print() const;
 
 	static void sendContinue(int clientSocket);
-	static void sendClientError(int clientSocket);
+	static void sendClientError(int clientSocket, std::string path);
 };
 
 #endif
