@@ -102,6 +102,10 @@ rerun:				fclean
 debug:
 					$(MAKE) re CFLAGS="$(CFLAGS) -g3"
 
+.PHONY:				address
+address:
+					$(MAKE) re CFLAGS="$(CFLAGS) -fsanitize=address"
+
 .PHONY:				leaks
 leaks:				$(NAME)
 					valgrind --leak-check=full ./$(NAME) $(ARG)
