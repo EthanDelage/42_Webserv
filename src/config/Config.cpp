@@ -52,8 +52,6 @@ bool Config::getAutoindex() const {return (_autoindex);}
 
 std::map<uint16_t, std::string> Config::getErrorPage() const {return (_errorPage);}
 
-bool Config::getAutoindex() const {return (_autoindex);}
-
 void Config::parse(char* configFilename) {
 	std::ifstream	configFile(configFilename);
 	std::string		line;
