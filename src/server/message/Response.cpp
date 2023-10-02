@@ -137,6 +137,8 @@ void Response::sendClientError(int clientSocket, std::string path) {
 	std::string			body;
 	std::ifstream		errorPage;
 	std::stringstream	buffer;
+	std::stringstream	contentLength;
+	Header				header;
 
 	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
 	errorPage.open(path.c_str());
@@ -146,7 +148,11 @@ void Response::sendClientError(int clientSocket, std::string path) {
 	}
 	buffer << errorPage.rdbuf();
 	body = buffer.str();
+	header.addHeader("Content-Type", "text/html");
+	contentLength << body.size();
+	header.addHeader("Content-Length", contentLength.str());
 	write(clientSocket, statusLine.c_str(), statusLine.size());
+	write(clientSocket, header.toString().c_str(), header.toString().size());
 	write(clientSocket, body.c_str(), body.size());
 }
 
