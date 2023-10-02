@@ -85,7 +85,7 @@ void Server::listener() {
 					delete response;
 				}
 				catch (clientException const & e) {
-					Response::sendClientError(clientSocketFd);
+					Response::sendClientError(clientSocketFd, e.getErrorPage());
 				}
 				close(clientSocketFd);
 			}

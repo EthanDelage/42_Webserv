@@ -38,6 +38,8 @@ SRC			=		\
 						\
 						utils/utils.cpp	\
 						\
+						error/Error.cpp	\
+						\
 					\
 
 OBJ			=		$(addprefix $(BUILD_DIR), $(SRC:.cpp=.o))

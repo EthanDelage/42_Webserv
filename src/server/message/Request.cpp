@@ -50,7 +50,7 @@ void Request::parseRequestLine() {
 	std::cout << line;
 	argv = split(line);
 	if (argv.size() != 3)
-		throw (clientException());
+		throw (clientException(NULL));
 	parseMethod(argv[0]);
 	_requestURI = argv[1];
 	parseHttpVersion(argv[2]);

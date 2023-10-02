@@ -14,8 +14,38 @@
 
 # include <exception>
 
-class clientException : public std::exception {};
-class serverException : public std::exception {};
+# define INFORMATIONAL_STATUS_CODE		100
+# define SUCCESS_STATUS_CODE			200
+# define REDIRECTION_STATUS_CODE		300
+# define CLIENT_ERROR_STATUS_CODE		400
+# define SERVER_ERROR_STATUS_CODE		500
+
+# define INFORMATIONAL_REASON_PHRASE	"Continue"
+# define SUCCESS_REASON_PHRASE			"Ok"
+# define REDIRECTION_REASON_PHRASE		"Multiple Choices"
+# define CLIENT_ERROR_REASON_PHRASE		"Bad Request"
+# define SERVER_ERROR_REASON_PHRASE		"Internal Server Error"
+# include <string>
+# include "config/Config.hpp"
+
+class clientException : public std::exception {
+private:
+	std::string	_errorPage;
+public:
+	clientException(Config const * config);
+	~clientException() throw();
+
+	std::string	getErrorPage() const;
+};
+class serverException : public std::exception {
+private:
+	std::string	_errorPage;
+public:
+	serverException(Config const * config);
+	~serverException() throw();
+
+	std::string	getErrorPage() const;
+};
 class headerException : public std::exception {};
 
 #endif

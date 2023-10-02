@@ -55,12 +55,12 @@ void Response::router() {
 	for (size_t i = 0; i < sizeof(httpMethods) / sizeof(*httpMethods); i++) {
 		if (httpMethods[i] == _request.getMethod()) {
 			if (!allowedMethods[i])
-				throw (clientException());
+				throw (clientException(_locationConfig));
 			(this->*responseFunction[i])();
 			return;
 		}
 	}
-	throw (clientException());
+	throw (clientException(_locationConfig));
 }
 
 void Response::responseGet() {
@@ -72,8 +72,9 @@ void Response::responseGet() {
 	path = getResourcePath();
 	resource.open(path.c_str());
 	if (!resource.is_open())
-		throw(clientException());
+		throw(clientException(_locationConfig));
 	buffer << resource.rdbuf();
+	resource.close();
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 	_body = buffer.str();
 	_header.addHeader("Content-Type", getContentType(path));
@@ -87,11 +88,11 @@ void Response::responsePost() {
 
 	path = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
 	if (access(path.c_str(), F_OK) == 0) {
-		throw (clientException());
+		throw(clientException(_locationConfig));
 	}
 	file.open(path.c_str());
 	if (!file.is_open())
-		throw (serverException());
+		throw (serverException(_locationConfig));
 	file << _request.getBody();
 	file.close();
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
@@ -110,9 +111,9 @@ void Response::responseDelete() {
 		if (path[path.size() - 1] != '/')
 			path += '/';
 		if (!removeDirectory(path))
-			throw (serverException());
+			throw (serverException(_locationConfig));
 	} else if (std::remove(path.c_str()) != 0) {
-		throw (serverException());
+		throw (serverException(_locationConfig));
 	}
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 }
@@ -124,12 +125,20 @@ void Response::sendContinue(int clientSocket) {
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 }
 
-void Response::sendClientError(int clientSocket) {
-	std::string	statusLine;
-	std::string	body;
+void Response::sendClientError(int clientSocket, std::string path) {
+	std::string			statusLine;
+	std::string			body;
+	std::ifstream		errorPage;
+	std::stringstream	buffer;
 
 	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
-	body = std::string(CLIENT_ERROR_REASON_PHRASE) + '\n';
+	errorPage.open(path.c_str());
+	if (!errorPage.is_open()) {
+		write(clientSocket, statusLine.c_str(), statusLine.size());
+		return;
+	}
+	buffer << errorPage.rdbuf();
+	body = buffer.str();
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 	write(clientSocket, body.c_str(), body.size());
 }
@@ -159,7 +168,7 @@ std::string Response::getResourcePath() {
 				return (path);
 		}
 	}
-	throw(clientException());
+	throw(clientException(_locationConfig));
 }
 
 LocationConfig*	Response::getResponseLocation(VirtualServerConfig const & virtualServerConfig) {
@@ -178,7 +187,7 @@ LocationConfig*	Response::getResponseLocation(VirtualServerConfig const & virtua
 				return (locationConfig[i]);
 		requestUriDirectories.pop_back();
 	}
-	throw(clientException());
+	throw(clientException(&virtualServerConfig));
 }
 
 std::string	Response::statusCodeToLine(uint16_t statusCode) {
