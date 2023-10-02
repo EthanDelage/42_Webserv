@@ -67,7 +67,6 @@ void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 	std::stringstream			buffer;
-	std::stringstream			contentLength;
 
 	path = getResourcePath();
 	resource.open(path.c_str());
@@ -77,8 +76,7 @@ void Response::responseGet() {
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 	_body = buffer.str();
 	_header.addHeader("Content-Type", getContentType(path));
-	contentLength << _body.size();
-	_header.addHeader("Content-Length", contentLength.str());
+	_header.addContentLength(_body.size());
 }
 
 void Response::responsePost() {

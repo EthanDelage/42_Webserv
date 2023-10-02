@@ -12,6 +12,7 @@
 #include "message/Header.hpp"
 #include "utils.hpp"
 #include "error/Error.hpp"
+#include <sstream>
 
 std::string Header::getHeaderByKey(std::string const & key) {
 	std::map<std::string, std::string>::iterator	value;
@@ -43,6 +44,13 @@ void Header::addHeader(std::string const & key, std::string const & value) {
 	if (_header.find(key) != _header.end())
 		throw (headerException());
 	_header[key] = value;
+}
+
+void Header::addContentLength(size_t bodySize) {
+	std::stringstream	contentLength;
+
+	contentLength << bodySize;
+	addHeader("Content-Length", contentLength.str());
 }
 
 std::string Header::toString() const {

@@ -27,6 +27,7 @@ public:
 
 	void		parseHeader(std::string const &line);
 	void		addHeader(std::string const & key, std::string const & value);
+	void		addContentLength(size_t bodySize);
 	std::string toString() const;
 
 private:
