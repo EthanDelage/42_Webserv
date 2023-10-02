@@ -93,6 +93,7 @@ public:
 	std::string							getRoot() const;
 	std::vector<std::string>			getIndex() const;
 	std::map<std::string, std::string>	getTypes() const;
+	bool								getAutoindex() const;
 
 	void			parse(char* configFilename);
 	virtual void	print();

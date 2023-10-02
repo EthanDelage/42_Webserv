@@ -45,12 +45,15 @@ private:
 	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	std::string			getContentType(std::string const & path) const;
+	void				listingDirectory();
 	static std::string	statusCodeToLine(uint16_t statusCode);
 	static std::string	httpVersionToString();
 	static std::string	getReasonPhrase(uint16_t code);
 	static std::string	statusCodeToString(unsigned int statusCode);
 	static std::string	uitoa(unsigned int n);
 	static bool			removeDirectory(std::string const & dirName);
+	static bool			isDirectory(std::string const & path);
+	static bool			isFile(std::string const & path);
 
 public:
 	Response(Request& request, VirtualServerConfig& virtualServerConfig);

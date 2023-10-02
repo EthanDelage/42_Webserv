@@ -18,6 +18,7 @@
 #include "utils.hpp"
 #include "message/Response.hpp"
 #include "error/Error.hpp"
+#include <sys/stat.h>
 
 Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : _request(request) {
 	_locationConfig = getResponseLocation(virtualServerConfig);
@@ -68,15 +69,24 @@ void Response::responseGet() {
 	std::ifstream				resource;
 	std::stringstream			buffer;
 
-	path = getResourcePath();
-	resource.open(path.c_str());
-	if (!resource.is_open())
-		throw(clientException());
-	buffer << resource.rdbuf();
-	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-	_body = buffer.str();
-	_header.addHeader("Content-Type", getContentType(path));
-	_header.addContentLength(_body.size());
+	try {
+		path = getResourcePath();
+		resource.open(path.c_str());
+		if (!resource.is_open())
+			throw(clientException());
+		buffer << resource.rdbuf();
+		_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+		_body = buffer.str();
+		_header.addHeader("Content-Type", getContentType(path));
+		_header.addContentLength(_body.size());
+	} catch (clientException const& e) {
+		if (_locationConfig->getAutoindex()) {
+			_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+			listingDirectory();
+		}
+		else
+			throw (e);
+	}
 }
 
 void Response::responsePost() {
@@ -177,6 +187,42 @@ LocationConfig*	Response::getResponseLocation(VirtualServerConfig const & virtua
 		requestUriDirectories.pop_back();
 	}
 	throw(clientException());
+}
+
+void Response::listingDirectory() {
+	std::string			directoryPath;
+	std::stringstream	directoryListing;
+	DIR*				dir;
+	dirent*				dirEntry;
+
+	directoryPath = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
+	dir = opendir(directoryPath.c_str());
+	directoryListing 	<< "<html>" << std::endl
+						<< "\t<head>" << std::endl
+						<< "\t\t<title>Index of " << _request.getRequestUri() << "</title>" << std::endl
+						<< "\t</head>" << std::endl
+						<< "\t<body>" << std::endl
+						<< "\t\t<h1>Index of " << _request.getRequestUri() << "</h1>" << std::endl
+						<< "\t\t<hr>" << std::endl
+						<< "\t\t<pre>" << std::endl;
+	if (dir == NULL)
+		throw (std::runtime_error("Cannot open" + directoryPath));
+	dirEntry = readdir(dir);
+	while (dirEntry) {
+		if (isDirectory(directoryPath + dirEntry->d_name))
+			directoryListing << "\t\t\t<a href=\"" << dirEntry->d_name << "/\">" << dirEntry->d_name << "/</a>" << std::endl;
+		else
+			directoryListing << "\t\t\t<a href=\"" << dirEntry->d_name << "\">" << dirEntry->d_name << "</a>" << std::endl;
+		dirEntry = readdir(dir);
+	}
+	closedir(dir);
+	directoryListing 	<< "\t\t</pre>" << std::endl
+						<< "\t\t<hr>" << std::endl
+						<< "\t</body>" << std::endl
+						<< "</html>" << std::endl;
+	_body = directoryListing.str();
+	_header.addHeader("Content-Type", getContentType(".html"));
+	_header.addContentLength(_body.size());
 }
 
 std::string	Response::statusCodeToLine(uint16_t statusCode) {
@@ -286,6 +332,22 @@ bool Response::removeDirectory(std::string const & dirName) {
 	closedir(dir);
 	remove(dirName.c_str());
 	return (success);
+}
+
+bool Response::isDirectory(std::string const & path) {
+	struct stat	pathStat;
+
+	if (stat(path.c_str(), &pathStat) == -1)
+		throw (serverException());
+	return (S_ISDIR(pathStat.st_mode));
+}
+
+bool Response::isFile(std::string const & path) {
+	struct stat	pathStat;
+
+	if (stat(path.c_str(), &pathStat) == -1)
+		throw (serverException());
+	return (S_ISREG(pathStat.st_mode));
 }
 
 #include <iostream>

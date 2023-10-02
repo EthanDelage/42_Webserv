@@ -48,6 +48,8 @@ std::vector<std::string>	Config::getIndex() const {return (_index);}
 
 std::map<std::string, std::string> Config::getTypes() const {return (_types);}
 
+bool Config::getAutoindex() const {return (_autoindex);}
+
 void Config::parse(char* configFilename) {
 	std::ifstream	configFile(configFilename);
 	std::string		line;
