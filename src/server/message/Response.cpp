@@ -243,7 +243,7 @@ void Response::listingDirectory() {
 						<< "\t\t<hr>" << std::endl
 						<< "\t\t<pre>" << std::endl;
 	if (dir == NULL)
-		throw (std::runtime_error("Cannot open" + directoryPath));
+		throw (clientException(_locationConfig));
 	dirEntry = readdir(dir);
 	while (dirEntry) {
 		if (isDirectory(directoryPath + dirEntry->d_name))
