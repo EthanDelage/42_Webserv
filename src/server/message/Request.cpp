@@ -14,8 +14,9 @@
 #include "message/Request.hpp"
 #include "error/Error.hpp"
 
-Request::Request(int clientSocket) {
+Request::Request(int clientSocket, VirtualServerConfig* defaultVirtualServer) {
 	_clientSocket = clientSocket;
+	_defaultServerConfig = defaultVirtualServer;
 
 	parseRequest();
 }
@@ -50,7 +51,7 @@ void Request::parseRequestLine() {
 	std::cout << line;
 	argv = split(line);
 	if (argv.size() != 3)
-		throw (clientException(NULL));
+		throw (clientException(_defaultServerConfig));
 	parseMethod(argv[0]);
 	_requestURI = argv[1];
 	parseHttpVersion(argv[2]);

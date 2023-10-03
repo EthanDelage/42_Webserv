@@ -75,7 +75,7 @@ void Server::listener() {
 			if (_socketArray[i].revents != POLL_DEFAULT) {
 				clientSocketFd = acceptClient(_socketArray[i].fd);
 				try {
-					request = new Request(clientSocketFd);
+					request = new Request(clientSocketFd, _config.getDefaultServer());
 					request->print();
 					virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");
 					response = new Response(*request, *virtualServerConfig);

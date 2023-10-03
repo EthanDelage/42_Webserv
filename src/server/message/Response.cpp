@@ -35,6 +35,12 @@ void Response::send(int clientSocket) {
 	write(clientSocket, _body.c_str(), _body.size());
 }
 
+void Response::send(int clientSocket, std::string statusLine, std::string header, std::string body) {
+	write(clientSocket, statusLine.c_str(), statusLine.size());
+	write(clientSocket, header.c_str(), header.size());
+	write(clientSocket, body.c_str(), body.size());
+}
+
 void Response::router() {
 	uint8_t	httpMethods[] = {
 			GET_METHOD_MASK,
@@ -66,17 +72,15 @@ void Response::router() {
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
-	std::stringstream			buffer;
 	std::stringstream			contentLength;
 
 	path = getResourcePath();
 	resource.open(path.c_str());
 	if (!resource.is_open())
 		throw(clientException(_locationConfig));
-	buffer << resource.rdbuf();
+	_body = getFileContent(resource);
 	resource.close();
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-	_body = buffer.str();
 	_header.addHeader("Content-Type", getContentType(path));
 	contentLength << _body.size();
 	_header.addHeader("Content-Length", contentLength.str());
@@ -129,7 +133,6 @@ void Response::sendClientError(int clientSocket, std::string path) {
 	std::string			statusLine;
 	std::string			body;
 	std::ifstream		errorPage;
-	std::stringstream	buffer;
 	std::stringstream	contentLength;
 	Header				header;
 
@@ -139,14 +142,12 @@ void Response::sendClientError(int clientSocket, std::string path) {
 		write(clientSocket, statusLine.c_str(), statusLine.size());
 		return;
 	}
-	buffer << errorPage.rdbuf();
-	body = buffer.str();
+	body = getFileContent(errorPage);
+	errorPage.close();
 	header.addHeader("Content-Type", "text/html");
 	contentLength << body.size();
 	header.addHeader("Content-Length", contentLength.str());
-	write(clientSocket, statusLine.c_str(), statusLine.size());
-	write(clientSocket, header.toString().c_str(), header.toString().size());
-	write(clientSocket, body.c_str(), body.size());
+	send(clientSocket, statusLine, header.toString(), body);
 }
 
 /**
@@ -303,6 +304,13 @@ bool Response::removeDirectory(std::string const & dirName) {
 	closedir(dir);
 	remove(dirName.c_str());
 	return (success);
+}
+
+std::string Response::getFileContent(std::ifstream& file) {
+	std::stringstream	buffer;
+
+	buffer << file.rdbuf();
+	return (buffer.str());
 }
 
 #include <iostream>

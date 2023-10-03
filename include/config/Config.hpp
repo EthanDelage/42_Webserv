@@ -94,7 +94,7 @@ public:
 	std::vector<std::string>			getIndex() const;
 	std::map<uint16_t, std::string>		getErrorPage() const;
 	std::map<std::string, std::string>	getTypes() const;
-
+	VirtualServerConfig*				getDefaultServer() const;
 	void			parse(char* configFilename);
 	virtual void	print();
 

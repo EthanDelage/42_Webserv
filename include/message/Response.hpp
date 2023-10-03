@@ -33,6 +33,8 @@ private:
 	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	std::string			getContentType(std::string const & path) const;
+	static void			send(int clientSocket, std::string statusLine, std::string header, std::string body);
+	static std::string	getFileContent(std::ifstream& file);
 	static std::string	statusCodeToLine(uint16_t statusCode);
 	static std::string	httpVersionToString();
 	static std::string	getReasonPhrase(uint16_t code);

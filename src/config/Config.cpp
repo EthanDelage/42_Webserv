@@ -50,6 +50,8 @@ std::map<std::string, std::string> Config::getTypes() const {return (_types);}
 
 std::map<uint16_t, std::string> Config::getErrorPage() const {return (_errorPage);}
 
+VirtualServerConfig* Config::getDefaultServer() const {return (_serverConfig[0]);}
+
 void Config::parse(char* configFilename) {
 	std::ifstream	configFile(configFilename);
 	std::string		line;
