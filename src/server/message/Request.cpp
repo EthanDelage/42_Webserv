@@ -84,9 +84,8 @@ void Request::parseRequestBody() {
 				ret = read(_clientSocket, buf, BUFFER_SIZE - 1);
 			else
 				ret = read(_clientSocket, buf, size - readSize);
-			//TODO: test if the throw is caught properly
 			if (ret == -1)
-				throw (std::runtime_error("read()"));
+				throw (serverException(_defaultServerConfig));
 			buf[ret] = '\0';
 			readSize += ret;
 			_body += buf;
@@ -117,27 +116,27 @@ void Request::parseHttpVersion(const std::string& arg) {
 	unsigned long	conversion;
 
 	if (arg.compare(0, strlen("HTPP/"), "HTTP/") != 0)
-		throw (std::runtime_error(std::string("invalid format: `") + arg + '`'));
+		throw (clientException(_defaultServerConfig));
 	conversion = strtoul(arg.c_str() + strlen("HTTP/"), &rest, 10);
 	if (*rest != '.' || !std::isdigit(arg[strlen("HTTP/")]))
-		throw (std::runtime_error("Invalid Major HTTP Version"));
+		throw (clientException(_defaultServerConfig));
 	else if (errno == ERANGE || conversion > std::numeric_limits<unsigned int>::max())
-		throw (std::runtime_error("Major HTTP Version overflow"));
+		throw (clientException(_defaultServerConfig));
 	_httpVersion.major = static_cast<unsigned int>(conversion);
 	minor = rest + 1;
 	conversion = strtoul(minor, &rest, 10);
 	if (strcmp(rest, "\r\n") != 0 || !std::isdigit(minor[0]))
-		throw (std::runtime_error("Invalid Minor HTTP Version"));
+		throw (clientException(_defaultServerConfig));
 	else if (errno == ERANGE || conversion > std::numeric_limits<unsigned int>::max())
-		throw (std::runtime_error("Minor HTTP Version overflow"));
+		throw (clientException(_defaultServerConfig));
 	_httpVersion.minor = static_cast<unsigned int>(conversion);
 	if (_httpVersion.major > HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED
 		|| (_httpVersion.major == HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED
 			&& _httpVersion.minor > HTTP_HIGHEST_MINOR_VERSION_SUPPORTED))
-		throw (std::runtime_error("HTTP Version not supported"));
+		throw (serverException(_defaultServerConfig));
 }
 
-uint8_t Request::getMethodByName(const std::string& method) {
+uint8_t Request::getMethodByName(const std::string& method) const {
 	std::string	methodList[] = {"GET", "POST", "DELETE"};
 	uint8_t		methodMask[] = {GET_METHOD_MASK, POST_METHOD_MASK, DELETE_METHOD_MASK};
 
@@ -145,43 +144,43 @@ uint8_t Request::getMethodByName(const std::string& method) {
 		if (method == methodList[i])
 			return (methodMask[i]);
 	}
-	throw(std::runtime_error("Unknown method"));
+	throw (clientException(_defaultServerConfig));
 }
 
-std::vector<std::string> Request::split(std::string const & str) {
+std::vector<std::string> Request::split(std::string const & str) const {
 	std::vector<std::string>	argv;
 	std::string					arg;
 	size_t						start;
 
 	for (size_t i = 0; i < str.size(); i++) {
 		if (str[i] == ' ')
-			throw (std::runtime_error("split()"));
+			throw (clientException(_defaultServerConfig));
 		start = i;
 		while (str[i] && str[i] != ' ')
 			i++;
 		if (str[i] && str[i + 1] == '\0')
-			throw (std::runtime_error("split()"));
+			throw (clientException(_defaultServerConfig));
 		arg = str.substr(start, i - start);
 		argv.push_back(arg);
 	}
 	return (argv);
 }
 
-std::string Request::getLine(int fd) {
+std::string Request::getLine(int fd) const {
 	ssize_t		ret;
 	char		buf;
 	std::string line;
 
 	ret = read(fd, &buf, 1);
 	if (ret == -1)
-		throw (std::runtime_error("read()"));
+		throw (serverException(_defaultServerConfig));
 	else if (ret == 0)
 		return (line);
 	while (buf != '\n') {
 		line += buf;
 		ret = read(fd, &buf, 1);
 		if (ret == -1)
-			throw (std::runtime_error("read()"));
+			throw (serverException(_defaultServerConfig));
 		else if (ret == 0)
 			return (line);
 	}

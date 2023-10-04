@@ -129,15 +129,15 @@ void Response::sendContinue(int clientSocket) {
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 }
 
-void Response::sendClientError(int clientSocket, std::string path) {
+void Response::sendFinalStatusCode(int statusCode, int clientSocket, std::string errorPagePath) {
 	std::string			statusLine;
 	std::string			body;
 	std::ifstream		errorPage;
 	std::stringstream	contentLength;
 	Header				header;
 
-	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
-	errorPage.open(path.c_str());
+	statusLine = statusCodeToLine(statusCode);
+	errorPage.open(errorPagePath.c_str());
 	if (!errorPage.is_open()) {
 		write(clientSocket, statusLine.c_str(), statusLine.size());
 		return;

@@ -50,7 +50,7 @@ public:
 	void print() const;
 
 	static void sendContinue(int clientSocket);
-	static void sendClientError(int clientSocket, std::string path);
+	static void sendFinalStatusCode(int statusCode, int clientSocket, std::string errorPagePath);
 };
 
 #endif

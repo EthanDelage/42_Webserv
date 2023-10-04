@@ -85,7 +85,10 @@ void Server::listener() {
 					delete response;
 				}
 				catch (clientException const & e) {
-					Response::sendClientError(clientSocketFd, e.getErrorPage());
+					Response::sendFinalStatusCode(CLIENT_ERROR_STATUS_CODE, clientSocketFd, e.getErrorPage());
+				}
+				catch (serverException const & e) {
+					Response::sendFinalStatusCode(SERVER_ERROR_STATUS_CODE, clientSocketFd, e.getErrorPage());
 				}
 				close(clientSocketFd);
 			}
