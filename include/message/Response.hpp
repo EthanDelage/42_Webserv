@@ -33,6 +33,7 @@ private:
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	std::string			getContentType(std::string const & path) const;
 	void				listingDirectory();
+	void 				addContentType(std::string const & path);
 	static std::string	statusCodeToLine(uint16_t statusCode);
 	static std::string	httpVersionToString();
 	static std::string	getReasonPhrase(uint16_t code);

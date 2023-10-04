@@ -83,7 +83,7 @@ void Response::responseGet() {
 		buffer << resource.rdbuf();
 		_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 		_body = buffer.str();
-		_header.addHeader("Content-Type", getContentType(path));
+		addContentType(path);
 		_header.addContentLength(_body.size());
 	} catch (clientException const & e) {
 		if (_locationConfig->getAutoindex()) {
@@ -176,7 +176,7 @@ void Response::responseRedirectionError(std::string const & pathErrorPage) {
 	}
 	buffer << errorPage.rdbuf();
 	_body = buffer.str();
-	_header.addHeader("Content-Type", getContentType(pathErrorPage));
+	addContentType(pathErrorPage);
 	_header.addContentLength(_body.size());
 }
 
@@ -259,8 +259,29 @@ void Response::listingDirectory() {
 						<< "\t</body>" << std::endl
 						<< "</html>" << std::endl;
 	_body = directoryListing.str();
-	_header.addHeader("Content-Type", getContentType(".html"));
+	addContentType(".html");
 	_header.addContentLength(_body.size());
+}
+
+void Response::addContentType(const std::string& path) {
+	std::string	mime;
+	std::string acceptValue;
+	size_t		index;
+
+	mime = getContentType(path);
+	try {
+		acceptValue = _request.getHeader().getHeaderByKey("Accept");
+		index = acceptValue.find(mime);
+		if (index == std::string::npos)
+			throw (serverException(_locationConfig));
+		else if ((index != 0 && acceptValue[index - 1] != ' ' && acceptValue[index - 1] != ',')
+			|| (acceptValue[index + mime.size()] != ','))
+			//TODO Check last char in value of header ('\r')
+			throw (serverException(_locationConfig));
+		_header.addHeader("Content-Type", mime);
+	} catch (headerException const & e) {
+		_header.addHeader("Content-Type", mime);
+	}
 }
 
 std::string	Response::statusCodeToLine(uint16_t statusCode) {
