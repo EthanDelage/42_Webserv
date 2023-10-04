@@ -110,6 +110,8 @@ void Response::responsePost() {
 	std::ofstream	file;
 	std::string		path;
 
+	if (_body.size() > _locationConfig->getMaxBodySize())
+		throw (clientException(_locationConfig));
 	path = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
 	if (access(path.c_str(), F_OK) == 0) {
 		throw(clientException(_locationConfig));

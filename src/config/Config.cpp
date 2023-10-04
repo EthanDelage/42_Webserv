@@ -53,6 +53,8 @@ bool Config::getAutoindex() const {return (_autoindex);}
 
 std::map<uint16_t, std::string> Config::getErrorPage() const {return (_errorPage);}
 
+size_t Config::getMaxBodySize() const {return (_maxBodySize);}
+
 VirtualServerConfig* Config::getDefaultServer() const {return (_serverConfig[0]);}
 
 void Config::parse(char* configFilename) {
