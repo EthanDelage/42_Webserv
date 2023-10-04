@@ -21,6 +21,7 @@
 # include <cerrno>
 # include "message/Message.hpp"
 # include "method.hpp"
+# include "config/VirtualServerConfig.hpp"
 
 # define HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED	1
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
@@ -36,8 +37,9 @@ public:
 # endif
 
 private:
-	uint8_t			_method;
-	std::string		_requestURI;
+	uint8_t					_method;
+	std::string				_requestURI;
+	VirtualServerConfig*	_defaultServerConfig;
 
 	void	parseRequest();
 	void	parseRequestLine();
@@ -46,12 +48,12 @@ private:
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
 
-	static uint8_t					getMethodByName(std::string const & method);
-	static std::vector<std::string> split(std::string const & str);
-	static std::string				getLine(int fd);
+	uint8_t					getMethodByName(std::string const & method) const;
+	std::vector<std::string> split(std::string const & str) const;
+	std::string				getLine(int fd) const;
 
 public:
-	Request(int clientSocket);
+	Request(int clientSocket, VirtualServerConfig* defaultVirtualServer);
 	~Request();
 
 	uint8_t			getMethod() const;

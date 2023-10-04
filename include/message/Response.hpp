@@ -33,6 +33,8 @@ private:
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	std::string			getContentType(std::string const & path) const;
 	void				listingDirectory();
+	static void			send(int clientSocket, std::string statusLine, std::string header, std::string body);
+	static std::string	getFileContent(std::ifstream& file);
 	static std::string	statusCodeToLine(uint16_t statusCode);
 	static std::string	httpVersionToString();
 	static std::string	getReasonPhrase(uint16_t code);
@@ -50,9 +52,9 @@ public:
 	void send();
 	void print() const;
 
-	static void sendContinue(int clientSocket);
-	static void sendClientError(int clientSocket, std::string path);
 	void		responseRedirectionError(std::string const & pathErrorPage);
+	static void sendContinue(int clientSocket);
+	static void sendFinalStatusCode(int statusCode, int clientSocket, std::string const & errorPagePath);
 };
 
 #endif

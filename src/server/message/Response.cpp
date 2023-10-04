@@ -36,6 +36,12 @@ void Response::send() {
 	write(_clientSocket, _body.c_str(), _body.size());
 }
 
+void Response::send(int clientSocket, std::string statusLine, std::string header, std::string body) {
+	write(clientSocket, statusLine.c_str(), statusLine.size());
+	write(clientSocket, header.c_str(), header.size());
+	write(clientSocket, body.c_str(), body.size());
+}
+
 void Response::router() {
 	uint8_t	httpMethods[] = {
 			GET_METHOD_MASK,
@@ -64,13 +70,15 @@ void Response::router() {
 	throw (clientException(_locationConfig));
 }
 
+#include <iostream>
+
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
-	std::stringstream			buffer;
 
 	try {
 		path = getResourcePath();
+		std::cout << std::endl << "PATH:" << path << std::endl << std::endl;
 		if (isDirectory(path)) {
 			_header.addHeader("Location", path + '/');
 			throw (redirectionException(_locationConfig));
@@ -80,9 +88,9 @@ void Response::responseGet() {
 		resource.open(path.c_str());
 		if (!resource.is_open())
 			throw (clientException(_locationConfig));
-		buffer << resource.rdbuf();
+		_body = getFileContent(resource);
+		resource.close();
 		_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-		_body = buffer.str();
 		_header.addHeader("Content-Type", getContentType(path));
 		_header.addContentLength(_body.size());
 	} catch (clientException const & e) {
@@ -141,28 +149,24 @@ void Response::sendContinue(int clientSocket) {
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 }
 
-void Response::sendClientError(int clientSocket, std::string path) {
+void Response::sendFinalStatusCode(int statusCode, int clientSocket, std::string const & errorPagePath) {
 	std::string			statusLine;
 	std::string			body;
 	std::ifstream		errorPage;
-	std::stringstream	buffer;
 	std::stringstream	contentLength;
 	Header				header;
 
-	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
-	errorPage.open(path.c_str());
+	statusLine = statusCodeToLine(statusCode);
+	errorPage.open(errorPagePath.c_str());
 	if (!errorPage.is_open()) {
 		write(clientSocket, statusLine.c_str(), statusLine.size());
 		return;
 	}
-	buffer << errorPage.rdbuf();
-	body = buffer.str();
+	body = getFileContent(errorPage);
+	errorPage.close();
 	header.addHeader("Content-Type", "text/html");
-	contentLength << body.size();
-	header.addHeader("Content-Length", contentLength.str());
-	write(clientSocket, statusLine.c_str(), statusLine.size());
-	write(clientSocket, header.toString().c_str(), header.toString().size());
-	write(clientSocket, body.c_str(), body.size());
+	header.addContentLength(body.size());
+	send(clientSocket, statusLine, header.toString(), body);
 }
 
 void Response::responseRedirectionError(std::string const & pathErrorPage) {
@@ -372,19 +376,28 @@ bool Response::removeDirectory(std::string const & dirName) {
 	return (success);
 }
 
+std::string Response::getFileContent(std::ifstream& file) {
+	std::stringstream	buffer;
+
+	buffer << file.rdbuf();
+	return (buffer.str());
+}
+
+#include <iostream>
+
 bool Response::isDirectory(std::string const & path) {
 	struct stat	pathStat;
 
 	if (stat(path.c_str(), &pathStat) == -1)
-		throw (serverException(_locationConfig));
+		throw (clientException(_locationConfig));
 	return (S_ISDIR(pathStat.st_mode));
 }
 
 bool Response::isFile(std::string const & path) {
-	struct stat	pathStat;
+	struct stat pathStat;
 
 	if (stat(path.c_str(), &pathStat) == -1)
-		throw (serverException(_locationConfig));
+		throw (clientException(_locationConfig));
 	return (S_ISREG(pathStat.st_mode));
 }
 

@@ -75,7 +75,7 @@ void Server::listener() {
 			if (_socketArray[i].revents != POLL_DEFAULT) {
 				clientSocketFd = acceptClient(_socketArray[i].fd);
 				try {
-					request = new Request(clientSocketFd);
+					request = new Request(clientSocketFd, _config.getDefaultServer());
 					request->print();
 					virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");
 					response = new Response(*request, *virtualServerConfig);
@@ -85,7 +85,10 @@ void Server::listener() {
 					delete response;
 				}
 				catch (clientException const & e) {
-					Response::sendClientError(clientSocketFd, e.getErrorPage());
+					Response::sendFinalStatusCode(CLIENT_ERROR_STATUS_CODE, clientSocketFd, e.getErrorPage());
+				}
+				catch (serverException const & e) {
+					Response::sendFinalStatusCode(SERVER_ERROR_STATUS_CODE, clientSocketFd, e.getErrorPage());
 				}
 				close(clientSocketFd);
 			}

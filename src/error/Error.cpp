@@ -20,7 +20,7 @@ clientException::~clientException() throw() {}
 std::string	clientException::getErrorPage() const {return (_errorPage);}
 
 serverException::serverException(Config const * config) {
-	_errorPage = config->getErrorPage()[SERVER_ERROR_STATUS_CODE];
+	_errorPage = config->getRoot() + '/' + config->getErrorPage()[SERVER_ERROR_STATUS_CODE];
 }
 
 serverException::~serverException() throw() {}
