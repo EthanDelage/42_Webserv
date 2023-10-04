@@ -26,6 +26,7 @@ Config::Config() {
 	_isDefaultIndex = true;
 	_root = std::string(PREFIX) + DEFAULT_ROOT;
 	_errorPage[400] = "400.html";
+	_errorPage[300] = "300.html";
 	_maxBodySize = DEFAULT_MAX_BODY_SIZE;
 	_autoindex = DEFAULT_AUTOINDEX;
 }

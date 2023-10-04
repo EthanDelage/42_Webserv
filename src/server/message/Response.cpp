@@ -95,6 +95,7 @@ void Response::responseGet() {
 	} catch (redirectionException const & e) {
 		responseRedirectionError(e.getErrorPage());
 	}
+	//TODO Manage serverException
 }
 
 void Response::responsePost() {
@@ -171,7 +172,7 @@ void Response::responseRedirectionError(std::string const & pathErrorPage) {
 	_statusLine = statusCodeToLine(300);
 	errorPage.open(pathErrorPage.c_str());
 	if (!errorPage.is_open()) {
-		//TODO
+		//TODO send 400 error
 	}
 	buffer << errorPage.rdbuf();
 	_body = buffer.str();
