@@ -129,7 +129,7 @@ void Response::sendContinue(int clientSocket) {
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 }
 
-void Response::sendFinalStatusCode(int statusCode, int clientSocket, std::string errorPagePath) {
+void Response::sendFinalStatusCode(int statusCode, int clientSocket, std::string const & errorPagePath) {
 	std::string			statusLine;
 	std::string			body;
 	std::ifstream		errorPage;
