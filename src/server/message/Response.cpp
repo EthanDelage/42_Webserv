@@ -78,6 +78,15 @@ void Response::responseGet() {
 
 	try {
 		path = getResourcePath();
+		if (path[path.size() - 1] == '/') {
+			if (_locationConfig->getAutoindex()) {
+				_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+				listingDirectory();
+				return;
+			} else {
+				throw (clientException(_locationConfig));
+			}
+		}
 		if (isDirectory(path)) {
 			_header.addHeader("Location", _request.getRequestUri() + '/');
 			throw (redirectionException(_locationConfig));
@@ -92,13 +101,6 @@ void Response::responseGet() {
 		_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 		_header.addHeader("Content-Type", getContentType(path));
 		_header.addContentLength(_body.size());
-	} catch (clientException const & e) {
-		if (_locationConfig->getAutoindex()) {
-			_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-			listingDirectory();
-		}
-		else
-			throw (e);
 	} catch (redirectionException const & e) {
 		responseRedirectionError(e.getErrorPage());
 	}
@@ -210,7 +212,7 @@ std::string Response::getResourcePath() {
 				return (path);
 		}
 	}
-	throw(clientException(_locationConfig));
+	return (_locationConfig->getRoot() + '/' + requestUri.erase(0, _locationConfig->getUri().size()));
 }
 
 LocationConfig*	Response::getResponseLocation(VirtualServerConfig const & virtualServerConfig) {
