@@ -110,8 +110,7 @@ void Response::responsePost() {
 	std::ofstream	file;
 	std::string		path;
 
-	if (_body.size() > _locationConfig->getMaxBodySize())
-		throw (clientException(_locationConfig));
+	setRequestBody();
 	path = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
 	if (access(path.c_str(), F_OK) == 0) {
 		throw(clientException(_locationConfig));
@@ -149,6 +148,31 @@ void Response::sendContinue(int clientSocket) {
 
 	statusLine = statusCodeToLine(INFORMATIONAL_STATUS_CODE);
 	write(clientSocket, statusLine.c_str(), statusLine.size());
+}
+
+void Response::setRequestBody() {
+	std::string	body;
+	size_t	size;
+	ssize_t ret;
+	char	*buf;
+
+	try {
+		size = std::strtoul(_request.getHeader().getHeaderByKey("Content-Length").c_str(), NULL, 10);
+		if (size > _locationConfig->getMaxBodySize())
+			throw (serverException(_locationConfig));
+		buf = new char[size + 1];
+		ret = read(_clientSocket, buf, size);
+		if (ret == -1)
+			throw (serverException(_locationConfig));
+		if (ret == 0)
+			throw (clientException(_locationConfig));
+		buf[size] = '\0';
+		body = buf;
+	}
+	catch (headerException const & e) {
+		return;
+	}
+	_request.setBody(body);
 }
 
 void Response::sendFinalStatusCode(int statusCode, int clientSocket, std::string const & errorPagePath) {

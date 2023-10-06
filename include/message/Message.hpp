@@ -46,6 +46,8 @@ public:
 	httpVersion_t	getHttpVersion() const;
 	int 			getClientSocket() const;
 
+	void	setBody(std::string& body);
+
 };
 
 #endif
