@@ -78,9 +78,8 @@ void Response::responseGet() {
 
 	try {
 		path = getResourcePath();
-		std::cout << std::endl << "PATH:" << path << std::endl << std::endl;
 		if (isDirectory(path)) {
-			_header.addHeader("Location", path + '/');
+			_header.addHeader("Location", _request.getRequestUri() + '/');
 			throw (redirectionException(_locationConfig));
 		} else if (!isFile(path)) {
 			throw (redirectionException(_locationConfig));
