@@ -275,7 +275,7 @@ void Response::addContentType(const std::string& path) {
 		if (index == std::string::npos)
 			throw (serverException(_locationConfig));
 		else if ((index != 0 && acceptValue[index - 1] != ' ' && acceptValue[index - 1] != ',')
-			|| (acceptValue[index + mime.size()] != ','))
+			|| (acceptValue[index + mime.size()] && acceptValue[index + mime.size()] != ','))
 			//TODO Check last char in value of header ('\r')
 			throw (serverException(_locationConfig));
 		_header.addHeader("Content-Type", mime);
