@@ -234,20 +234,19 @@ size_t Config::parseSize(std::string &value) {
 		throw (std::runtime_error(SYNTAX_SIZE));
 }
 
-#include <iostream>
-VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddress, std::string const & host) const {
+VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddress, std::string host) const {
 	std::vector<VirtualServerConfig*>	serverConfig;
 	VirtualServerConfig*				result;
 	uint8_t								bestScore;
 	uint8_t								currentScore;
 
+	if (host.find(':') != std::string::npos)
+		host.erase(host.find(':'));
+	if (isValidIP(host))
+		host.erase();
 	serverConfig = findServerConfigBySocketAddress(socketAddress);
 	if (!serverConfig.empty() || !host.empty())
 		serverConfig = findServerConfigByHost(serverConfig, toLower(host));
-	std::cout << std::endl << "ServerConfig:" << std::endl;
-	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
-		std::cout << (*it)->getSocketAddress().first << ':' << (*it)->getSocketAddress().second << ", " << host << std::endl;
-	}
 	if (serverConfig.empty())
 		return (_serverConfig[0]);
 	bestScore = 0;
@@ -258,9 +257,6 @@ VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddr
 			result = *it;
 		}
 	}
-	std::cout << "Server chooses:" << std::endl;
-	std::cout << result->getSocketAddress().first << ':' << result->getSocketAddress().second << ", " << host<< std::endl;
-	std::cout << std::endl;
 	return (result);
 }
 
@@ -411,6 +407,39 @@ std::vector<std::string> Config::split(std::string& str, std::string const synta
 			throw (std::runtime_error(syntax));
 	}
 	return (argv);
+}
+
+bool Config::isValidIP(std::string const & str) const {
+	size_t	index = 0;
+
+	if (!isValidIpByte(str, index))
+		return (false);
+	for (int i = 0; i < 3; ++i) {
+		if (str[index] != '.')
+			return (false);
+		index++;
+		if (!isValidIpByte(str, index))
+			return (false);
+	}
+	if (str[index])
+		return (false);
+	return (true);
+}
+
+bool Config::isValidIpByte(std::string const & address, size_t& index) const {
+	uint8_t	byte = 0;
+
+	if (!std::isdigit(address[index]))
+		return (false);
+	for (int i = 0; i < 3 && std::isdigit(address[index]); ++i) {
+		if (((uint8_t) (byte * 10 + (address[index] - '0'))) / 10 != byte)
+			return (false);
+		byte = byte * 10 + (address[index] - '0');
+		++index;
+	}
+	if (std::isdigit(address[index]))
+		return (false);
+	return (true);
 }
 
 #include <iostream>
