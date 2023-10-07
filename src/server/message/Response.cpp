@@ -264,24 +264,44 @@ void Response::listingDirectory() {
 }
 
 void Response::addContentType(const std::string& path) {
-	std::string	mime;
+	std::string	contentType;
 	std::string acceptValue;
 	size_t		index;
 
-	mime = getContentType(path);
+	contentType = getContentType(path);
 	try {
 		acceptValue = _request.getHeader().getHeaderByKey("Accept");
-		index = acceptValue.find(mime);
+		if (checkAcceptWildcard(contentType, acceptValue))
+			return;
+		index = acceptValue.find(contentType);
 		if (index == std::string::npos)
 			throw (serverException(_locationConfig));
 		else if ((index != 0 && acceptValue[index - 1] != ' ' && acceptValue[index - 1] != ',')
-			|| (acceptValue[index + mime.size()] && acceptValue[index + mime.size()] != ','))
-			//TODO Check last char in value of header ('\r')
+			|| (acceptValue[index + contentType.size()] && acceptValue[index + contentType.size()] != ','))
 			throw (serverException(_locationConfig));
-		_header.addHeader("Content-Type", mime);
+		_header.addHeader("Content-Type", contentType);
 	} catch (headerException const & e) {
-		_header.addHeader("Content-Type", mime);
+		_header.addHeader("Content-Type", contentType);
 	}
+}
+
+bool Response::checkAcceptWildcard(std::string const & contentType, std::string const & acceptValue) {
+	size_t		index;
+	std::string	wildcardSubtype;
+
+	if (acceptValue.find("*/*") != std::string::npos) {
+		_header.addHeader("Content-Type", contentType);
+		return (true);
+	}
+	wildcardSubtype = contentType.substr(0, contentType.find('/') + 1) + '*';
+	index = acceptValue.find(wildcardSubtype);
+	if (index == std::string::npos)
+		return (false);
+	else if ((index != 0 && acceptValue[index - 1] != ' ' && acceptValue[index - 1] != ',')
+		|| (acceptValue[index + wildcardSubtype.size()] && acceptValue[index + wildcardSubtype.size()] != ','))
+		throw (serverException(_locationConfig));
+	_header.addHeader("Content-Type", contentType);
+	return (true);
 }
 
 std::string	Response::statusCodeToLine(uint16_t statusCode) {

@@ -196,14 +196,15 @@ void Config::parseServer(std::ifstream &configFile) {
 
 void Config::parseType(std::string& value) {
 	std::vector<std::string>	args;
-	std::string					mime;
+	std::string					contentType;
 
 	args = split(value, SYNTAX_TYPE);
 	if (args.size() < 2)
 		throw (std::runtime_error(SYNTAX_TYPE));
-	mime = removeQuote(args[0]);
+	//TODO check valid format for contentType
+	contentType = removeQuote(args[0]);
 	for (size_t i = 1; i != args.size(); ++i) {
-		_types[toLower(removeQuote(args[i]))] = mime;
+		_types[toLower(removeQuote(args[i]))] = contentType;
 	}
 }
 
