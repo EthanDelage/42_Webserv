@@ -17,8 +17,6 @@
 
 # define CRLF "\r\n"
 
-# define CRLF "\r\n"
-
 typedef struct httpVersion_s	httpVersion_t;
 struct httpVersion_s {
 	unsigned int	major;

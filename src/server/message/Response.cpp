@@ -159,7 +159,7 @@ void Response::setRequestBody() {
 	try {
 		size = std::strtoul(_request.getHeader().getHeaderByKey("Content-Length").c_str(), NULL, 10);
 		if (size > _locationConfig->getMaxBodySize())
-			throw (serverException(_locationConfig));
+			throw (clientException(_locationConfig));
 		buf = new char[size + 1];
 		ret = read(_clientSocket, buf, size);
 		if (ret == -1)
@@ -201,9 +201,8 @@ void Response::responseRedirectionError(std::string const & pathErrorPage) {
 
 	_statusLine = statusCodeToLine(300);
 	errorPage.open(pathErrorPage.c_str());
-	if (!errorPage.is_open()) {
-		//TODO send 400 error
-	}
+	if (!errorPage.is_open())
+		throw (clientException(_locationConfig));
 	buffer << errorPage.rdbuf();
 	_body = buffer.str();
 	_header.addHeader("Content-Type", getContentType(pathErrorPage));
