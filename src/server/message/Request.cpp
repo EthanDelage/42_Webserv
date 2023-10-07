@@ -17,7 +17,6 @@
 Request::Request(int clientSocket, VirtualServerConfig* defaultVirtualServer) : Message(clientSocket) {
 	_clientSocket = clientSocket;
 	_defaultServerConfig = defaultVirtualServer;
-
 	parseRequest();
 }
 
@@ -31,8 +30,6 @@ void Request::parseRequest() {
 	parseRequestLine();
 	parseRequestHeader();
 	std::cout << _header.toString() << std::endl;
-	parseRequestBody();
-	std::cout << "body:\n" << _body;
 }
 
 /**
@@ -67,32 +64,6 @@ void Request::parseRequestHeader() {
 		std::cout << line;
 		_header.parseHeader(line);
 		line = getLine(_clientSocket);
-	}
-}
-
-void Request::parseRequestBody() {
-	size_t	size;
-	size_t	readSize;
-	ssize_t ret;
-	char	buf[BUFFER_SIZE];
-
-	try {
-		size = std::strtoul(_header.getHeaderByKey("Content-Length").c_str(), NULL, 10);
-		readSize = 0;
-		while (readSize != size) {
-			if (size > BUFFER_SIZE)
-				ret = read(_clientSocket, buf, BUFFER_SIZE - 1);
-			else
-				ret = read(_clientSocket, buf, size - readSize);
-			if (ret == -1)
-				throw (serverException(_defaultServerConfig));
-			buf[ret] = '\0';
-			readSize += ret;
-			_body += buf;
-		}
-	}
-	catch (headerException const & e) {
-		return;
 	}
 }
 

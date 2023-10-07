@@ -26,3 +26,5 @@ std::string Message::getBody() const {return (_body);}
 Header Message::getHeader() const {return(_header);}
 
 int Message::getClientSocket() const {return (_clientSocket);}
+
+void Message::setBody(std::string& body) {_body = body;}

@@ -17,8 +17,6 @@
 
 # define CRLF "\r\n"
 
-# define CRLF "\r\n"
-
 typedef struct httpVersion_s	httpVersion_t;
 struct httpVersion_s {
 	unsigned int	major;
@@ -45,6 +43,8 @@ public:
 	Header			getHeader() const;
 	httpVersion_t	getHttpVersion() const;
 	int 			getClientSocket() const;
+
+	void	setBody(std::string& body);
 
 };
 

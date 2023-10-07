@@ -44,7 +44,6 @@ private:
 	void	parseRequest();
 	void	parseRequestLine();
 	void	parseRequestHeader();
-	void	parseRequestBody();
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
 
