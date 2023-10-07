@@ -41,6 +41,12 @@ Config::Config(Config const & other) {
 	_types = other._types;
 }
 
+Config::~Config() {
+	for (std::vector<VirtualServerConfig*>::iterator it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
+		delete *it;
+	}
+}
+
 std::vector<VirtualServerConfig*> Config::getServerConfig() const {return (_serverConfig);}
 
 std::string Config::getRoot() const {return (_root);}
@@ -201,11 +207,35 @@ void Config::parseType(std::string& value) {
 	args = split(value, SYNTAX_TYPE);
 	if (args.size() < 2)
 		throw (std::runtime_error(SYNTAX_TYPE));
-	//TODO check valid format for contentType
 	contentType = removeQuote(args[0]);
+	if (!isValidContentType(contentType))
+		throw (std::runtime_error(SYNTAX_TYPE));
 	for (size_t i = 1; i != args.size(); ++i) {
 		_types[toLower(removeQuote(args[i]))] = contentType;
 	}
+}
+
+bool Config::isValidContentType(const std::string& contentType) {
+	std::string type;
+	std::string subtype;
+	size_t		indexSeparator;
+
+	indexSeparator = contentType.find('/');
+	if (indexSeparator == std::string::npos)
+		return (false);
+	type = contentType.substr(0, indexSeparator);
+	subtype = contentType.substr(indexSeparator + 1);
+	if (!isValidToken(type) || !isValidToken(subtype))
+		return (false);
+	return (true);
+}
+
+bool Config::isValidToken(std::string const & token) {
+	for (size_t i = 0; i < token.size(); ++i) {
+		if (strchr(SEPARATORS, token[i]) != NULL || !isprint(token[i]))
+			return (false);
+	}
+	return (true);
 }
 
 /*(args[i])*

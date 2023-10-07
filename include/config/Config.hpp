@@ -34,6 +34,8 @@
 # define SYNTAX_ROOT			"Syntax: \"root\" SP path \";\""
 # define SYNTAX_TYPE			"Syntax: \"type\" SP mime 1*( SP extension ) \";\""
 
+# define SEPARATORS				"()<>@,;:\\\"/[]?={} \t"
+
 # define PORT_SCORE				1
 # define IP_SCORE				2
 # define HOST_SCORE				4
@@ -55,6 +57,8 @@ private:
 	void							parseLine(std::string& line, std::ifstream& configFile);
     void                			router(std::string& directive, std::string& value);
 	void							parseServer(std::ifstream& configFile);
+	static bool						isValidContentType(std::string const & contentType);
+	static bool						isValidToken(std::string const & token);
 	static size_t					parseSize(std::string& value);
 	static std::string				removeQuote(std::string& str);
 	static std::string				getNextFile(std::string& value);
@@ -87,7 +91,7 @@ protected:
 public:
 	Config();
 	Config(Config const & other);
-	virtual ~Config() {};
+	virtual ~Config();
 
 	std::vector<VirtualServerConfig*>	getServerConfig() const;
 	std::string							getRoot() const;

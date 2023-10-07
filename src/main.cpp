@@ -14,21 +14,23 @@
 #include <iostream>
 
 int	main(int argc, char** argv) {
+	Config	*config;
+	Server	server;
+
 	if (argc != 2) {
 		std::cerr << "Too few arguments" << std::endl;
 		return (1);
 	}
+	config = new Config;
 	try {
-		Config	*config;
-		Server	server;
-
-		config = new Config;
 		config->parse(argv[1]);
 		server.init(*config);
 		server.listener();
 	} catch (std::exception const & e) {
+		delete config;
 		std::cerr << "Error: " << e.what() << std::endl;
 		return (1);
 	}
+	delete config;
 	return (0);
 }

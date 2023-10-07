@@ -41,6 +41,12 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_types = other._types;
 }
 
+VirtualServerConfig::~VirtualServerConfig() {
+	for (std::vector<LocationConfig*>::iterator it = _locationConfig.begin(); it != _locationConfig.end(); ++it) {
+		delete *it;
+	}
+}
+
 std::string						VirtualServerConfig::getIp() const {return (_socketAddress.first);}
 
 uint16_t						VirtualServerConfig::getPort() const {return (_socketAddress.second);}

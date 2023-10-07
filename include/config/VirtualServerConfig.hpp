@@ -59,7 +59,7 @@ protected:
 public:
 	VirtualServerConfig(Config const & config);
 	VirtualServerConfig(VirtualServerConfig const & other);
-	~VirtualServerConfig() {};
+	~VirtualServerConfig();
 
 	std::string						getIp() const;
 	uint16_t						getPort() const;
