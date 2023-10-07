@@ -25,8 +25,8 @@ std::string Header::getHeaderByKey(std::string const & key) {
 
 #include <iostream>
 void Header::parseHeader(std::string const & line) {
-	std::string key;
-	std::string value;
+	std::string	key;
+	std::string	value;
 	size_t		separatorIndex;
 
 	separatorIndex = line.find(':');

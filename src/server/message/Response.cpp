@@ -76,35 +76,29 @@ void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 
-	try {
-		path = getResourcePath();
-		if (path[path.size() - 1] == '/') {
-			if (_locationConfig->getAutoindex()) {
-				_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-				listingDirectory();
-				return;
-			} else {
-				throw (clientException(_locationConfig));
-			}
-		}
-		if (isDirectory(path)) {
-			_header.addHeader("Location", _request.getRequestUri() + '/');
-			throw (redirectionException(_locationConfig));
-		} else if (!isFile(path)) {
-			throw (redirectionException(_locationConfig));
-		}
-		resource.open(path.c_str());
-		if (!resource.is_open())
+	path = getResourcePath();
+	if (path[path.size() - 1] == '/') {
+		if (_locationConfig->getAutoindex()) {
+			_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+			listingDirectory();
+			return;
+		} else {
 			throw (clientException(_locationConfig));
-		_body = getFileContent(resource);
-		resource.close();
-		_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-		_header.addHeader("Content-Type", getContentType(path));
-		_header.addContentLength(_body.size());
-	} catch (redirectionException const & e) {
-		responseRedirectionError(e.getErrorPage());
+		}
 	}
-	//TODO Manage serverException
+	if (isDirectory(path)) {
+		_header.addHeader("Location", _request.getRequestUri() + '/');
+		responseRedirectionError(_locationConfig->getErrorPage()[300]);
+		return;
+	}
+	resource.open(path.c_str());
+	if (!resource.is_open())
+		throw (clientException(_locationConfig));
+	_body = getFileContent(resource);
+	resource.close();
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	_header.addHeader("Content-Type", getContentType(path));
+	_header.addContentLength(_body.size());
 }
 
 void Response::responsePost() {
@@ -198,14 +192,12 @@ void Response::sendFinalStatusCode(int statusCode, int clientSocket, std::string
 
 void Response::responseRedirectionError(std::string const & pathErrorPage) {
 	std::ifstream		errorPage;
-	std::stringstream	buffer;
 
 	_statusLine = statusCodeToLine(300);
 	errorPage.open(pathErrorPage.c_str());
 	if (!errorPage.is_open())
-		throw (clientException(_locationConfig));
-	buffer << errorPage.rdbuf();
-	_body = buffer.str();
+		return;
+	_body = getFileContent(errorPage);
 	_header.addHeader("Content-Type", getContentType(pathErrorPage));
 	_header.addContentLength(_body.size());
 }
