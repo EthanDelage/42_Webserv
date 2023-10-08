@@ -30,7 +30,7 @@ VirtualServerConfig::VirtualServerConfig(Config const & config) : Config(config)
 
 VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Config() {
 	_index = other._index;
-	_isDefaultIndex = other._isDefaultIndex;
+	_isDefaultIndex = true;
 	_root = other._root;
 	_errorPage = other._errorPage;
 	_maxBodySize = other._maxBodySize;
@@ -165,39 +165,6 @@ void VirtualServerConfig::parseLocation(std::ifstream& configFile, std::string& 
 	locationConfig->parse(configFile);
 	locationConfig->print();
 	_locationConfig.push_back(locationConfig);
-}
-
-bool	VirtualServerConfig::isValidIP(std::string const & str) {
-	size_t	index = 0;
-
-	if (!isValidIpByte(str, index))
-		return (false);
-	for (int i = 0; i < 3; ++i) {
-		if (str[index] != '.')
-			return (false);
-		index++;
-		if (!isValidIpByte(str, index))
-			return (false);
-	}
-	if (str[index])
-		return (false);
-	return (true);
-}
-
-bool VirtualServerConfig::isValidIpByte(std::string const & address, size_t& index) {
-	uint8_t	byte = 0;
-
-	if (!std::isdigit(address[index]))
-		return (false);
-	for (int i = 0; i < 3 && std::isdigit(address[index]); ++i) {
-		if (((uint8_t) (byte * 10 + (address[index] - '0'))) / 10 != byte)
-			return (false);
-		byte = byte * 10 + (address[index] - '0');
-		++index;
-	}
-	if (std::isdigit(address[index]))
-		return (false);
-	return (true);
 }
 
 uint16_t VirtualServerConfig::getPort(std::string const & str) {

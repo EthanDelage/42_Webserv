@@ -87,6 +87,8 @@ protected:
 	void	parseType(std::string& value);
 
 	static std::vector<std::string>	split(std::string& str, std::string const syntax);
+	bool	isValidIP(std::string const & str) const;
+	bool	isValidIpByte(std::string const & address, size_t& index) const;
 
 public:
 	Config();
@@ -105,7 +107,7 @@ public:
 	void			parse(char* configFilename);
 	virtual void	print();
 
-	VirtualServerConfig*	findServerConfig(socketAddress_t const & socketAddress, std::string const & host) const;
+	VirtualServerConfig*	findServerConfig(socketAddress_t const & socketAddress, std::string host) const;
 };
 
 #endif

@@ -47,8 +47,6 @@ private:
 	void			parseLine(std::string& line, std::ifstream& configFile);
 	void			router(std::string& directive, std::string& value);
 	void			parseLocation(std::ifstream& configFile, std::string& line);
-	static bool		isValidIP(std::string const & str);
-	static bool		isValidIpByte(std::string const & address, size_t& index);
 	static uint16_t	getPort(std::string const & str);
 
 protected:

@@ -75,7 +75,12 @@ void Server::listener() {
 				try {
 					request = new Request(clientSocketFd, _config.getDefaultServer());
 					request->print();
-					virtualServerConfig = _config.findServerConfig(_addressArray[i], "test");
+					try {
+						virtualServerConfig = _config.findServerConfig(_addressArray[i], request->getHeader().getHeaderByKey("Host"));
+					}
+					catch (headerException const & e) {
+						throw (clientException(&_config));
+					}
 					response = new Response(*request, *virtualServerConfig);
 					delete request;
 					response->print();
