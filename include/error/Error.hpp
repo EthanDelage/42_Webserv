@@ -31,11 +31,14 @@
 class clientException : public std::exception {
 private:
 	std::string	_errorPage;
+	uint8_t 	_methodMask;
 public:
 	clientException(Config const * config);
+	clientException(Config const * config, uint8_t methodMask);
 	~clientException() throw();
 
 	std::string	getErrorPage() const;
+	uint8_t		getMethodMask() const;
 };
 
 class serverException : public std::exception {

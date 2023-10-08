@@ -14,6 +14,8 @@
 #include "error/Error.hpp"
 #include <sstream>
 
+Header::Header() : _header() {}
+
 std::string Header::getHeaderByKey(std::string const & key) {
 	std::map<std::string, std::string>::iterator	value;
 

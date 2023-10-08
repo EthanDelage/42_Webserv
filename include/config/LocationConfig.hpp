@@ -52,6 +52,11 @@ public:
 	bool						getMethodStatus() const;
 	bool						postMethodStatus() const;
 	bool						deleteMethodStatus() const;
+	uint8_t						getAllowedHttpMethod() const;
+	static bool					getMethodStatus(uint8_t methodMask);
+	static bool					postMethodStatus(uint8_t methodMask);
+	static bool					deleteMethodStatus(uint8_t methodMask);
+	static std::string 			allowedHttpMethodToString(uint8_t methodMask);
 
 	void	parse(std::ifstream& configFile);
 	void	print();

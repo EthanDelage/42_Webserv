@@ -31,16 +31,30 @@ std::string LocationConfig::getUri() const {return (_uri);}
 
 std::vector<std::string> LocationConfig::getUriDirectories() const {return (_uriDirectories);}
 
+uint8_t LocationConfig::getAllowedHttpMethod() const {return (_allowedHttpMethod);}
+
 bool LocationConfig::getMethodStatus() const {
 	return (_allowedHttpMethod & GET_METHOD_MASK);
+}
+
+bool LocationConfig::getMethodStatus(uint8_t methodMask) {
+	return (methodMask & GET_METHOD_MASK);
 }
 
 bool LocationConfig::postMethodStatus() const {
 	return (_allowedHttpMethod & POST_METHOD_MASK);
 }
 
+bool LocationConfig::postMethodStatus(uint8_t methodMask) {
+	return (methodMask & POST_METHOD_MASK);
+}
+
 bool LocationConfig::deleteMethodStatus() const {
 	return (_allowedHttpMethod & DELETE_METHOD_MASK);
+}
+
+bool LocationConfig::deleteMethodStatus(uint8_t methodMask) {
+	return (methodMask & DELETE_METHOD_MASK);
 }
 
 void LocationConfig::parse(std::ifstream& configFile) {
@@ -108,6 +122,28 @@ void LocationConfig::parseDeny(std::string& value) {
 		_allowedHttpMethod &= (0b11111111 - DELETE_METHOD_MASK);
 	else
 		throw (std::runtime_error(SYNTAX_DENY));
+}
+
+std::string LocationConfig::allowedHttpMethodToString(uint8_t methodMask) {
+	std::vector<std::string>	allowedMethod;
+	std::string					result;
+
+	if (getMethodStatus(methodMask))
+		allowedMethod.push_back("GET");
+	if (postMethodStatus(methodMask))
+		allowedMethod.push_back("POST");
+	if (deleteMethodStatus(methodMask))
+		allowedMethod.push_back("DELETE");
+	if (allowedMethod.empty())
+		return ("");
+	else if (allowedMethod.size() == 1)
+		return (allowedMethod[0]);
+	for (std::vector<std::string>::iterator it = allowedMethod.begin(); it != (allowedMethod.end() - 1); ++it) {
+		result += *it;
+		result += ", ";
+	}
+	result += allowedMethod[allowedMethod.size() - 1];
+	return (result);
 }
 
 #include <iostream>

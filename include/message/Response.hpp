@@ -15,6 +15,7 @@
 # include "message/Request.hpp"
 # include "config/VirtualServerConfig.hpp"
 # include "config/LocationConfig.hpp"
+# include "error/Error.hpp"
 
 class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
@@ -57,7 +58,8 @@ public:
 
 	void		responseRedirectionError(std::string const & pathErrorPage);
 	static void sendContinue(int clientSocket);
-	static void sendFinalStatusCode(int statusCode, int clientSocket, std::string const & errorPagePath);
+	static void sendClientError(int statusCode, int clientSocket, clientException const & clientException);
+	static void sendServerError(int statusCode, int clientSocket, std::string const & errorPagePath);
 };
 
 #endif

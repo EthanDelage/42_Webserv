@@ -17,7 +17,6 @@
 #include <fcntl.h>
 #include "utils.hpp"
 #include "message/Response.hpp"
-#include "error/Error.hpp"
 #include <sys/stat.h>
 
 Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : Message(request.getClientSocket()), _request(request) {
@@ -62,7 +61,7 @@ void Response::router() {
 	for (size_t i = 0; i < sizeof(httpMethods) / sizeof(*httpMethods); i++) {
 		if (httpMethods[i] == _request.getMethod()) {
 			if (!allowedMethods[i])
-				throw (clientException(_locationConfig));
+				throw (clientException(_locationConfig, _locationConfig->getAllowedHttpMethod()));
 			(this->*responseFunction[i])();
 			return;
 		}
@@ -170,7 +169,30 @@ void Response::setRequestBody() {
 	_request.setBody(body);
 }
 
-void Response::sendFinalStatusCode(int statusCode, int clientSocket, std::string const & errorPagePath) {
+void Response::sendClientError(int statusCode, int clientSocket, clientException const & clientException) {
+	std::string			statusLine;
+	std::string			body;
+	std::ifstream		errorPage;
+	std::stringstream	contentLength;
+	Header				header;
+
+	body.erase();
+	statusLine = statusCodeToLine(statusCode);
+	if (clientException.getMethodMask() != 0b01111000)
+		header.addHeader("Allow", LocationConfig::allowedHttpMethodToString(clientException.getMethodMask()));
+	errorPage.open(clientException.getErrorPage().c_str());
+	if (!errorPage.is_open()) {
+		send(clientSocket, statusLine, header.toString(), body);
+		return;
+	}
+	body = getFileContent(errorPage);
+	errorPage.close();
+	header.addHeader("Content-Type", "text/html");
+	header.addContentLength(body.size());
+	send(clientSocket, statusLine, header.toString(), body);
+}
+
+void Response::sendServerError(int statusCode, int clientSocket, std::string const & errorPagePath) {
 	std::string			statusLine;
 	std::string			body;
 	std::ifstream		errorPage;
@@ -181,6 +203,7 @@ void Response::sendFinalStatusCode(int statusCode, int clientSocket, std::string
 	errorPage.open(errorPagePath.c_str());
 	if (!errorPage.is_open()) {
 		write(clientSocket, statusLine.c_str(), statusLine.size());
+		write(clientSocket, CRLF, std::strlen(CRLF));
 		return;
 	}
 	body = getFileContent(errorPage);
