@@ -298,10 +298,10 @@ void Response::addContentType(const std::string& path) {
 			return;
 		index = acceptValue.find(contentType);
 		if (index == std::string::npos)
-			throw (serverException(_locationConfig));
+			throw (clientException(_locationConfig));
 		else if ((index != 0 && acceptValue[index - 1] != ' ' && acceptValue[index - 1] != ',')
 			|| (acceptValue[index + contentType.size()] && acceptValue[index + contentType.size()] != ','))
-			throw (serverException(_locationConfig));
+			throw (clientException(_locationConfig));
 		_header.addHeader("Content-Type", contentType);
 	} catch (headerException const & e) {
 		_header.addHeader("Content-Type", contentType);
