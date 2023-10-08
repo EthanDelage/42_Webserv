@@ -97,7 +97,7 @@ void Response::responseGet() {
 	_body = getFileContent(resource);
 	resource.close();
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-	_header.addHeader("Content-Type", getContentType(path));
+	addContentType(path);
 	_header.addContentLength(_body.size());
 }
 
@@ -198,7 +198,8 @@ void Response::responseRedirectionError(std::string const & pathErrorPage) {
 	if (!errorPage.is_open())
 		return;
 	_body = getFileContent(errorPage);
-	_header.addHeader("Content-Type", getContentType(pathErrorPage));
+	errorPage.close();
+	addContentType(pathErrorPage);
 	_header.addContentLength(_body.size());
 }
 
@@ -281,8 +282,49 @@ void Response::listingDirectory() {
 						<< "\t</body>" << std::endl
 						<< "</html>" << std::endl;
 	_body = directoryListing.str();
-	_header.addHeader("Content-Type", getContentType(".html"));
+	addContentType(".html");
 	_header.addContentLength(_body.size());
+}
+
+void Response::addContentType(const std::string& path) {
+	std::string	contentType;
+	std::string acceptValue;
+	size_t		index;
+
+	contentType = getContentType(path);
+	try {
+		acceptValue = _request.getHeader().getHeaderByKey("Accept");
+		if (checkAcceptWildcard(contentType, acceptValue))
+			return;
+		index = acceptValue.find(contentType);
+		if (index == std::string::npos)
+			throw (serverException(_locationConfig));
+		else if ((index != 0 && acceptValue[index - 1] != ' ' && acceptValue[index - 1] != ',')
+			|| (acceptValue[index + contentType.size()] && acceptValue[index + contentType.size()] != ','))
+			throw (serverException(_locationConfig));
+		_header.addHeader("Content-Type", contentType);
+	} catch (headerException const & e) {
+		_header.addHeader("Content-Type", contentType);
+	}
+}
+
+bool Response::checkAcceptWildcard(std::string const & contentType, std::string const & acceptValue) {
+	size_t		index;
+	std::string	wildcardSubtype;
+
+	if (acceptValue.find("*/*") != std::string::npos) {
+		_header.addHeader("Content-Type", contentType);
+		return (true);
+	}
+	wildcardSubtype = contentType.substr(0, contentType.find('/') + 1) + '*';
+	index = acceptValue.find(wildcardSubtype);
+	if (index == std::string::npos)
+		return (false);
+	else if ((index != 0 && acceptValue[index - 1] != ' ' && acceptValue[index - 1] != ',')
+		|| (acceptValue[index + wildcardSubtype.size()] && acceptValue[index + wildcardSubtype.size()] != ','))
+		throw (serverException(_locationConfig));
+	_header.addHeader("Content-Type", contentType);
+	return (true);
 }
 
 std::string	Response::statusCodeToLine(uint16_t statusCode) {

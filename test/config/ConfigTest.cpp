@@ -133,6 +133,7 @@ TEST_F(ConfigTest, parseDefaultErrorPage) {
 	std::map<uint16_t, std::string>	errorPage;
 
 	errorPage[400] = "400.html";
+	errorPage[300] = "300.html";
 	EXPECT_EQ(getErrorPage(), errorPage);
 }
 
@@ -140,6 +141,7 @@ TEST_F(ConfigTest, parseSingleErrorPage) {
 	std::map<uint16_t, std::string>	errorPage;
 
 	errorPage[400] = "400.html";
+	errorPage[300] = "300.html";
 	errorPage[500] = "50x.html";
 	EXPECT_EQ(parseErrorPage("error_page 500 50x.html;"), errorPage);
 }
@@ -157,6 +159,7 @@ TEST_F(ConfigTest, parseMultipleErrorPageDirectives) {
 	std::map<uint16_t, std::string>	errorPage;
 
 	errorPage[400] = "400.html";
+	errorPage[300] = "300.html";
 	errorPage[500] = "500.html";
 	EXPECT_EQ(parseErrorPage("error_page 500 500.html;"), errorPage);
 	errorPage[300] = "300.html";

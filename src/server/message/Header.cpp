@@ -67,7 +67,8 @@ std::string Header::toString() const {
 bool Header::isValidHeader(std::string const & headerKey) {
 	std::string const	 validHeader[] = {
 		"Host",
-		"Content-Length"};
+		"Content-Length",
+		"Accept"};
 
 	for (size_t i = 0; i != sizeof(validHeader) / sizeof (*validHeader); ++i) {
 		if (headerKey == validHeader[i])

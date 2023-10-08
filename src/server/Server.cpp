@@ -56,8 +56,6 @@ void Server::init(Config const & config) {
 	}
 }
 
-#include <iostream>
-
 void Server::listener() {
 	int					clientSocketFd;
 	VirtualServerConfig	*virtualServerConfig;
