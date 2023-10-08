@@ -10,6 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "RequestTest.hpp"
+#include "error/Error.hpp"
 
 TEST_F(RequestTest, parseMethodValid) {
 	EXPECT_EQ(parseMethodTest("GET"), GET_METHOD_MASK);
@@ -18,13 +19,13 @@ TEST_F(RequestTest, parseMethodValid) {
 }
 
 TEST_F(RequestTest, parseMethodInvalid) {
-	EXPECT_THROW(parseMethodTest("get"), std::runtime_error);
-	EXPECT_THROW(parseMethodTest("post"), std::runtime_error);
-	EXPECT_THROW(parseMethodTest("delete"), std::runtime_error);
-	EXPECT_THROW(parseMethodTest("GETT"), std::runtime_error);
-	EXPECT_THROW(parseMethodTest("gET"), std::runtime_error);
-	EXPECT_THROW(parseMethodTest("POSt"), std::runtime_error);
-	EXPECT_THROW(parseMethodTest(""), std::runtime_error);
+	EXPECT_THROW(parseMethodTest("get"), clientException);
+	EXPECT_THROW(parseMethodTest("post"), clientException);
+	EXPECT_THROW(parseMethodTest("delete"), clientException);
+	EXPECT_THROW(parseMethodTest("GETT"), clientException);
+	EXPECT_THROW(parseMethodTest("gET"), clientException);
+	EXPECT_THROW(parseMethodTest("POSt"), clientException);
+	EXPECT_THROW(parseMethodTest(""), clientException);
 }
 
 TEST_F(RequestTest, parseHttpVersionValid) {
@@ -50,21 +51,21 @@ TEST_F(RequestTest, parseHttpVersionValid) {
 }
 
 TEST_F(RequestTest, parseHttpVersionInvalid) {
-	EXPECT_THROW(parseHttpVersionTest("\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/ \r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1.1 \r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1 .1\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1. 1\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/ 1.1\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/-1.1\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1.-1\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/1.2\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP/2.0\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTPP/1.0\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTP/1.0\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("HTTP1.0\r\n"), std::runtime_error);
-	EXPECT_THROW(parseHttpVersionTest("http/.0\r\n"), std::runtime_error);
+	EXPECT_THROW(parseHttpVersionTest("\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/ \r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1.1 \r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1 .1\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1. 1\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/ 1.1\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/-1.1\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1.-1\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/1.2\r\n"), serverException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP/2.0\r\n"), serverException);
+	EXPECT_THROW(parseHttpVersionTest("HTPP/1.0\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTP/1.0\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("HTTP1.0\r\n"), clientException);
+	EXPECT_THROW(parseHttpVersionTest("http/.0\r\n"), clientException);
 }
 
 TEST_F(RequestTest, splitValid) {
@@ -85,15 +86,15 @@ TEST_F(RequestTest, splitSingleValid) {
 }
 
 TEST_F(RequestTest, splitInvalid) {
-	EXPECT_THROW(splitTest(" test"), std::runtime_error);
-	EXPECT_THROW(splitTest("test "), std::runtime_error);
-	EXPECT_THROW(splitTest("test  test"), std::runtime_error);
-	EXPECT_THROW(splitTest("  test  "), std::runtime_error);
-	EXPECT_THROW(splitTest(" test test "), std::runtime_error);
-	EXPECT_THROW(splitTest("  test  test  test  "), std::runtime_error);
-	EXPECT_THROW(splitTest("           test  test  test   "), std::runtime_error);
-	EXPECT_THROW(splitTest(" "), std::runtime_error);
-	EXPECT_THROW(splitTest("               "), std::runtime_error);
+	EXPECT_THROW(splitTest(" test"), clientException);
+	EXPECT_THROW(splitTest("test "), clientException);
+	EXPECT_THROW(splitTest("test  test"), clientException);
+	EXPECT_THROW(splitTest("  test  "), clientException);
+	EXPECT_THROW(splitTest(" test test "), clientException);
+	EXPECT_THROW(splitTest("  test  test  test  "), clientException);
+	EXPECT_THROW(splitTest("           test  test  test   "), clientException);
+	EXPECT_THROW(splitTest(" "), clientException);
+	EXPECT_THROW(splitTest("               "), clientException);
 }
 
 uint8_t RequestTest::parseMethodTest(const std::string& arg) {
