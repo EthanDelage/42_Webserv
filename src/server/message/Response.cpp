@@ -116,6 +116,7 @@ void Response::responsePost() {
 	file << _request.getBody();
 	file.close();
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	_header.addHeader("Location", _request.getRequestUri());
 }
 
 void Response::responseDelete() {
