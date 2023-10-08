@@ -241,7 +241,7 @@ LocationConfig*	Response::getResponseLocation(VirtualServerConfig const & virtua
 	if (requestUri[requestUri.size() - 1] != '/')
 		requestUri.erase(requestUri.rfind('/') + 1);
 	requestUriDirectories = split_path(requestUri);
-	 while (!requestUriDirectories.empty()) {
+	while (!requestUriDirectories.empty()) {
 		for (size_t i = 0; i < locationConfig.size(); i++)
 			if (locationConfig[i]->getUriDirectories() == requestUriDirectories)
 				return (locationConfig[i]);
