@@ -10,15 +10,22 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include "error/Error.hpp"
+#include "method.hpp"
 
-clientException::clientException(Config const * config) {
-	if (config != NULL)
-		_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
+clientException::clientException(Config const * config): _methodMask(0b01111000) {
+	_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
+}
+
+clientException::clientException(Config const * config, uint8_t methodMask) {
+	_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
+	_methodMask = methodMask;
 }
 
 clientException::~clientException() throw() {}
 
 std::string	clientException::getErrorPage() const {return (_errorPage);}
+
+uint8_t clientException::getMethodMask() const {return (_methodMask);}
 
 serverException::serverException(Config const * config) {
 	if (config != NULL)

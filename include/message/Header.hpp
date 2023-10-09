@@ -23,6 +23,7 @@ class Header {
 # endif
 
 public:
+	Header();
 	std::string	getHeaderByKey(std::string const & key);
 
 	void		parseHeader(std::string const &line);

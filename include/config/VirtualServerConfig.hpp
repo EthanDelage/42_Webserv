@@ -47,6 +47,7 @@ private:
 	void			parseLine(std::string& line, std::ifstream& configFile);
 	void			router(std::string& directive, std::string& value);
 	void			parseLocation(std::ifstream& configFile, std::string& line);
+	void			addDefaultLocation();
 	static uint16_t	getPort(std::string const & str);
 
 protected:
