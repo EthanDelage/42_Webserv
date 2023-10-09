@@ -13,7 +13,8 @@
 #include "method.hpp"
 
 clientException::clientException(Config const * config): _methodMask(0b01111000) {
-	_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
+	if (config != NULL)
+		_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
 }
 
 clientException::clientException(Config const * config, uint8_t methodMask) {
