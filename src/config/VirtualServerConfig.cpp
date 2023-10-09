@@ -37,7 +37,7 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_autoindex = other._autoindex;
 	_serverNames = other._serverNames;
 	_socketAddress = other._socketAddress;
-	_locationConfig = other._locationConfig;
+	_locationConfig.clear();
 	_types = other._types;
 }
 
@@ -165,9 +165,13 @@ void VirtualServerConfig::parseLocation(std::ifstream& configFile, std::string& 
 	if (argv.size() != 3 && argv[3] != "}")
 		throw (std::runtime_error(SYNTAX_LOCATION));
 	locationConfig = new LocationConfig(*this, argv[1]);
-	locationConfig->parse(configFile);
-	locationConfig->print();
-	_locationConfig.push_back(locationConfig);
+	try {
+		locationConfig->parse(configFile);
+		locationConfig->print();
+		_locationConfig.push_back(locationConfig);
+	} catch (std::runtime_error const & e) {
+		delete locationConfig;
+	}
 }
 
 void VirtualServerConfig::addDefaultLocation() {

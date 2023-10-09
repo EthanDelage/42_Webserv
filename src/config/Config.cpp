@@ -199,9 +199,14 @@ void Config::parseRoot(std::string &value) {
 void Config::parseServer(std::ifstream &configFile) {
 	VirtualServerConfig*	newServerConfig = new VirtualServerConfig(*this);
 
-	newServerConfig->parse(configFile);
-	newServerConfig->print();
-	_serverConfig.push_back(newServerConfig);
+	try {
+		newServerConfig->parse(configFile);
+		newServerConfig->print();
+		_serverConfig.push_back(newServerConfig);
+	} catch (std::runtime_error const & e) {
+		delete newServerConfig;
+		throw (e);
+	}
 }
 
 void Config::parseType(std::string& value) {
