@@ -54,6 +54,7 @@ public:
 	~Response();
 
 	void send();
+	void setDate();
 	void print() const;
 
 	void		responseRedirectionError(std::string const & pathErrorPage);

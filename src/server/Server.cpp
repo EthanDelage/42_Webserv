@@ -84,6 +84,7 @@ void Server::listener() {
 					response = new Response(*request, *virtualServerConfig);
 					delete request;
 					response->print();
+					response->setDate();
 					response->send();
 					delete response;
 				}

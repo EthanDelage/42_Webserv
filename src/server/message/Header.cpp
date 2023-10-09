@@ -13,6 +13,7 @@
 #include "utils.hpp"
 #include "error/Error.hpp"
 #include <sstream>
+#include <ctime>
 
 Header::Header() : _header() {}
 
@@ -53,6 +54,43 @@ void Header::addContentLength(size_t bodySize) {
 
 	contentLength << bodySize;
 	addHeader("Content-Length", contentLength.str());
+}
+
+void Header::addDate() {
+	std::time_t	rawTime;
+	std::tm*	dateInfo;
+
+	time(&rawTime);
+	dateInfo = localtime(&rawTime);
+	if (dateInfo == NULL)
+		return;
+	addHeader("Date", dateToString(dateInfo));
+}
+
+std::string Header::dateToString(tm *dateInfo) {
+	std::string weekday[] = {"Mon", "Tue", "Wed", "Thu",
+							 "Fri", "Sat", "Sun"};
+	std::string month[] = {"Jan", "Feb", "Mar", "Apr",
+						   "May", "Jun", "Jul", "Aug",
+						   "Sep", "Oct", "Nov", "Dec"};
+	std::stringstream	date;
+
+	date << weekday[dateInfo->tm_wday] << ", ";
+	if (dateInfo->tm_mday < 10)
+		date << '0';
+	date << dateInfo->tm_mday << ' '
+		<< month[dateInfo->tm_mon] << ' '
+		<< dateInfo->tm_year + 1900 << ' ';
+	if (dateInfo->tm_hour < 10)
+		date << '0';
+	date << dateInfo->tm_hour << ':';
+	if (dateInfo->tm_min < 10)
+		date << '0';
+	date << dateInfo->tm_min << ':';
+	if (dateInfo->tm_sec < 10)
+		date << '0';
+	date << dateInfo->tm_sec << " GMT";
+	return (date.str());
 }
 
 std::string Header::toString() const {

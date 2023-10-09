@@ -35,6 +35,10 @@ void Response::send() {
 	write(_clientSocket, _body.c_str(), _body.size());
 }
 
+void Response::setDate() {
+	_header.addDate();
+}
+
 void Response::send(int clientSocket, std::string statusLine, std::string header, std::string body) {
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 	write(clientSocket, header.c_str(), header.size());
@@ -68,8 +72,6 @@ void Response::router() {
 	}
 	throw (clientException(_locationConfig));
 }
-
-#include <iostream>
 
 void Response::responseGet() {
 	std::string					path;
@@ -183,6 +185,7 @@ void Response::sendClientError(int statusCode, int clientSocket, clientException
 		header.addHeader("Allow", LocationConfig::allowedHttpMethodToString(clientException.getMethodMask()));
 	errorPage.open(clientException.getErrorPage().c_str());
 	if (!errorPage.is_open()) {
+		header.addDate();
 		send(clientSocket, statusLine, header.toString(), body);
 		return;
 	}
@@ -190,6 +193,7 @@ void Response::sendClientError(int statusCode, int clientSocket, clientException
 	errorPage.close();
 	header.addHeader("Content-Type", "text/html");
 	header.addContentLength(body.size());
+	header.addDate();
 	send(clientSocket, statusLine, header.toString(), body);
 }
 
@@ -203,6 +207,7 @@ void Response::sendServerError(int statusCode, int clientSocket, std::string con
 	statusLine = statusCodeToLine(statusCode);
 	errorPage.open(errorPagePath.c_str());
 	if (!errorPage.is_open()) {
+		header.addDate();
 		write(clientSocket, statusLine.c_str(), statusLine.size());
 		write(clientSocket, CRLF, std::strlen(CRLF));
 		return;
@@ -211,6 +216,7 @@ void Response::sendServerError(int statusCode, int clientSocket, std::string con
 	errorPage.close();
 	header.addHeader("Content-Type", "text/html");
 	header.addContentLength(body.size());
+	header.addDate();
 	send(clientSocket, statusLine, header.toString(), body);
 }
 
@@ -466,8 +472,6 @@ std::string Response::getFileContent(std::ifstream& file) {
 	buffer << file.rdbuf();
 	return (buffer.str());
 }
-
-#include <iostream>
 
 bool Response::isDirectory(std::string const & path) {
 	struct stat	pathStat;
