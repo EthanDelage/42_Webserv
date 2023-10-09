@@ -28,9 +28,8 @@ private:
 	pollfd*							_socketArray;
 	std::vector<socketAddress_t>	_addressArray;
 	size_t							_nbSocket;
-	Config							_config;
 
-	void		getAddressArray(std::vector<VirtualServerConfig*> serverConfig);
+	void		addAddressArray(std::vector<VirtualServerConfig*> serverConfig);
 	static int	initSocket(socketAddress_t const & socketAddress);
 	static int	acceptClient(int socketFd);
 
@@ -39,7 +38,7 @@ public:
 	~Server();
 
 	void	init(Config const & config);
-	void	listener();
+	void	listener(Config const & config);
 
 };
 

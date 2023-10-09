@@ -37,8 +37,7 @@ Server::~Server() {
 }
 
 void Server::init(Config const & config) {
-	getAddressArray(config.getServerConfig());
-	_config = config;
+	addAddressArray(config.getServerConfig());
 	_nbSocket = _addressArray.size();
 	_socketArray = new pollfd[_nbSocket];
 	for (size_t i = 0; i < _nbSocket; ++i) {
@@ -56,7 +55,7 @@ void Server::init(Config const & config) {
 	}
 }
 
-void Server::listener() {
+void Server::listener(Config const & config) {
 	int					clientSocketFd;
 	VirtualServerConfig	*virtualServerConfig;
 	Request*			request;
@@ -73,13 +72,13 @@ void Server::listener() {
 			if (_socketArray[i].revents != POLL_DEFAULT) {
 				clientSocketFd = acceptClient(_socketArray[i].fd);
 				try {
-					request = new Request(clientSocketFd, _config.getDefaultServer());
+					request = new Request(clientSocketFd, config.getDefaultServer());
 					request->print();
 					try {
-						virtualServerConfig = _config.findServerConfig(_addressArray[i], request->getHeader().getHeaderByKey("Host"));
+						virtualServerConfig = config.findServerConfig(_addressArray[i], request->getHeader().getHeaderByKey("Host"));
 					}
 					catch (headerException const & e) {
-						throw (clientException(&_config));
+						throw (clientException(&config));
 					}
 					response = new Response(*request, *virtualServerConfig);
 					delete request;
@@ -100,7 +99,7 @@ void Server::listener() {
 	}
 }
 
-void	Server::getAddressArray(std::vector<VirtualServerConfig*> serverConfig) {
+void	Server::addAddressArray(std::vector<VirtualServerConfig*> serverConfig) {
 	socketAddress_t										socketAddress;
 	std::vector<VirtualServerConfig*>::const_iterator 	it;
 

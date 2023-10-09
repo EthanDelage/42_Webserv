@@ -25,12 +25,10 @@ int	main(int argc, char** argv) {
 	try {
 		config->parse(argv[1]);
 		server.init(*config);
-		server.listener();
+		server.listener(*config);
 	} catch (std::exception const & e) {
 		delete config;
 		std::cerr << "Error: " << e.what() << std::endl;
 		return (1);
 	}
-	delete config;
-	return (0);
 }
