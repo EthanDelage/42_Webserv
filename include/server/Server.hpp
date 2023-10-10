@@ -14,6 +14,7 @@
 
 # include "config/Config.hpp"
 # include "config/VirtualServerConfig.hpp"
+# include "message/Request.hpp"
 
 # include <poll.h>
 
@@ -23,13 +24,19 @@
 # define POLL_DEFAULT	0
 
 class Server {
+	typedef std::vector<pollfd>::iterator socketIterator_t;
 
 private:
-	pollfd*							_socketArray;
+	std::vector<pollfd>				_socketArray;
 	std::vector<socketAddress_t>	_addressArray;
-	size_t							_nbSocket;
+	size_t							_nbServerSocket;
+	std::vector<Request*>			_requestArray;
 
 	void		addAddressArray(std::vector<VirtualServerConfig*> serverConfig);
+	void		connectionHandler(socketIterator_t& it, Config const & config);
+	void 		clientHandler(socketIterator_t& it);
+	void 		requestHandler(size_t requestIndex, socketIterator_t& it);
+	void 		requestReset(size_t requestIndex);
 	static int	initSocket(socketAddress_t const & socketAddress);
 	static int	acceptClient(int socketFd);
 

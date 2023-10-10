@@ -4,6 +4,7 @@ project(Webserv)
 set(CMAKE_CXX_STANDARD 14)
 
 add_definitions(-DUNIT_TESTING)
+add_compile_options(-Wall -Wextra -Werror)
 
 include_directories(include)
 include_directories(lib/googletest/googlemock/include)

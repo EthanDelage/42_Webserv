@@ -50,7 +50,7 @@ private:
 	bool				isFile(std::string const & path);
 
 public:
-	Response(Request& request, VirtualServerConfig& virtualServerConfig);
+	Response(Request& request);
 	~Response();
 
 	void send();

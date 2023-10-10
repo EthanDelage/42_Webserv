@@ -63,4 +63,6 @@ public:
 	std::string	getErrorPage() const;
 };
 
+class clientDisconnected : public std::exception {};
+
 #endif

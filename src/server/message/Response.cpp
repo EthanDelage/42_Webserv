@@ -19,8 +19,8 @@
 #include "message/Response.hpp"
 #include <sys/stat.h>
 
-Response::Response(Request& request, VirtualServerConfig& virtualServerConfig) : Message(request.getClientSocket()), _request(request) {
-	_locationConfig = getResponseLocation(virtualServerConfig);
+Response::Response(Request& request) : Message(request.getClientSocket()), _request(request) {
+	_locationConfig = getResponseLocation(*request.getServerConfig());
 	router();
 }
 
