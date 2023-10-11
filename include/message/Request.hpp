@@ -25,7 +25,13 @@
 
 # define HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED	1
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
-# define BUFFER_SIZE							2048
+
+typedef enum requestStatus_e {
+	REQUEST_LINE,
+	HEADER,
+	BODY,
+	END
+} requestStatus_t;
 
 class Request : public Message {
 
@@ -37,28 +43,37 @@ public:
 # endif
 
 private:
+	requestStatus_t			_status;
 	uint8_t					_method;
 	std::string				_requestURI;
+	std::string				_currentLine;
+	VirtualServerConfig*	_serverConfig;
 	VirtualServerConfig*	_defaultServerConfig;
 
-	void	parseRequest();
+	void 	router();
 	void	parseRequestLine();
 	void	parseRequestHeader();
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
+	bool 	requestContainBody() const;
 
 	uint8_t					getMethodByName(std::string const & method) const;
 	std::vector<std::string> split(std::string const & str) const;
-	std::string				getLine(int fd) const;
 
 public:
-	Request(int clientSocket, VirtualServerConfig* defaultVirtualServer);
+	Request(int clientSocket, VirtualServerConfig* virtualServerConfig);
 	~Request();
 
-	uint8_t			getMethod() const;
-	std::string 	getRequestUri() const;
+	uint8_t					getMethod() const;
+	std::string 			getRequestUri() const;
+	requestStatus_t 		getStatus() const;
+	VirtualServerConfig*	getServerConfig() const;
+	VirtualServerConfig*	getDefaultServerConfig() const;
 
-	void print() const;
+	void		parseLine();
+	void		updateServerConfig(Config const & config);
+	std::string	getLine() const;
+	void 		print() const;
 
 };
 

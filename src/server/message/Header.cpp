@@ -17,8 +17,8 @@
 
 Header::Header() : _header() {}
 
-std::string Header::getHeaderByKey(std::string const & key) {
-	std::map<std::string, std::string>::iterator	value;
+std::string Header::getHeaderByKey(std::string const & key) const {
+	std::map<std::string, std::string>::const_iterator	value;
 
 	value = _header.find(key);
 	if (value == _header.end())
@@ -40,6 +40,8 @@ void Header::parseHeader(std::string const & line) {
 	}
 	value = line.substr(separatorIndex + 1, line.size() - (separatorIndex + 2));
 	value = trim(value);
+	if (key == "Host" && value.empty())
+		throw (headerException());
 	addHeader(key, value);
 }
 

@@ -17,86 +17,168 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <algorithm>
+#include <iterator>
 #include "message/Request.hpp"
 #include "message/Response.hpp"
 #include "error/Error.hpp"
 
 Server::Server() {
-	_socketArray = NULL;
-	_nbSocket = 0;
+	_nbServerSocket = 0;
 }
 
 Server::~Server() {
-	if (_socketArray != NULL) {
-		for (size_t i = 0; i < _nbSocket; ++i) {
-			if (_socketArray[i].fd == -1)
-				close(_socketArray[i].fd);
-		}
-		delete[] _socketArray;
+	for (std::vector<pollfd>::iterator it = _socketArray.begin(); it != _socketArray.end(); ++it) {
+		if (it->fd == -1)
+			close(it->fd);
 	}
 }
 
 void Server::init(Config const & config) {
+	pollfd	currentServerSocket;
+
 	addAddressArray(config.getServerConfig());
-	_nbSocket = _addressArray.size();
-	_socketArray = new pollfd[_nbSocket];
-	for (size_t i = 0; i < _nbSocket; ++i) {
-		_socketArray[i].fd = -1;
-	}
-	for (size_t i = 0; i < _nbSocket; ++i) {
-		try {
-			_socketArray[i].fd = initSocket(_addressArray[i]);
-			_socketArray[i].events = POLLIN;
-			_socketArray[i].revents = POLL_DEFAULT;
-		} catch (std::runtime_error const & e) {
-			_socketArray[i].fd = -1;
-			throw (std::runtime_error(std::string("initSocket() failed: ") + e.what()));
-		}
+	_nbServerSocket = _addressArray.size();
+	for (size_t i = 0; i < _nbServerSocket; ++i) {
+		currentServerSocket.fd = initSocket(_addressArray[i]);
+		currentServerSocket.events = POLLIN;
+		currentServerSocket.revents = POLL_DEFAULT;
+		_socketArray.push_back(currentServerSocket);
 	}
 }
 
 void Server::listener(Config const & config) {
-	int					clientSocketFd;
-	VirtualServerConfig	*virtualServerConfig;
-	Request*			request;
-	Response*			response;
+	socketIterator_t	it;
 
-	for (size_t i = 0; i < _nbSocket; ++i) {
+	for (size_t i = 0; i < _nbServerSocket; ++i) {
 		if (listen(_socketArray[i].fd, QUEUE_LENGTH) == -1)
 			throw(std::runtime_error("listen() failed"));
 	}
 	while (true) {
-		if (poll(_socketArray, _nbSocket, POLL_TIMEOUT) == -1)
+		if (poll(_socketArray.data(), _socketArray.size(), POLL_TIMEOUT) == -1)
 			throw (std::runtime_error("poll() failed"));
-		for (size_t i = 0; i < _nbSocket; ++i) {
-			if (_socketArray[i].revents != POLL_DEFAULT) {
-				clientSocketFd = acceptClient(_socketArray[i].fd);
-				try {
-					request = new Request(clientSocketFd, config.getDefaultServer());
-					request->print();
-					try {
-						virtualServerConfig = config.findServerConfig(_addressArray[i], request->getHeader().getHeaderByKey("Host"));
-					}
-					catch (headerException const & e) {
-						throw (clientException(&config));
-					}
-					response = new Response(*request, *virtualServerConfig);
-					delete request;
-					response->print();
-					response->setDate();
-					response->send();
-					delete response;
-				}
-				catch (clientException const & e) {
-					Response::sendClientError(CLIENT_ERROR_STATUS_CODE, clientSocketFd, e);
-				}
-				catch (serverException const & e) {
-					Response::sendServerError(SERVER_ERROR_STATUS_CODE, clientSocketFd, e.getErrorPage());
-				}
-				close(clientSocketFd);
-			}
+		it = _socketArray.begin();
+		connectionHandler(it, config);
+		it = _socketArray.begin() + _nbServerSocket;
+		clientHandler(it);
+		it = _socketArray.begin() + _nbServerSocket;
+		responseHandler(it, config);
+	}
+}
+
+void Server::connectionHandler(socketIterator_t& it, Config const & config) {
+	pollfd					newClientSocket;
+	Request*				newRequest;
+	VirtualServerConfig*	virtualServerConfig;
+
+	for (; std::distance(_socketArray.begin(), it) != static_cast<long>(_nbServerSocket); ++it) {
+		if (it->revents == POLLIN) {
+			newClientSocket.fd = acceptClient(it->fd);
+			newClientSocket.events = POLLIN;
+			newClientSocket.revents = POLL_DEFAULT;
+			virtualServerConfig = config.getDefaultServer(_addressArray[std::distance(_socketArray.begin(), it)]);
+			newRequest = new Request(newClientSocket.fd, virtualServerConfig);
+			_socketArray.push_back(newClientSocket);
+			_requestArray.push_back(newRequest);
+			return;
+		} else if (it->revents != POLL_DEFAULT) {
+			throw (std::runtime_error("poll error occured"));
 		}
 	}
+}
+
+void Server::clientHandler(socketIterator_t& it) {
+	std::string	line;
+	size_t		requestIndex;
+
+	requestIndex = 0;
+	for (; it != _socketArray.end(); ++it) {
+		if (it->revents == POLLIN)
+			requestHandler(requestIndex, it);
+		++requestIndex;
+	}
+}
+
+void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
+	Request*			currentRequest;
+
+	currentRequest = _requestArray[requestIndex];
+	try {
+		currentRequest->parseLine();
+	} catch (clientException const & e) {
+		Response::sendClientError(
+			CLIENT_ERROR_STATUS_CODE,
+			currentRequest->getClientSocket(),
+			e
+		);
+		requestReset(requestIndex);
+	} catch (clientDisconnected const & e) {
+		close(currentRequest->getClientSocket());
+		delete currentRequest;
+		(void) _requestArray.erase(_requestArray.begin() + requestIndex);
+		it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
+		if (it != _socketArray.begin())
+			--it;
+	}
+}
+
+void Server::responseHandler(socketIterator_t& it, Config const & config) {
+	size_t requestIndex;
+
+	requestIndex = 0;
+	for (; it != _socketArray.end(); ++it) {
+		if (_requestArray[requestIndex]->getStatus() == END) {
+			try {
+				sendResponse(requestIndex, config);
+			} catch (clientDisconnected const& e) {
+				close(_requestArray[requestIndex]->getClientSocket());
+				delete _requestArray[requestIndex];
+				(void) _requestArray.erase(_requestArray.begin() + requestIndex);
+				it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
+				if (it != _socketArray.begin())
+					--it;
+			}
+		}
+		++requestIndex;
+	}
+}
+
+void Server::sendResponse(size_t requestIndex, Config const & config) {
+	Request*			currentRequest;
+
+	currentRequest = _requestArray[requestIndex];
+	try {
+		currentRequest->updateServerConfig(config);
+		Response response(*currentRequest);
+
+		response.print();
+		response.setDate();
+		response.send();
+		requestReset(requestIndex);
+	} catch (clientException const& e) {
+		Response::sendClientError(
+			CLIENT_ERROR_STATUS_CODE,
+			currentRequest->getClientSocket(),
+			e
+		);
+		requestReset(requestIndex);
+	} catch (serverException const& e) {
+		Response::sendServerError(
+			SERVER_ERROR_STATUS_CODE,
+			currentRequest->getClientSocket(),
+			e.getErrorPage()
+		);
+		requestReset(requestIndex);
+	}
+}
+
+void Server::requestReset(size_t requestIndex) {
+	Request*	oldRequest;
+	Request*	newRequest;
+
+	oldRequest = _requestArray[requestIndex];
+	newRequest = new Request(oldRequest->getClientSocket(), oldRequest->getDefaultServerConfig());
+	_requestArray[requestIndex] = newRequest;
+	delete oldRequest;
 }
 
 void	Server::addAddressArray(std::vector<VirtualServerConfig*> serverConfig) {
