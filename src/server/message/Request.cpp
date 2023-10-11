@@ -117,6 +117,17 @@ void Request::parseHttpVersion(const std::string& arg) {
 		throw (serverException(_serverConfig));
 }
 
+void Request::updateServerConfig(Config const & config) {
+	std::string	host;
+
+	try {
+		host = _header.getHeaderByKey("Host");
+		_serverConfig = config.findServerConfig(_defaultServerConfig->getSocketAddress(), host);
+	} catch (headerException const & e) {
+		throw (clientException(_serverConfig));
+	}
+}
+
 bool Request::requestContainBody() const {
 	if (_method != POST_METHOD_MASK)
 		return (false);
