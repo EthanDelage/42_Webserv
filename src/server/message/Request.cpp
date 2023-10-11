@@ -42,11 +42,7 @@ void Request::router() {
 	if (_status == REQUEST_LINE) {
 		parseRequestLine();
 	} else if (_status == HEADER) {
-		try {
-			parseRequestHeader();
-		} catch (std::runtime_error const & e) {
-			throw (clientException(_serverConfig));
-		}
+		parseRequestHeader();
 	} else if (_status == BODY) {
 		//TODO
 	}
@@ -78,7 +74,11 @@ void Request::parseRequestHeader() {
 			_status = END;
 		return;
 	}
-	_header.parseHeader(_currentLine);
+	try {
+		_header.parseHeader(_currentLine);
+	} catch (headerException const & e) {
+		throw (clientException(_serverConfig));
+	}
 }
 
 void Request::parseMethod(std::string const & arg) {
