@@ -61,7 +61,15 @@ std::map<uint16_t, std::string> Config::getErrorPage() const {return (_errorPage
 
 size_t Config::getMaxBodySize() const {return (_maxBodySize);}
 
-VirtualServerConfig* Config::getDefaultServer() const {return (_serverConfig[0]);}
+VirtualServerConfig* Config::getDefaultServer(socketAddress_t const & socketAddress) const {
+	std::vector<VirtualServerConfig*>::const_iterator	it;
+
+	for (it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
+		if ((*it)->getSocketAddress() == socketAddress)
+			return (*it);
+	}
+	return (_serverConfig[0]);
+}
 
 void Config::parse(char* configFilename) {
 	std::ifstream	configFile(configFilename);
@@ -284,7 +292,7 @@ VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddr
 	if (!serverConfig.empty() || !host.empty())
 		serverConfig = findServerConfigByHost(serverConfig, toLower(host));
 	if (serverConfig.empty())
-		return (_serverConfig[0]);
+		return (getDefaultServer(socketAddress));
 	bestScore = 0;
 	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
 		currentScore = serverConfigGetScore(*it, host);
