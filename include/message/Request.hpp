@@ -71,8 +71,9 @@ public:
 	VirtualServerConfig*	getDefaultServerConfig() const;
 
 	void		parseLine();
-	void 		print() const;
+	void		updateServerConfig(Config const & config);
 	std::string	getLine() const;
+	void 		print() const;
 
 };
 

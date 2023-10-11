@@ -60,6 +60,8 @@ void Server::listener(Config const & config) {
 		connectionHandler(it, config);
 		it = _socketArray.begin() + _nbServerSocket;
 		clientHandler(it);
+		it = _socketArray.begin() + _nbServerSocket;
+		responseHandler(it, config);
 	}
 }
 
@@ -102,26 +104,11 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 	currentRequest = _requestArray[requestIndex];
 	try {
 		currentRequest->parseLine();
-		if (currentRequest->getStatus() == END) {
-			Response	response(*currentRequest);
-
-			response.print();
-			response.setDate();
-			response.send();
-			requestReset(requestIndex);
-		}
 	} catch (clientException const & e) {
 		Response::sendClientError(
 			CLIENT_ERROR_STATUS_CODE,
 			currentRequest->getClientSocket(),
 			e
-		);
-		requestReset(requestIndex);
-	} catch (serverException const & e) {
-		Response::sendServerError(
-			SERVER_ERROR_STATUS_CODE,
-			currentRequest->getClientSocket(),
-			e.getErrorPage()
 		);
 		requestReset(requestIndex);
 	} catch (clientDisconnected const & e) {
@@ -131,6 +118,56 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 		it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
 		if (it != _socketArray.begin())
 			--it;
+	}
+}
+
+void Server::responseHandler(socketIterator_t& it, Config const & config) {
+	size_t requestIndex;
+
+	requestIndex = 0;
+	for (; it != _socketArray.end(); ++it) {
+		if (_requestArray[requestIndex]->getStatus() == END) {
+			try {
+				sendResponse(requestIndex, config);
+			} catch (clientDisconnected const& e) {
+				close(_requestArray[requestIndex]->getClientSocket());
+				delete _requestArray[requestIndex];
+				(void) _requestArray.erase(_requestArray.begin() + requestIndex);
+				it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
+				if (it != _socketArray.begin())
+					--it;
+			}
+		}
+		++requestIndex;
+	}
+}
+
+void Server::sendResponse(size_t requestIndex, Config const & config) {
+	Request*			currentRequest;
+
+	currentRequest = _requestArray[requestIndex];
+	try {
+		currentRequest->updateServerConfig(config);
+		Response response(*currentRequest);
+
+		response.print();
+		response.setDate();
+		response.send();
+		requestReset(requestIndex);
+	} catch (clientException const& e) {
+		Response::sendClientError(
+			CLIENT_ERROR_STATUS_CODE,
+			currentRequest->getClientSocket(),
+			e
+		);
+		requestReset(requestIndex);
+	} catch (serverException const& e) {
+		Response::sendServerError(
+			SERVER_ERROR_STATUS_CODE,
+			currentRequest->getClientSocket(),
+			e.getErrorPage()
+		);
+		requestReset(requestIndex);
 	}
 }
 
