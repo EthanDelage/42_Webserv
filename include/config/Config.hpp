@@ -102,7 +102,7 @@ public:
 	std::map<std::string, std::string>	getTypes() const;
 	bool								getAutoindex() const;
 	size_t								getMaxBodySize() const;
-	VirtualServerConfig*				getDefaultServer() const;
+	VirtualServerConfig*				getDefaultServer(socketAddress_t const & socketAddress) const;
 
 	void			parse(char* configFilename);
 	virtual void	print();

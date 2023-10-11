@@ -75,7 +75,7 @@ void Server::connectionHandler(socketIterator_t& it, Config const & config) {
 			newClientSocket.fd = acceptClient(it->fd);
 			newClientSocket.events = POLLIN;
 			newClientSocket.revents = POLL_DEFAULT;
-			virtualServerConfig = config.findServerConfig(_addressArray[std::distance(_socketArray.begin(), it)], "");
+			virtualServerConfig = config.getDefaultServer(_addressArray[std::distance(_socketArray.begin(), it)]);
 			newRequest = new Request(newClientSocket.fd, virtualServerConfig);
 			_socketArray.push_back(newClientSocket);
 			_requestArray.push_back(newRequest);
