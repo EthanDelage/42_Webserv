@@ -39,7 +39,7 @@ class Request : public Message {
 	friend class RequestTest;
 
 public:
-	Request() : Message(STDOUT_FILENO) {};
+	Request() : Message(1) {};
 # endif
 
 private:
