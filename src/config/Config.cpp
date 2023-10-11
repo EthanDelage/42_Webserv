@@ -289,9 +289,9 @@ VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddr
 	if (isValidIP(host))
 		host.erase();
 	serverConfig = findServerConfigBySocketAddress(socketAddress);
-	if (!serverConfig.empty() || !host.empty())
+	if (!serverConfig.empty())
 		serverConfig = findServerConfigByHost(serverConfig, toLower(host));
-	if (serverConfig.empty())
+	else
 		return (getDefaultServer(socketAddress));
 	bestScore = 0;
 	for (std::vector<VirtualServerConfig*>::const_iterator it = serverConfig.begin(); it != serverConfig.end(); ++it) {
