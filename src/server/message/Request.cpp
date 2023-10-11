@@ -74,7 +74,11 @@ void Request::parseRequestHeader() {
 			_status = END;
 		return;
 	}
-	_header.parseHeader(_currentLine);
+	try {
+		_header.parseHeader(_currentLine);
+	} catch (headerException const & e) {
+		throw (clientException(_serverConfig));
+	}
 }
 
 void Request::parseMethod(std::string const & arg) {
