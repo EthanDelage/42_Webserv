@@ -42,7 +42,11 @@ void Request::router() {
 	if (_status == REQUEST_LINE) {
 		parseRequestLine();
 	} else if (_status == HEADER) {
-		parseRequestHeader();
+		try {
+			parseRequestHeader();
+		} catch (std::runtime_error const & e) {
+			throw (clientException(_serverConfig));
+		}
 	} else if (_status == BODY) {
 		//TODO
 	}
