@@ -262,14 +262,14 @@ bool Config::isValidContentType(const std::string& contentType) {
 }
 
 bool Config::isValidCgiFilename(std::string& filename) {
-	char 		separator;
+	size_t 		indexExtension;
 	std::string	extension;
 
-	separator = filename.find('.');
-	if (separator == std::string::npos)
+	indexExtension = filename.rfind('.');
+	if (indexExtension == std::string::npos || indexExtension == 0)
 		return (false);
-	extension = filename.substr(separator);
-	if (extension != "py" || extension != "php")
+	extension = filename.substr(indexExtension);
+	if (extension != ".py" && extension != ".php")
 		return (false);
 	return (true);
 }
