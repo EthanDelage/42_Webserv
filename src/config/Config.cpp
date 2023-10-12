@@ -126,7 +126,8 @@ void Config::router(std::string& directive, std::string& value) {
 		"error_page",
 		"index",
 		"root",
-		"type"
+		"type",
+		"cgi"
 	};
     parseFunctionType	parseFunction[] = {
 		&Config::parseAutoindex,
@@ -134,7 +135,8 @@ void Config::router(std::string& directive, std::string& value) {
 		&Config::parseErrorPage,
 		&Config::parseIndex,
 		&Config::parseRoot,
-		&Config::parseType
+		&Config::parseType,
+		&Config::parseCgi
 	};
 
 	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {
@@ -232,6 +234,18 @@ void Config::parseType(std::string& value) {
 	}
 }
 
+void Config::parseCgi(std::string& value) {
+	std::vector<std::string>			args;
+	std::vector<std::string>::iterator 	it;
+
+	args = split(value, SYNTAX_CGI);
+	for (it = args.begin(); it != args.end(); ++it) {
+		if (!isValidCgiFilename(*it))
+			throw (std::runtime_error(SYNTAX_CGI));
+		_cgi.push_back(*it);
+	}
+}
+
 bool Config::isValidContentType(const std::string& contentType) {
 	std::string type;
 	std::string subtype;
@@ -243,6 +257,19 @@ bool Config::isValidContentType(const std::string& contentType) {
 	type = contentType.substr(0, indexSeparator);
 	subtype = contentType.substr(indexSeparator + 1);
 	if (!isValidToken(type) || !isValidToken(subtype))
+		return (false);
+	return (true);
+}
+
+bool Config::isValidCgiFilename(std::string& filename) {
+	char 		separator;
+	std::string	extension;
+
+	separator = filename.find('.');
+	if (separator == std::string::npos)
+		return (false);
+	extension = filename.substr(separator);
+	if (extension != "py" || extension != "php")
 		return (false);
 	return (true);
 }

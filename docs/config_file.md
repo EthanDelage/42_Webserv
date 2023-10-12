@@ -115,7 +115,7 @@ Context: main, server, location
 ### Index
 ```
 address         = 1*3DIGIT 3 ( "." 1*3DIGIT ) ;each fragment must be between 0 and 255
-cgi-filename    = TEXT "." ( "py" | "php" )
+cgi-filename    = 1*TEXT "." ( "py" | "php" )
 code            = 3DIGIT ;must be between 300 and 599
 extension       = 1*TEXT
 file            = 1*TEXT
