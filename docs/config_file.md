@@ -11,6 +11,14 @@ Default: autoindex off;
 Context: main, server, location
 ```
 
+### cgi
+Set the CGI script to be executed.
+```
+cgi = "cgi" 1*( SP cgi-filename ) ";"
+Default: ——
+Context: main, server, location
+```
+
 ### client_max_body_size:
 Set the maximum allowed size of the client request body.
 If the size of a request exceed the maximum size, the server will respond with a 413 status code (Request Entity Too Large).
@@ -31,8 +39,9 @@ Context: location
 
 ### error_page:
 Define error pages to be sent in response when a client request result in an error.
+Handled code: 300, 400 and 500
 ```
-error_page = "error_page" 1*( SP code ) SP uri ";" ; handled code: 300, 400 and 500
+error_page = "error_page" 1*( SP code ) SP uri ";"
 Default: ——
 Context: main, server, location
 ```
