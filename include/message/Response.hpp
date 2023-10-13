@@ -17,6 +17,9 @@
 # include "config/LocationConfig.hpp"
 # include "error/Error.hpp"
 
+# define READ 0
+# define WRITE 1
+
 class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
 
@@ -24,11 +27,13 @@ private:
 	std::string			_statusLine;
 	Request				_request;
 	LocationConfig*		_locationConfig;
+	char**				_envp;
 
 	void router();
 	void responseGet();
 	void responsePost();
 	void responseDelete();
+	void cgiResponseGet(std::string& path);
 
 	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
@@ -50,7 +55,7 @@ private:
 	bool				isFile(std::string const & path);
 
 public:
-	Response(Request& request);
+	Response(Request& request, char** envp);
 	~Response();
 
 	void send();

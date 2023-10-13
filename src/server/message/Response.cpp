@@ -16,10 +16,12 @@
 #include <sys/types.h>
 #include <fcntl.h>
 #include "utils.hpp"
-#include "message/Response.hpp"
 #include <sys/stat.h>
+#include <sys/wait.h>
+#include "message/Response.hpp"
 
-Response::Response(Request& request) : Message(request.getClientSocket()), _request(request) {
+Response::Response(Request& request, char** envp) : Message(request.getClientSocket()), _request(request) {
+	_envp = envp;
 	_locationConfig = getResponseLocation(*request.getServerConfig());
 	router();
 }
@@ -73,6 +75,7 @@ void Response::router() {
 	throw (clientException(_locationConfig));
 }
 
+#include <iostream>
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
@@ -92,6 +95,8 @@ void Response::responseGet() {
 		responseRedirectionError(_locationConfig->getErrorPage()[300]);
 		return;
 	}
+	if (path.substr(0, path.rfind('/') + 1) == "./resources/www/cgi-bin/")
+		cgiResponseGet(path);
 	resource.open(path.c_str());
 	if (!resource.is_open())
 		throw (clientException(_locationConfig));
@@ -138,6 +143,23 @@ void Response::responseDelete() {
 		throw (serverException(_locationConfig));
 	}
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+}
+
+void Response::cgiResponseGet(std::string& path) {
+	int		fd[2];
+	char*	argv[] = {(char*)"python3", (char*)path.c_str(), NULL};
+
+	pipe(fd);
+	if (fork() == 0) {
+		close (fd[READ]);
+		dup2(fd[WRITE], STDOUT_FILENO);
+		close (fd[WRITE]);
+		if (path.substr(path.rfind('.')) == ".py") {
+			if (execve("/usr/bin/python3", argv, _envp) == -1)
+				throw (std::runtime_error("execve()"));
+		}
+	}
+	waitpid(0, NULL, WUNTRACED);
 }
 
 void Response::sendContinue(int clientSocket) {

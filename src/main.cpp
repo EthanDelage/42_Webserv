@@ -13,7 +13,7 @@
 #include "server/Server.hpp"
 #include <iostream>
 
-int	main(int argc, char** argv) {
+int	main(int argc, char** argv, char **envp) {
 	Config	*config;
 	Server	server;
 
@@ -24,7 +24,7 @@ int	main(int argc, char** argv) {
 	config = new Config;
 	try {
 		config->parse(argv[1]);
-		server.init(*config);
+		server.init(*config, envp);
 		server.listener(*config);
 	} catch (std::exception const & e) {
 		delete config;

@@ -33,9 +33,10 @@ Server::~Server() {
 	}
 }
 
-void Server::init(Config const & config) {
+void Server::init(Config const & config, char** envp) {
 	pollfd	currentServerSocket;
 
+	_envp = envp;
 	addAddressArray(config.getServerConfig());
 	_nbServerSocket = _addressArray.size();
 	for (size_t i = 0; i < _nbServerSocket; ++i) {
@@ -148,7 +149,7 @@ void Server::sendResponse(size_t requestIndex, Config const & config) {
 	currentRequest = _requestArray[requestIndex];
 	try {
 		currentRequest->updateServerConfig(config);
-		Response response(*currentRequest);
+		Response response(*currentRequest, _envp);
 
 		response.print();
 		response.setDate();
