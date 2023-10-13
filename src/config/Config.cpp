@@ -328,6 +328,8 @@ VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddr
 			result = *it;
 		}
 	}
+	if (bestScore == 0)
+		return (getDefaultServer(socketAddress));
 	return (result);
 }
 
