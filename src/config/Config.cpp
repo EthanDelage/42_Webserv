@@ -282,7 +282,7 @@ bool Config::isValidToken(std::string const & token) {
 	return (true);
 }
 
-/*(args[i])*
+/**
  * @brief converts a 'size' formatted string to size_t
  * @return the converted value
  */
