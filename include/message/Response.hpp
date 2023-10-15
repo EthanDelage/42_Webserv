@@ -19,6 +19,7 @@
 
 # define READ 0
 # define WRITE 1
+# define BUFFER_SIZE 2048
 
 class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
@@ -35,6 +36,7 @@ private:
 	void responseDelete();
 	void cgiResponseGet(std::string& path);
 
+	void				cgiProcessOutput(int fd);
 	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	std::string			getContentType(std::string const & path) const;

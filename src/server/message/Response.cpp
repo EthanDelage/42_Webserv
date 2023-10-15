@@ -75,7 +75,6 @@ void Response::router() {
 	throw (clientException(_locationConfig));
 }
 
-#include <iostream>
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
@@ -95,8 +94,10 @@ void Response::responseGet() {
 		responseRedirectionError(_locationConfig->getErrorPage()[300]);
 		return;
 	}
-	if (path.substr(0, path.rfind('/') + 1) == "./resources/www/cgi-bin/")
+	if (path.substr(0, path.rfind('/') + 1) == "./resources/www/cgi-bin/") {
 		cgiResponseGet(path);
+		return;
+	}
 	resource.open(path.c_str());
 	if (!resource.is_open())
 		throw (clientException(_locationConfig));
@@ -159,7 +160,36 @@ void Response::cgiResponseGet(std::string& path) {
 				throw (std::runtime_error("execve()"));
 		}
 	}
+	close(fd[WRITE]);
 	waitpid(0, NULL, WUNTRACED);
+	cgiProcessOutput(fd[READ]);
+}
+
+void Response::cgiProcessOutput(int fd) {
+	ssize_t		ret;
+	char 		buf[BUFFER_SIZE];
+	std::string	cgiOutput;
+	std::string	currentHeader;
+
+	do {
+		ret = read(fd, buf, BUFFER_SIZE - 1);
+		if (ret == -1)
+			throw (serverException(_locationConfig));
+		buf[ret] = '\0';
+		cgiOutput += buf;
+	} while (ret != 0);
+	do {
+		if (cgiOutput.find(CRLF) == std::string::npos) {
+			throw (serverException(_locationConfig));
+		}
+		currentHeader = cgiOutput.substr(0, cgiOutput.find(CRLF) + 2);
+		if (currentHeader != CRLF)
+			_header.parseHeader(currentHeader);
+		cgiOutput.erase(0, cgiOutput.find(CRLF) + 2);
+	} while (currentHeader != CRLF);
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	_body = cgiOutput;
+	_header.addContentLength(_body.size());
 }
 
 void Response::sendContinue(int clientSocket) {
