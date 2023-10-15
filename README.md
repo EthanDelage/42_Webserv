@@ -23,6 +23,6 @@ Run the following command:
 ```
 
 ## Contributors
-* [Hugo Ferraud](https://github.com/Mururoahh)
+* [Hugo Ferraud](https://github.com/hferraud)
 
 * [Ethan Delage](https://github.com/EthanDelage)
