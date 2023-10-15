@@ -199,7 +199,12 @@ void Config::parseIndex(std::string &value) {
 }
 
 void Config::parseRoot(std::string &value) {
-	_root = removeQuote(value);
+	std::vector<std::string>	args;
+
+	args = split(value, SYNTAX_ROOT);
+	if (args.size() != 1)
+		throw (std::runtime_error(SYNTAX_ROOT));
+	_root = removeQuote(args[0]);
 	if (_root[0] != '/')
 		_root = PREFIX + _root;
 }
