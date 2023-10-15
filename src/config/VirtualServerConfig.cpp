@@ -14,6 +14,7 @@
 #include <cstdlib>
 #include <limits>
 #include <cmath>
+#include <iostream>
 #include "utils.hpp"
 
 #ifdef UNIT_TESTING
@@ -168,6 +169,11 @@ void VirtualServerConfig::parseLocation(std::ifstream& configFile, std::string& 
 	try {
 		locationConfig->parse(configFile);
 		locationConfig->print();
+		if (isDuplicate(locationConfig)) {
+			std::cerr << "Webserv: [warn] location Uri`" << locationConfig->getUri()
+					  << "` duplicated, ignored" << std::endl;
+			throw (std::runtime_error("Location Uri duplicated: "));
+		}
 		_locationConfig.push_back(locationConfig);
 	} catch (std::runtime_error const & e) {
 		delete locationConfig;
@@ -181,6 +187,14 @@ void VirtualServerConfig::addDefaultLocation() {
 	uri = "/";
 	locationConfig = new LocationConfig(*this, uri);
 	_locationConfig.push_back(locationConfig);
+}
+
+bool VirtualServerConfig::isDuplicate(LocationConfig const * locationConfig) {
+	for (std::vector<LocationConfig*>::const_iterator it = _locationConfig.begin(); it != _locationConfig.end(); ++it) {
+		if ((*it)->getUri() == locationConfig->getUri())
+			return (true);
+	}
+	return (false);
 }
 
 uint16_t VirtualServerConfig::getPort(std::string const & str) {

@@ -48,6 +48,7 @@ private:
 	void			router(std::string& directive, std::string& value);
 	void			parseLocation(std::ifstream& configFile, std::string& line);
 	void			addDefaultLocation();
+	bool			isDuplicate(LocationConfig const * locationConfig);
 	static uint16_t	getPort(std::string const & str);
 
 protected:
