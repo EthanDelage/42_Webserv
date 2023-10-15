@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <algorithm>
 #include <iterator>
+#include <iostream>
 #include "message/Request.hpp"
 #include "message/Response.hpp"
 #include "error/Error.hpp"
@@ -39,10 +40,17 @@ void Server::init(Config const & config) {
 	addAddressArray(config.getServerConfig());
 	_nbServerSocket = _addressArray.size();
 	for (size_t i = 0; i < _nbServerSocket; ++i) {
-		currentServerSocket.fd = initSocket(_addressArray[i]);
-		currentServerSocket.events = POLLIN;
-		currentServerSocket.revents = POLL_DEFAULT;
-		_socketArray.push_back(currentServerSocket);
+		try {
+			currentServerSocket.fd = initSocket(_addressArray[i]);
+			currentServerSocket.events = POLLIN;
+			currentServerSocket.revents = POLL_DEFAULT;
+			_socketArray.push_back(currentServerSocket);
+		} catch (std::runtime_error const & e) {
+			std::cerr << e.what() << " for " << _addressArray[i].first
+				<< ':' << _addressArray[i].second << std::endl;
+			_addressArray.erase(_addressArray.begin() + i);
+			--i;
+		}
 	}
 }
 
