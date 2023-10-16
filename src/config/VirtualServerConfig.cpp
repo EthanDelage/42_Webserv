@@ -177,6 +177,7 @@ void VirtualServerConfig::parseLocation(std::ifstream& configFile, std::string& 
 		_locationConfig.push_back(locationConfig);
 	} catch (std::runtime_error const & e) {
 		delete locationConfig;
+		throw (e);
 	}
 }
 
