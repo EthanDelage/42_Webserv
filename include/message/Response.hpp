@@ -35,8 +35,11 @@ private:
 	void responsePost();
 	void responseDelete();
 	void cgiResponseGet();
+	void cgiResponsePost();
 
+	void				cgiExecute();
 	void				cgiProcessOutput(int fd);
+	std::vector<char*>	cgiGetEnv() const;
 	std::string 		getResourcePath();
 	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	std::string			getContentType(std::string const & path) const;
@@ -57,6 +60,7 @@ private:
 	bool				isDirectory(std::string const & path);
 	bool				isFile(std::string const & path);
 	bool				isCgiRequest() const;
+	std::vector<char*>	envToVec() const;
 
 public:
 	Response(Request& request, char** envp);

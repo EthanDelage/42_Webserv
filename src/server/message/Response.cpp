@@ -146,34 +146,53 @@ void Response::responseDelete() {
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 }
 
+#include "iostream"
 void Response::cgiResponseGet() {
-	int					fd[2];
+	int		pipe_out[2];
+	int		pipe_in[2];
+	pid_t	pid;
+
+	pipe(pipe_out);
+	pid = fork();
+	if (pid == -1)
+		throw (serverException(_locationConfig));
+	if (pid == 0) {
+		if (_request.getMethod() == POST_METHOD_MASK) {
+			pipe(pipe_in);
+			dup2(STDIN_FILENO, pipe_in[READ]);
+			close(pipe_in[READ]);
+			write(pipe_in[WRITE], _request.getBody().c_str(), _request.getBody().size());
+			close(pipe_in[WRITE]);
+		}
+		close (pipe_out[READ]);
+		dup2(pipe_out[WRITE], STDOUT_FILENO);
+		close (pipe_out[WRITE]);
+		cgiExecute();
+	}
+	close(pipe_out[WRITE]);
+	waitpid(0, NULL, WUNTRACED);
+	cgiProcessOutput(pipe_out[READ]);
+	close(pipe_out[READ]);
+}
+
+void Response::cgiExecute() {
 	std::string			cgiPath;
 	std::string 		extension;
-	std::vector<char *> args;
+	std::vector<char*>	argv;
+	std::vector<char*>	envp;
 
-	cgiPath = _locationConfig->getRoot() + '/' + _locationConfig->getUri() + getCgiFile();
-	args[1] = (char *)cgiPath.c_str();
-	args[2] = NULL;
-	pipe(fd);
-	if (fork() == 0) {
-		close (fd[READ]);
-		dup2(fd[WRITE], STDOUT_FILENO);
-		close (fd[WRITE]);
-		extension = cgiPath.substr(cgiPath.rfind('.'));
-		if (extension == ".py") {
-			args[0] = (char *)"python3";
-			if (execve("/usr/bin/python3", args.data(), _envp) == -1)
-				throw (serverException(_locationConfig));
-		} else if (extension == ".php") {
-			args[0] = (char *)"php";
-			if (execve("/usr/bin/php", args.data(), _envp) == -1)
-				throw (serverException(_locationConfig));
-		}
-	}
-	close(fd[WRITE]);
-	waitpid(0, NULL, WUNTRACED);
-	cgiProcessOutput(fd[READ]);
+	cgiPath = _locationConfig->getRoot() + '/' + getCgiFile();
+	envp = cgiGetEnv();
+	argv.reserve(3);
+	argv[1] = (char*)cgiPath.c_str();
+	argv[2] = NULL;
+	extension = cgiPath.substr(cgiPath.rfind('.'));
+	if (extension == ".py")
+		argv[0] = (char *)"/usr/bin/python";
+	else if (extension == ".php")
+		argv[0] = (char *)"/usr/bin/php";
+	if (execve(argv[0], argv.data(), envp.data())== -1)
+		throw (serverException(_locationConfig));
 }
 
 void Response::cgiProcessOutput(int fd) {
@@ -201,6 +220,27 @@ void Response::cgiProcessOutput(int fd) {
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 	_body = cgiOutput;
 	_header.addContentLength(_body.size());
+}
+
+std::vector<char*> Response::cgiGetEnv() const {
+	std::vector<char*>	envp;
+	std::string			cgiFile;
+	std::string			requestUri;
+	std::string			pathInfo;
+	std::string			queryString;
+
+	envp = envToVec();
+	cgiFile = getCgiFile();
+	requestUri = _request.getRequestUri();
+	requestUri.erase(0, requestUri.find(cgiFile) + cgiFile.size());
+	pathInfo = requestUri.substr(0, requestUri.find('?'));
+	queryString = requestUri.erase(0, pathInfo.size());
+	pathInfo = "PATH_INFO=" + pathInfo;
+	queryString= "QUERY_STRING=" + queryString;
+	*(envp.end()) = (char*)pathInfo.c_str();
+	envp.push_back((char*)queryString.c_str());
+	envp.push_back(NULL);
+	return (envp);
 }
 
 void Response::sendContinue(int clientSocket) {
@@ -565,12 +605,15 @@ bool Response::isFile(std::string const & path) {
 	return (S_ISREG(pathStat.st_mode));
 }
 
+#include "iostream"
 bool Response::isCgiRequest() const {
 	std::string 				cgiFolder;
 	std::string 				cgiFile;
 	std::vector<std::string>	cgi;
 
 	cgiFolder = _locationConfig->getCgiFolder();
+	std::cout << "cgi folder:" << cgiFolder << std::endl;
+	std::cout << "root: " << _locationConfig->getUri() << std::endl;
 	if (_locationConfig->getUri() != cgiFolder)
 		return (false);
 	cgiFile = getCgiFile();
@@ -579,7 +622,20 @@ bool Response::isCgiRequest() const {
 		if (cgi[i] == cgiFile)
 			return (true);
 	}
-	return (true);
+	return (false);
+}
+
+std::vector<char *> Response::envToVec() const {
+	std::vector<char*>	vector;
+	std::size_t			i;
+
+	i = 0;
+	while (_envp[i]) {
+		vector.push_back(_envp[i]);
+		i++;
+	}
+	vector.push_back(NULL);
+	return (vector);
 }
 
 #include <iostream>
