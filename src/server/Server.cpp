@@ -214,7 +214,7 @@ int Server::initSocket(socketAddress_t const & socketAddress) {
 		throw (std::runtime_error("setsockopt() failed"));
 	}
 	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = inet_addr(socketAddress.first.c_str());
+	address.sin_addr.s_addr = ft_inet_addr(socketAddress.first);
 	address.sin_port = htons(socketAddress.second);
 	if (bind(socketFd, (struct sockaddr*) &address, sizeof(address)) == -1) {
 		close(socketFd);
@@ -233,4 +233,21 @@ int Server::acceptClient(int socketFd) {
 	if (clientSocketFd == -1)
 		throw (std::runtime_error("accept() failed"));
 	return (clientSocketFd);
+}
+
+uint32_t Server::ft_inet_addr(std::string ip) {
+	uint32_t	s_addr;
+	size_t		separatorIndex;
+
+	s_addr = 0;
+	while (!ip.empty()) {
+		s_addr = (s_addr << 8) + atoi(ip.c_str());
+		separatorIndex = ip.find('.');
+		if (separatorIndex != std::string::npos)
+			ip = ip.substr(separatorIndex + 1, ip.size() - (separatorIndex + 1));
+		else
+			ip = "";
+	}
+	s_addr = htonl(s_addr);
+	return (s_addr);
 }
