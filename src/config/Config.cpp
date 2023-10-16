@@ -108,14 +108,16 @@ void Config::lineLexer(std::string& line, std::string& directive, std::string& v
 	size_t		separator;
 
 	separator = line.find(' ');
-	if (separator == std::string::npos)
+	if (separator == std::string::npos) {
+		std::cout << std::endl << line << std::endl;
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
 			+ "Unknown command"));
+	}
 	directive = line.substr(0, separator);
 	value = line.substr(separator + 1, line.size());
 	if (*(value.end() - 1) != ';' || value.size() == 1)
 		throw (std::runtime_error("Invalid format: `" + line + "`\n"
-								  + "Missing `;`"));
+			+ "Missing `;`"));
 	value.erase(value.size() - 1);
 }
 

@@ -32,15 +32,16 @@ private:
 	size_t							_nbServerSocket;
 	std::vector<Request*>			_requestArray;
 
-	void		addAddressArray(std::vector<VirtualServerConfig*> serverConfig);
-	void		connectionHandler(socketIterator_t& it, Config const & config);
-	void 		clientHandler(socketIterator_t& it);
-	void 		requestHandler(size_t requestIndex, socketIterator_t& it);
-	void 		responseHandler(socketIterator_t& it, Config const & config);
-	void 		sendResponse(size_t requestIndex, Config const & config);
-	void 		requestReset(size_t requestIndex);
-	static int	initSocket(socketAddress_t const & socketAddress);
-	static int	acceptClient(int socketFd);
+	void			addAddressArray(std::vector<VirtualServerConfig*> serverConfig);
+	void			connectionHandler(socketIterator_t& it, Config const & config);
+	void 			clientHandler(socketIterator_t& it);
+	void 			requestHandler(size_t requestIndex, socketIterator_t& it);
+	void 			responseHandler(socketIterator_t& it, Config const & config);
+	void 			sendResponse(size_t requestIndex, Config const & config);
+	void 			requestReset(size_t requestIndex);
+	static int		initSocket(socketAddress_t const & socketAddress);
+	static int		acceptClient(int socketFd);
+	static uint32_t	ft_inet_addr(std::string ip);
 
 public:
 	Server();
