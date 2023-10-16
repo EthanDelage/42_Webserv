@@ -79,6 +79,10 @@ void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 
+	if (isCgiRequest()) {
+		cgiResponseGet();
+		return;
+	}
 	path = getResourcePath();
 	if (path[path.size() - 1] == '/') {
 		if (_locationConfig->getAutoindex()) {
@@ -92,10 +96,6 @@ void Response::responseGet() {
 	if (isDirectory(path)) {
 		_header.addHeader("Location", _request.getRequestUri() + '/');
 		responseRedirectionError(_locationConfig->getErrorPage()[300]);
-		return;
-	}
-	if (path.substr(0, path.rfind('/') + 1) == "./resources/www/cgi-bin/") {
-		cgiResponseGet(path);
 		return;
 	}
 	resource.open(path.c_str());
@@ -146,18 +146,29 @@ void Response::responseDelete() {
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 }
 
-void Response::cgiResponseGet(std::string& path) {
-	int		fd[2];
-	char*	argv[] = {(char*)"python3", (char*)path.c_str(), NULL};
+void Response::cgiResponseGet() {
+	int					fd[2];
+	std::string			cgiPath;
+	std::string 		extension;
+	std::vector<char *> args;
 
+	cgiPath = _locationConfig->getRoot() + '/' + _locationConfig->getUri() + getCgiFile();
+	args[1] = (char *)cgiPath.c_str();
+	args[2] = NULL;
 	pipe(fd);
 	if (fork() == 0) {
 		close (fd[READ]);
 		dup2(fd[WRITE], STDOUT_FILENO);
 		close (fd[WRITE]);
-		if (path.substr(path.rfind('.')) == ".py") {
-			if (execve("/usr/bin/python3", argv, _envp) == -1)
-				throw (std::runtime_error("execve()"));
+		extension = cgiPath.substr(cgiPath.rfind('.'));
+		if (extension == ".py") {
+			args[0] = (char *)"python3";
+			if (execve("/usr/bin/python3", args.data(), _envp) == -1)
+				throw (serverException(_locationConfig));
+		} else if (extension == ".php") {
+			args[0] = (char *)"php";
+			if (execve("/usr/bin/php", args.data(), _envp) == -1)
+				throw (serverException(_locationConfig));
 		}
 	}
 	close(fd[WRITE]);
@@ -525,6 +536,19 @@ std::string Response::getFileContent(std::ifstream& file) {
 	return (buffer.str());
 }
 
+std::string Response::getCgiFile() const {
+	std::string	requestUri;
+	std::string cgiFolder;
+	std::string cgiFile;
+
+	requestUri = _request.getRequestUri();
+	cgiFolder = _locationConfig->getCgiFolder();
+	cgiFile = requestUri.erase(0, requestUri.find(cgiFolder) + cgiFolder.size());
+	if (cgiFile.find('/') != std::string::npos)
+		cgiFile.erase(cgiFile.find('/'));
+	return (cgiFile);
+}
+
 bool Response::isDirectory(std::string const & path) {
 	struct stat	pathStat;
 
@@ -539,6 +563,23 @@ bool Response::isFile(std::string const & path) {
 	if (stat(path.c_str(), &pathStat) == -1)
 		throw (clientException(_locationConfig));
 	return (S_ISREG(pathStat.st_mode));
+}
+
+bool Response::isCgiRequest() const {
+	std::string 				cgiFolder;
+	std::string 				cgiFile;
+	std::vector<std::string>	cgi;
+
+	cgiFolder = _locationConfig->getCgiFolder();
+	if (_locationConfig->getUri() != cgiFolder)
+		return (false);
+	cgiFile = getCgiFile();
+	cgi = _locationConfig->getCgi();
+	for (size_t i = 0; i < cgi.size(); i++) {
+		if (cgi[i] == cgiFile)
+			return (true);
+	}
+	return (true);
 }
 
 #include <iostream>

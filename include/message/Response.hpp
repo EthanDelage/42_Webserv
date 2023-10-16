@@ -34,7 +34,7 @@ private:
 	void responseGet();
 	void responsePost();
 	void responseDelete();
-	void cgiResponseGet(std::string& path);
+	void cgiResponseGet();
 
 	void				cgiProcessOutput(int fd);
 	std::string 		getResourcePath();
@@ -52,9 +52,11 @@ private:
 	static std::string	statusCodeToString(unsigned int statusCode);
 	static std::string	uitoa(unsigned int n);
 	static bool			removeDirectory(std::string const & dirName);
+	std::string			getCgiFile() const;
 
 	bool				isDirectory(std::string const & path);
 	bool				isFile(std::string const & path);
+	bool				isCgiRequest() const;
 
 public:
 	Response(Request& request, char** envp);

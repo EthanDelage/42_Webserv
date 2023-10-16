@@ -77,6 +77,7 @@ protected:
 	std::vector<std::string>			_index;
 	bool								_isDefaultIndex;
 	std::string 						_root;
+	std::string 						_cgiFolder;
 	std::map<std::string, std::string>	_types;
 	std::vector<std::string>			_cgi;
 
@@ -106,6 +107,8 @@ public:
 	std::map<std::string, std::string>	getTypes() const;
 	bool								getAutoindex() const;
 	size_t								getMaxBodySize() const;
+	std::string 						getCgiFolder() const;
+	std::vector<std::string>			getCgi() const;
 	VirtualServerConfig*				getDefaultServer(socketAddress_t const & socketAddress) const;
 
 	void			parse(char* configFilename);

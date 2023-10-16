@@ -89,14 +89,16 @@ void LocationConfig::parseLine(std::string& line) {
 void LocationConfig::router(std::string& directive, std::string& value) {
 	std::string	directives[] = {
 			"autoindex",
+			"cgi",
 			"deny",
 			"error_page",
 			"index",
 			"root",
-			"type",
+			"type"
 	};
 	parseFunctionType	parseFunction[] = {
 			&LocationConfig::parseAutoindex,
+			&LocationConfig::parseCgi,
 			&LocationConfig::parseDeny,
 			&LocationConfig::parseErrorPage,
 			&LocationConfig::parseIndex,

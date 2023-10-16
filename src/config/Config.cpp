@@ -39,6 +39,8 @@ Config::Config(Config const & other) {
 	_isDefaultIndex = other._isDefaultIndex;
 	_root = other._root;
 	_types = other._types;
+	_cgi = other._cgi;
+	_cgiFolder = other._cgiFolder;
 }
 
 Config::~Config() {
@@ -60,6 +62,10 @@ bool Config::getAutoindex() const {return (_autoindex);}
 std::map<uint16_t, std::string> Config::getErrorPage() const {return (_errorPage);}
 
 size_t Config::getMaxBodySize() const {return (_maxBodySize);}
+
+std::string Config::getCgiFolder() const {return (_cgiFolder);}
+
+std::vector<std::string> Config::getCgi() const {return (_cgi);}
 
 VirtualServerConfig* Config::getDefaultServer(socketAddress_t const & socketAddress) const {
 	std::vector<VirtualServerConfig*>::const_iterator	it;
@@ -122,21 +128,21 @@ void Config::lineLexer(std::string& line, std::string& directive, std::string& v
 void Config::router(std::string& directive, std::string& value) {
     std::string directives[] = {
 		"autoindex",
+		"cgi",
 		"client_max_body_size",
 		"error_page",
 		"index",
 		"root",
-		"type",
-		"cgi"
+		"type"
 	};
     parseFunctionType	parseFunction[] = {
 		&Config::parseAutoindex,
+		&Config::parseCgi,
 		&Config::parseMaxBodySize,
 		&Config::parseErrorPage,
 		&Config::parseIndex,
 		&Config::parseRoot,
-		&Config::parseType,
-		&Config::parseCgi
+		&Config::parseType
 	};
 
 	for (size_t i = 0; i < (sizeof(directives) / sizeof(*directives)); i++) {
@@ -239,7 +245,11 @@ void Config::parseCgi(std::string& value) {
 	std::vector<std::string>::iterator 	it;
 
 	args = split(value, SYNTAX_CGI);
-	for (it = args.begin(); it != args.end(); ++it) {
+	if (args.size() != 2)
+		throw (std::runtime_error(SYNTAX_CGI));
+	_cgiFolder = args[0];
+	_cgi.clear();
+	for (it = args.begin() + 1; it != args.end(); ++it) {
 		if (!isValidCgiFilename(*it))
 			throw (std::runtime_error(SYNTAX_CGI));
 		_cgi.push_back(*it);
@@ -526,4 +536,5 @@ void Config::print() {
 		std::cout << *i << " | ";
 	std::cout << std::endl;
 	std::cout << "Root: " << _root << std::endl;
+	std::cout << "Cgi folder: " << _cgiFolder << std::endl;
 }
