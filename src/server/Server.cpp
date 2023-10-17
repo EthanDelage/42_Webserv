@@ -118,14 +118,13 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 			currentRequest->getClientSocket(),
 			e
 		);
-		requestReset(requestIndex);
+		if (currentRequest->getStatus() == REQUEST_LINE) {
+			clientDisconnect(it, requestIndex);
+		} else {
+			requestReset(requestIndex);
+		}
 	} catch (clientDisconnected const & e) {
-		close(currentRequest->getClientSocket());
-		delete currentRequest;
-		(void) _requestArray.erase(_requestArray.begin() + requestIndex);
-		it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
-		if (it != _socketArray.begin())
-			--it;
+		clientDisconnect(it, requestIndex);
 	}
 }
 
@@ -138,12 +137,7 @@ void Server::responseHandler(socketIterator_t& it, Config const & config) {
 			try {
 				sendResponse(requestIndex, config);
 			} catch (clientDisconnected const& e) {
-				close(_requestArray[requestIndex]->getClientSocket());
-				delete _requestArray[requestIndex];
-				(void) _requestArray.erase(_requestArray.begin() + requestIndex);
-				it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
-				if (it != _socketArray.begin())
-					--it;
+				clientDisconnect(it, requestIndex);
 			}
 		}
 		++requestIndex;
@@ -200,6 +194,15 @@ void	Server::addAddressArray(std::vector<VirtualServerConfig*> serverConfig) {
 		if (std::find(_addressArray.begin(), _addressArray.end(), socketAddress) == _addressArray.end())
 			_addressArray.push_back(socketAddress);
 	}
+}
+
+void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex) {
+	close(_requestArray[requestIndex]->getClientSocket());
+	delete _requestArray[requestIndex];
+	(void) _requestArray.erase(_requestArray.begin() + requestIndex);
+	it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
+	if (it != _socketArray.begin())
+		--it;
 }
 
 int Server::initSocket(socketAddress_t const & socketAddress) {
