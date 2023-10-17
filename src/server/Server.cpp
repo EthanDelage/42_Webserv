@@ -95,13 +95,16 @@ void Server::connectionHandler(socketIterator_t& it, Config const & config) {
 }
 
 void Server::clientHandler(socketIterator_t& it) {
-	std::string	line;
-	size_t		requestIndex;
+	std::string		line;
+	size_t			requestIndex;
 
 	requestIndex = 0;
 	for (; it != _socketArray.end(); ++it) {
-		if (it->revents == POLLIN)
+		if (it->revents == POLLIN) {
 			requestHandler(requestIndex, it);
+		} else if (difftime(time(NULL), _requestArray[requestIndex]->getTimeLastAction()) >= REQUEST_TIMEOUT) {
+			clientDisconnect(it, requestIndex);
+		}
 		++requestIndex;
 	}
 }
@@ -112,6 +115,7 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 	currentRequest = _requestArray[requestIndex];
 	try {
 		currentRequest->readBuffer();
+		currentRequest->setTimeLastAction(time(NULL));
 	} catch (clientException const & e) {
 		Response::sendClientError(
 			CLIENT_ERROR_STATUS_CODE,
@@ -155,22 +159,20 @@ void Server::sendResponse(size_t requestIndex, Config const & config) {
 		response.print();
 		response.setDate();
 		response.send();
-		requestReset(requestIndex);
 	} catch (clientException const& e) {
 		Response::sendClientError(
 			CLIENT_ERROR_STATUS_CODE,
 			currentRequest->getClientSocket(),
 			e
 		);
-		requestReset(requestIndex);
 	} catch (serverException const& e) {
 		Response::sendServerError(
 			SERVER_ERROR_STATUS_CODE,
 			currentRequest->getClientSocket(),
 			e.getErrorPage()
 		);
-		requestReset(requestIndex);
 	}
+	requestReset(requestIndex);
 }
 
 void Server::requestReset(size_t requestIndex) {

@@ -19,6 +19,7 @@
 # include <cstdlib>
 # include <limits>
 # include <cerrno>
+# include <ctime>
 # include "message/Message.hpp"
 # include "method.hpp"
 # include "config/VirtualServerConfig.hpp"
@@ -26,7 +27,8 @@
 # define HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED	1
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
 
-# define BUFFER_SIZE	4096
+# define BUFFER_SIZE		4096
+# define REQUEST_TIMEOUT	1
 
 typedef enum requestStatus_e {
 	REQUEST_LINE,
@@ -52,6 +54,7 @@ private:
 	char 					_buffer[BUFFER_SIZE];
 	VirtualServerConfig*	_serverConfig;
 	VirtualServerConfig*	_defaultServerConfig;
+	time_t					_timeLastAction;
 
 	void 	router();
 	void	parseRequestLine();
@@ -70,8 +73,11 @@ public:
 	uint8_t					getMethod() const;
 	std::string 			getRequestUri() const;
 	requestStatus_t 		getStatus() const;
+	time_t					getTimeLastAction() const;
 	VirtualServerConfig*	getServerConfig() const;
 	VirtualServerConfig*	getDefaultServerConfig() const;
+
+	void	setTimeLastAction(time_t time);
 
 	void		readBuffer();
 	void		parseLine();

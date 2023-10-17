@@ -19,6 +19,7 @@ Request::Request(int clientSocket, VirtualServerConfig* virtualServerConfig) : M
 	_serverConfig = virtualServerConfig;
 	_defaultServerConfig = virtualServerConfig;
 	_status = REQUEST_LINE;
+	time(&_timeLastAction);
 }
 
 Request::~Request() {}
@@ -32,6 +33,10 @@ requestStatus_t Request::getStatus() const {return (_status);}
 VirtualServerConfig* Request::getServerConfig() const {return (_serverConfig);}
 
 VirtualServerConfig* Request::getDefaultServerConfig() const {return (_defaultServerConfig);}
+
+std::clock_t Request::getTimeLastAction() const {return (_timeLastAction);}
+
+void Request::setTimeLastAction(time_t time) {_timeLastAction = time;}
 
 void Request::parseLine() {
 	router();
@@ -71,6 +76,7 @@ void Request::readBuffer() {
 			strBuffer = strBuffer.substr(index + 2, strBuffer.size() - (index + 2));
 		}
 	}
+	_timeLastAction = clock();
 }
 
 /**
