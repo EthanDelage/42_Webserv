@@ -28,7 +28,7 @@
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
 
 # define BUFFER_SIZE		4096
-# define REQUEST_TIMEOUT	1
+# define REQUEST_TIMEOUT	10
 
 typedef enum requestStatus_e {
 	REQUEST_LINE,
