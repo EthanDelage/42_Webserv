@@ -169,14 +169,12 @@ void VirtualServerConfig::parseLocation(std::ifstream& configFile, std::string& 
 	try {
 		locationConfig->parse(configFile);
 		locationConfig->print();
-		if (isDuplicate(locationConfig)) {
-			std::cerr << "Webserv: [warn] location Uri`" << locationConfig->getUri()
-					  << "` duplicated, ignored" << std::endl;
-			throw (std::runtime_error("Location Uri duplicated: "));
-		}
+		if (isDuplicate(locationConfig))
+			throw (std::runtime_error("Location Uri duplicated `" + locationConfig->getUri() + '\''));
 		_locationConfig.push_back(locationConfig);
 	} catch (std::runtime_error const & e) {
 		delete locationConfig;
+		throw (e);
 	}
 }
 
