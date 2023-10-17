@@ -77,7 +77,7 @@ void Request::readBuffer() {
 			strBuffer = strBuffer.substr(index + 2, strBuffer.size() - (index + 2));
 		}
 	}
-	_timeLastAction = clock();
+	_timeLastAction = time(NULL);
 }
 
 /**
