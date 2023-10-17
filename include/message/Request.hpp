@@ -76,8 +76,6 @@ public:
 	VirtualServerConfig*	getServerConfig() const;
 	VirtualServerConfig*	getDefaultServerConfig() const;
 
-	void	setTimeLastAction(time_t time);
-
 	void		readBuffer();
 	void		parseLine();
 	void		updateServerConfig(Config const & config);

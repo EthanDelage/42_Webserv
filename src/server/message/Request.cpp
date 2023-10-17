@@ -36,7 +36,6 @@ VirtualServerConfig* Request::getDefaultServerConfig() const {return (_defaultSe
 
 std::clock_t Request::getTimeLastAction() const {return (_timeLastAction);}
 
-void Request::setTimeLastAction(time_t time) {_timeLastAction = time;}
 
 void Request::parseLine() {
 	router();
