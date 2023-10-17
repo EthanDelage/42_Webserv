@@ -111,7 +111,7 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 
 	currentRequest = _requestArray[requestIndex];
 	try {
-		currentRequest->parseLine();
+		currentRequest->readBuffer();
 	} catch (clientException const & e) {
 		Response::sendClientError(
 			CLIENT_ERROR_STATUS_CODE,
