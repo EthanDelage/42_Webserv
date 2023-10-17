@@ -39,6 +39,7 @@ private:
 	void 			responseHandler(socketIterator_t& it, Config const & config);
 	void 			sendResponse(size_t requestIndex, Config const & config);
 	void 			requestReset(size_t requestIndex);
+	void			clientDisconnect(socketIterator_t& it, size_t requestIndex);
 	static int		initSocket(socketAddress_t const & socketAddress);
 	static int		acceptClient(int socketFd);
 	static uint32_t	ft_inet_addr(std::string ip);
