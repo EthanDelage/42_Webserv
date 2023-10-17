@@ -26,6 +26,8 @@
 # define HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED	1
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
 
+# define BUFFER_SIZE	4096
+
 typedef enum requestStatus_e {
 	REQUEST_LINE,
 	HEADER,
@@ -47,6 +49,7 @@ private:
 	uint8_t					_method;
 	std::string				_requestURI;
 	std::string				_currentLine;
+	char 					_buffer[BUFFER_SIZE];
 	VirtualServerConfig*	_serverConfig;
 	VirtualServerConfig*	_defaultServerConfig;
 
@@ -70,6 +73,7 @@ public:
 	VirtualServerConfig*	getServerConfig() const;
 	VirtualServerConfig*	getDefaultServerConfig() const;
 
+	void		readBuffer();
 	void		parseLine();
 	void		updateServerConfig(Config const & config);
 	std::string	getLine() const;
