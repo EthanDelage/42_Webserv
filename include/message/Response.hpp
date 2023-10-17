@@ -31,7 +31,6 @@ private:
 	void responseDelete();
 
 	std::string 		getResourcePath();
-	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	std::string			getContentType(std::string const & path) const;
 	void				listingDirectory();
 	void				setRequestBody();

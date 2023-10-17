@@ -20,7 +20,7 @@
 #include <sys/stat.h>
 
 Response::Response(Request& request) : Message(request.getClientSocket()), _request(request) {
-	_locationConfig = getResponseLocation(*request.getServerConfig());
+	_locationConfig = getMessageLocation(*request.getServerConfig(), request.getRequestUri());
 	router();
 }
 
@@ -259,25 +259,6 @@ std::string Response::getResourcePath() {
 		}
 	}
 	return (_locationConfig->getRoot() + '/' + requestUri.erase(0, _locationConfig->getUri().size()));
-}
-
-LocationConfig*	Response::getResponseLocation(VirtualServerConfig const & virtualServerConfig) {
-	std::vector<LocationConfig*>	locationConfig;
-	std::string						requestUri;
-	std::vector<std::string>		requestUriDirectories;
-
-	locationConfig = virtualServerConfig.getLocationConfig();
-	requestUri = _request.getRequestUri();
-	if (requestUri[requestUri.size() - 1] != '/')
-		requestUri.erase(requestUri.rfind('/') + 1);
-	requestUriDirectories = split_path(requestUri);
-	while (!requestUriDirectories.empty()) {
-		for (size_t i = 0; i < locationConfig.size(); i++)
-			if (locationConfig[i]->getUriDirectories() == requestUriDirectories)
-				return (locationConfig[i]);
-		requestUriDirectories.pop_back();
-	}
-	throw(clientException(&virtualServerConfig));
 }
 
 void Response::listingDirectory() {
