@@ -51,7 +51,6 @@ private:
 	uint8_t					_method;
 	std::string				_requestURI;
 	std::string				_currentLine;
-	char 					_buffer[BUFFER_SIZE];
 	VirtualServerConfig*	_serverConfig;
 	VirtualServerConfig*	_defaultServerConfig;
 	time_t					_timeLastAction;

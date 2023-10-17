@@ -56,14 +56,15 @@ void Request::readBuffer() {
 	ssize_t		ret;
 	size_t		index;
 	std::string strBuffer;
+	char		buffer[BUFFER_SIZE];
 
-	ret = read(_clientSocket, _buffer, BUFFER_SIZE - 1);
+	ret = read(_clientSocket, buffer, BUFFER_SIZE - 1);
 	if (ret == 0)
 		throw (clientDisconnected());
 	else if (ret == -1)
 		throw (serverException(_serverConfig));
-	_buffer[ret] = '\0';
-	strBuffer = _buffer;
+	buffer[ret] = '\0';
+	strBuffer = buffer;
 	while (!strBuffer.empty()) {
 		index = strBuffer.find(CRLF);
 		if (index == std::string::npos) {
