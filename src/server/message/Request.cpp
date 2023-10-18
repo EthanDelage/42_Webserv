@@ -36,7 +36,7 @@ VirtualServerConfig* Request::getDefaultServerConfig() const {return (_defaultSe
 
 LocationConfig *Request::getLocationConfig() const {return (_locationConfig);}
 
-std::clock_t Request::getTimeLastAction() const {return (_timeLastAction);}
+time_t Request::getTimeLastAction() const {return (_timeLastAction);}
 
 void Request::process() {
 	readBuffer();
