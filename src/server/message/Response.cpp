@@ -74,10 +74,12 @@ void Response::router() {
 	throw (clientException(_locationConfig));
 }
 
+#include "iostream"
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 
+	std::cout << "here 1" << std::endl;
 	if (isCgiRequest()) {
 		cgiResponseGet();
 		return;
@@ -153,38 +155,50 @@ void Response::cgiResponseGet() {
 	int 	status;
 
 
+	std::cout << "here 2" << std::endl;
 	pipe(pipe_out);
 	cgi_pid = fork();
+	std::cout << "cgi pid: " << cgi_pid << std::endl;
 	if (cgi_pid == -1) {
 		close(pipe_out[WRITE]);
 		close(pipe_out[READ]);
 		throw (serverException(_locationConfig));
-	}
-	if (cgi_pid == 0) {
+	} else if (cgi_pid == 0) {
 		pipe(pipe_in);
 		cgiSetPipes(pipe_in, pipe_out);
 		cgiExecute();
 	}
+	std::cout << "here 3" << std::endl;
 	close(pipe_out[WRITE]);
 	timer_pid = fork();
+	std::cout << "timer pid: " << timer_pid << std::endl;
 	if (timer_pid == -1) {
 		close(pipe_out[READ]);
 		throw (serverException(_locationConfig));
 	}
-	if (timer_pid == 0)
-		cgiSleep();
+	if (timer_pid == 0) {
+		close (pipe_out[READ]);
+		std::cout << "sleep" << std::endl;
+		usleep(100);
+		std::cout << "wake" << std::endl;
+		exit(0);
+	}
+	std::cout << "here 4" << std::endl;
 	if (waitpid(WAIT_ANY, &status, WUNTRACED) == timer_pid) {
+		std::cout << "timed out !" << std::endl;
 		close(pipe_out[READ]);
 		kill(cgi_pid, SIGKILL);
 		throw (serverException(_locationConfig));
 	} else {
-		if (status != 0) {
+		kill(timer_pid, SIGKILL);
+		if (WEXITSTATUS(status) != 0) {
 			close(pipe_out[READ]);
 			throw (serverException(_locationConfig));
 		}
 		cgiProcessOutput(pipe_out[READ]);
 		close(pipe_out[READ]);
 	}
+	std::cout << "here 5" << std::endl;
 }
 
 void Response::cgiExecute() {
@@ -203,9 +217,7 @@ void Response::cgiExecute() {
 		argv[0] = (char *)"/usr/bin/python";
 	else if (extension == ".php")
 		argv[0] = (char *)"/usr/bin/php";
-	// EXIT
-	if (execve(argv[0], argv.data(), envp.data())== -1)
-		throw (serverException(_locationConfig));
+	exit(execve(argv[0], argv.data(), envp.data()));
 }
 
 void Response::cgiProcessOutput(int fd) {
@@ -604,8 +616,6 @@ bool Response::isCgiRequest() const {
 	std::vector<std::string>	cgi;
 
 	cgiFolder = _locationConfig->getCgiFolder();
-	std::cout << "cgi folder:" << cgiFolder << std::endl;
-	std::cout << "root: " << _locationConfig->getUri() << std::endl;
 	if (_locationConfig->getUri() != cgiFolder)
 		return (false);
 	cgiFile = getCgiFile();

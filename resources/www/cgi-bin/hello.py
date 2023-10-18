@@ -1,3 +1,6 @@
+i = 0
+while i < 10:
+    print("forever")
 print("Content-type:text/html\r\n\r\n")
 print('<html>')
 print('<head>')
