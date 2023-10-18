@@ -34,49 +34,38 @@ VirtualServerConfig* Request::getServerConfig() const {return (_serverConfig);}
 
 VirtualServerConfig* Request::getDefaultServerConfig() const {return (_defaultServerConfig);}
 
+LocationConfig *Request::getLocationConfig() const {return (_locationConfig);}
+
 std::clock_t Request::getTimeLastAction() const {return (_timeLastAction);}
 
-
-void Request::parseLine() {
+void Request::process() {
+	readBuffer();
 	router();
+	_timeLastAction = time(NULL);
 }
 
 void Request::router() {
-	if (_status == REQUEST_LINE) {
+	if (_status == REQUEST_LINE)
 		parseRequestLine();
-	} else if (_status == HEADER) {
+	if (_status == HEADER)
 		parseRequestHeader();
-	} else if (_status == BODY) {
-		//TODO
-	}
+	if (_status == BODY)
+		parseRequestBody();
 }
 
 void Request::readBuffer() {
 	ssize_t		ret;
-	size_t		index;
-	std::string strBuffer;
 	char		buffer[BUFFER_SIZE];
 
-	ret = read(_clientSocket, buffer, BUFFER_SIZE - 1);
-	if (ret == 0)
-		throw (clientDisconnected());
-	else if (ret == -1)
-		throw (serverException(_serverConfig));
-	buffer[ret] = '\0';
-	strBuffer = buffer;
-	while (!strBuffer.empty()) {
-		index = strBuffer.find(CRLF);
-		if (index == std::string::npos) {
-			_currentLine += strBuffer;
-			strBuffer = "";
-		} else {
-			_currentLine += strBuffer.substr(0, index + 2);
-			parseLine();
-			_currentLine = "";
-			strBuffer = strBuffer.substr(index + 2, strBuffer.size() - (index + 2));
-		}
-	}
-	_timeLastAction = time(NULL);
+	do {
+		ret = read(_clientSocket, buffer, BUFFER_SIZE - 1);
+		if (ret == 0)
+			throw (clientDisconnected());
+		else if (ret == -1)
+			throw (serverException(_serverConfig));
+		buffer[ret] = '\0';
+		_buffer += buffer;
+	} while (ret == BUFFER_SIZE - 1);
 }
 
 /**
@@ -85,10 +74,17 @@ void Request::readBuffer() {
  */
 void Request::parseRequestLine() {
 	std::vector<std::string>	argv;
+	size_t						index;
+	std::string 				currentLine;
 
-	if (_currentLine == CRLF)
-		return;
-	argv = split(_currentLine);
+	do {
+		index = _buffer.find(CRLF);
+		if (index == std::string::npos)
+			return;
+		currentLine = _buffer.substr(0, index + 2);
+		_buffer.erase(0, index + 2);
+	}	while (currentLine == CRLF);
+	argv = split(currentLine);
 	if (argv.size() != 3)
 		throw (clientException(_serverConfig));
 	parseMethod(argv[0]);
@@ -98,17 +94,42 @@ void Request::parseRequestLine() {
 }
 
 void Request::parseRequestHeader() {
-	if (_currentLine == CRLF) {
-		if (requestContainBody())
-			_status = BODY;
-		else
-			_status = END;
-		return;
+	size_t		index;
+	std::string	currentLine;
+
+	index = _buffer.find(CRLF);
+	while (index != std::string::npos) {
+		currentLine = _buffer.substr(0, index + 2);
+		_buffer.erase(0,index + 2);
+		if (currentLine == CRLF) {
+			_locationConfig = getMessageLocation(*_serverConfig, _requestURI);
+			if (requestContainBody())
+				_status = BODY;
+			else
+				_status = END;
+			return;
+		}
+		try {
+			_header.parseHeader(currentLine);
+		} catch (headerException const & e) {
+			throw (clientException(_serverConfig));
+		}
+		index = _buffer.find(CRLF);
 	}
-	try {
-		_header.parseHeader(_currentLine);
-	} catch (headerException const & e) {
-		throw (clientException(_serverConfig));
+}
+
+void Request::parseRequestBody() {
+	size_t	size;
+	size_t	read_size;
+
+	size = std::strtoul(_header.getHeaderByKey("Content-Length").c_str(), NULL, 10);
+	if (size > _locationConfig->getMaxBodySize())
+		throw (clientException(_locationConfig));
+	read_size = size - _body.size();
+	_body += _buffer.substr(0, read_size);
+	_buffer.erase(0, read_size);
+	if (_body.size() == size) {
+		_status = END;
 	}
 }
 
@@ -202,22 +223,6 @@ std::vector<std::string> Request::split(std::string const & str) const {
 		argv.push_back(arg);
 	}
 	return (argv);
-}
-
-std::string Request::getLine() const {
-	ssize_t		ret;
-	char		buf;
-	std::string line;
-
-	do {
-		ret = read(_clientSocket, &buf, 1);
-		if (ret == -1)
-			throw (serverException(_serverConfig));
-		else if (ret == 0)
-			throw (clientDisconnected());
-		line += buf;
-	} while (buf != '\n');
-	return (line);
 }
 
 void Request::print() const {

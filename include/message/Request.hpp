@@ -28,7 +28,7 @@
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
 
 # define BUFFER_SIZE		4096
-# define REQUEST_TIMEOUT	10
+# define REQUEST_TIMEOUT	30
 
 typedef enum requestStatus_e {
 	REQUEST_LINE,
@@ -50,7 +50,7 @@ private:
 	requestStatus_t			_status;
 	uint8_t					_method;
 	std::string				_requestURI;
-	std::string				_currentLine;
+	std::string				_buffer;
 	VirtualServerConfig*	_serverConfig;
 	VirtualServerConfig*	_defaultServerConfig;
 	time_t					_timeLastAction;
@@ -58,10 +58,12 @@ private:
 	void 	router();
 	void	parseRequestLine();
 	void	parseRequestHeader();
+	void	parseRequestBody();
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
 	bool 	requestContainBody() const;
 
+	void					readBuffer();
 	uint8_t					getMethodByName(std::string const & method) const;
 	std::vector<std::string> split(std::string const & str) const;
 
@@ -75,11 +77,10 @@ public:
 	time_t					getTimeLastAction() const;
 	VirtualServerConfig*	getServerConfig() const;
 	VirtualServerConfig*	getDefaultServerConfig() const;
+	LocationConfig*			getLocationConfig() const;
 
-	void		readBuffer();
-	void		parseLine();
+	void		process();
 	void		updateServerConfig(Config const & config);
-	std::string	getLine() const;
 	void 		print() const;
 
 };

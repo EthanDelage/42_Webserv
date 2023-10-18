@@ -35,6 +35,7 @@ protected:
 	Header			_header;
 	std::string		_body;
 	httpVersion_t	_httpVersion;
+	LocationConfig*	_locationConfig;
 
 public:
 	Message(int clientSocket);
@@ -44,8 +45,6 @@ public:
 	Header			getHeader() const;
 	httpVersion_t	getHttpVersion() const;
 	int 			getClientSocket() const;
-
-	void	setBody(std::string& body);
 
 	LocationConfig*		getMessageLocation(VirtualServerConfig const & virtualServerConfig, std::string requestUri);
 
