@@ -249,7 +249,7 @@ void Response::sendContinue(int clientSocket) {
 	write(clientSocket, statusLine.c_str(), statusLine.size());
 }
 
-void Response::sendClientError(int statusCode, int clientSocket, clientException const & clientException) {
+void Response::sendClientError(int clientSocket, clientException const & clientException) {
 	std::string			statusLine;
 	std::string			body;
 	std::ifstream		errorPage;
@@ -257,7 +257,7 @@ void Response::sendClientError(int statusCode, int clientSocket, clientException
 	Header				header;
 
 	body.erase();
-	statusLine = statusCodeToLine(statusCode);
+	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
 	if (clientException.getMethodMask() != 0b01111000)
 		header.addHeader("Allow", LocationConfig::allowedHttpMethodToString(clientException.getMethodMask()));
 	errorPage.open(clientException.getErrorPage().c_str());
@@ -274,14 +274,14 @@ void Response::sendClientError(int statusCode, int clientSocket, clientException
 	send(clientSocket, statusLine, header.toString(), body);
 }
 
-void Response::sendServerError(int statusCode, int clientSocket, std::string const & errorPagePath) {
+void Response::sendServerError(int clientSocket, std::string const & errorPagePath) {
 	std::string			statusLine;
 	std::string			body;
 	std::ifstream		errorPage;
 	std::stringstream	contentLength;
 	Header				header;
 
-	statusLine = statusCodeToLine(statusCode);
+	statusLine = statusCodeToLine(SERVER_ERROR_STATUS_CODE);
 	errorPage.open(errorPagePath.c_str());
 	if (!errorPage.is_open()) {
 		header.addDate();

@@ -68,8 +68,8 @@ public:
 
 	void		responseRedirectionError(std::string const & pathErrorPage);
 	static void sendContinue(int clientSocket);
-	static void sendClientError(int statusCode, int clientSocket, clientException const & clientException);
-	static void sendServerError(int statusCode, int clientSocket, std::string const & errorPagePath);
+	static void sendClientError(int clientSocket, clientException const & clientException);
+	static void sendServerError(int clientSocket, std::string const & errorPagePath);
 };
 
 #endif

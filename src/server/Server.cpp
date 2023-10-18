@@ -117,10 +117,16 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 	try {
 		currentRequest->process();
 	} catch (clientException const & e) {
-		Response::sendClientError(
-			CLIENT_ERROR_STATUS_CODE,
+		Response::sendClientError(currentRequest->getClientSocket(), e);
+		if (currentRequest->getStatus() == REQUEST_LINE) {
+			clientDisconnect(it, requestIndex);
+		} else {
+			requestReset(requestIndex);
+		}
+	} catch (serverException const & e) {
+		Response::sendServerError(
 			currentRequest->getClientSocket(),
-			e
+			e.getErrorPage()
 		);
 		if (currentRequest->getStatus() == REQUEST_LINE) {
 			clientDisconnect(it, requestIndex);
@@ -160,14 +166,9 @@ void Server::sendResponse(size_t requestIndex, Config const & config) {
 		response.setDate();
 		response.send();
 	} catch (clientException const& e) {
-		Response::sendClientError(
-			CLIENT_ERROR_STATUS_CODE,
-			currentRequest->getClientSocket(),
-			e
-		);
+		Response::sendClientError(currentRequest->getClientSocket(), e);
 	} catch (serverException const& e) {
 		Response::sendServerError(
-			SERVER_ERROR_STATUS_CODE,
 			currentRequest->getClientSocket(),
 			e.getErrorPage()
 		);
