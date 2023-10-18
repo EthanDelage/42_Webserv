@@ -61,7 +61,6 @@ private:
 	static bool						isValidContentType(std::string const & contentType);
 	static bool						isValidToken(std::string const & token);
 	static size_t					parseSize(std::string& value);
-	static std::string				removeQuote(std::string& str);
 	static std::string				getNextFile(std::string& value);
 	static uint16_t					getErrorCode(std::string& value);
 	static void						skipQuotes(std::string& str, size_t& index);
@@ -91,6 +90,7 @@ protected:
 	void	parseCgi(std::string& value);
 
 	static std::vector<std::string>	split(std::string& str, std::string const syntax);
+	static std::string				removeQuote(std::string& str);
 	bool	isValidIP(std::string const & str) const;
 	bool	isValidIpByte(std::string const & address, size_t& index) const;
 	bool	isValidCgiFilename(std::string& filename);

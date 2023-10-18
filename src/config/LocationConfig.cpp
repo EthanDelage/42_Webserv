@@ -25,6 +25,7 @@ LocationConfig::LocationConfig(VirtualServerConfig const & virtualServerConfig, 
 			uri.erase(uri.find('/') + 1);
 		_uriDirectories = split_path(uri);
 		_allowedHttpMethod = DEFAULT_METHOD_MASK;
+		_redirectionUri = "";
 }
 
 std::string LocationConfig::getUri() const {return (_uri);}
@@ -32,6 +33,8 @@ std::string LocationConfig::getUri() const {return (_uri);}
 std::vector<std::string> LocationConfig::getUriDirectories() const {return (_uriDirectories);}
 
 uint8_t LocationConfig::getAllowedHttpMethod() const {return (_allowedHttpMethod);}
+
+std::string LocationConfig::getRedirectionUri() const {return (_redirectionUri);}
 
 bool LocationConfig::getMethodStatus() const {
 	return (_allowedHttpMethod & GET_METHOD_MASK);
@@ -93,6 +96,7 @@ void LocationConfig::router(std::string& directive, std::string& value) {
 			"deny",
 			"error_page",
 			"index",
+			"return",
 			"root",
 			"type"
 	};
@@ -102,6 +106,7 @@ void LocationConfig::router(std::string& directive, std::string& value) {
 			&LocationConfig::parseDeny,
 			&LocationConfig::parseErrorPage,
 			&LocationConfig::parseIndex,
+			&LocationConfig::parseReturn,
 			&LocationConfig::parseRoot,
 			&LocationConfig::parseType,
 	};
@@ -124,6 +129,15 @@ void LocationConfig::parseDeny(std::string& value) {
 		_allowedHttpMethod &= (0b11111111 - DELETE_METHOD_MASK);
 	else
 		throw (std::runtime_error(SYNTAX_DENY));
+}
+
+void LocationConfig::parseReturn(std::string& value) {
+	std::vector<std::string>	args;
+
+	args = split(value, SYNTAX_ROOT);
+	if (args.size() != 1)
+		throw (std::runtime_error(SYNTAX_ROOT));
+	_redirectionUri = removeQuote(args[0]);
 }
 
 std::string LocationConfig::allowedHttpMethodToString(uint8_t methodMask) {

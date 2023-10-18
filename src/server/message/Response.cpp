@@ -83,10 +83,16 @@ void Response::responseGet() {
 		cgiResponseGet();
 		return;
 	}
-	path = getResourcePath();
+	if (!_locationConfig->getRedirectionUri().empty()) {
+		path = _locationConfig->getRedirectionUri();
+		_statusLine = statusCodeToLine(REDIRECTION_STATUS_CODE);
+	} else {
+		path = getResourcePath();
+	}
 	if (path[path.size() - 1] == '/') {
 		if (_locationConfig->getAutoindex()) {
-			_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+			if (_statusLine.empty())
+				_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 			listingDirectory();
 			return;
 		} else {
@@ -103,7 +109,8 @@ void Response::responseGet() {
 		throw (clientException(_locationConfig));
 	_body = getFileContent(resource);
 	resource.close();
-	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	if (_statusLine.empty())
+		_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 	addContentType(path);
 	_header.addContentLength(_body.size());
 }
