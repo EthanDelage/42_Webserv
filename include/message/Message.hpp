@@ -14,6 +14,7 @@
 
 # include <string>
 # include "message/Header.hpp"
+# include "config/LocationConfig.hpp"
 
 # define CRLF "\r\n"
 
@@ -34,6 +35,7 @@ protected:
 	Header			_header;
 	std::string		_body;
 	httpVersion_t	_httpVersion;
+	LocationConfig*	_locationConfig;
 
 public:
 	Message(int clientSocket);
@@ -44,7 +46,7 @@ public:
 	httpVersion_t	getHttpVersion() const;
 	int 			getClientSocket() const;
 
-	void	setBody(std::string& body);
+	LocationConfig*		getMessageLocation(VirtualServerConfig const & virtualServerConfig, std::string requestUri);
 
 };
 

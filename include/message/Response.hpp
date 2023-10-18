@@ -23,7 +23,6 @@ class Response : public Message {
 private:
 	std::string			_statusLine;
 	Request				_request;
-	LocationConfig*		_locationConfig;
 
 	void router();
 	void responseGet();
@@ -31,10 +30,8 @@ private:
 	void responseDelete();
 
 	std::string 		getResourcePath();
-	LocationConfig*		getResponseLocation(VirtualServerConfig const & virtualServerConfig);
 	std::string			getContentType(std::string const & path) const;
 	void				listingDirectory();
-	void				setRequestBody();
 	void 				addContentType(std::string const & path);
 	bool				checkAcceptWildcard(std::string const & contentType, std::string const & acceptValue);
 	static void			send(int clientSocket, std::string statusLine, std::string header, std::string body);
