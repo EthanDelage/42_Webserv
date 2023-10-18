@@ -39,6 +39,8 @@ Config::Config(Config const & other) {
 	_isDefaultIndex = other._isDefaultIndex;
 	_root = other._root;
 	_types = other._types;
+	_cgi = other._cgi;
+	_cgiFolder = other._cgiFolder;
 }
 
 Config::~Config() {
@@ -60,6 +62,10 @@ bool Config::getAutoindex() const {return (_autoindex);}
 std::map<uint16_t, std::string> Config::getErrorPage() const {return (_errorPage);}
 
 size_t Config::getMaxBodySize() const {return (_maxBodySize);}
+
+std::string Config::getCgiFolder() const {return (_cgiFolder);}
+
+std::vector<std::string> Config::getCgi() const {return (_cgi);}
 
 VirtualServerConfig* Config::getDefaultServer(socketAddress_t const & socketAddress) const {
 	std::vector<VirtualServerConfig*>::const_iterator	it;
@@ -124,6 +130,7 @@ void Config::lineLexer(std::string& line, std::string& directive, std::string& v
 void Config::router(std::string& directive, std::string& value) {
     std::string directives[] = {
 		"autoindex",
+		"cgi",
 		"client_max_body_size",
 		"error_page",
 		"index",
@@ -132,6 +139,7 @@ void Config::router(std::string& directive, std::string& value) {
 	};
     parseFunctionType	parseFunction[] = {
 		&Config::parseAutoindex,
+		&Config::parseCgi,
 		&Config::parseMaxBodySize,
 		&Config::parseErrorPage,
 		&Config::parseIndex,
@@ -239,6 +247,22 @@ void Config::parseType(std::string& value) {
 	}
 }
 
+void Config::parseCgi(std::string& value) {
+	std::vector<std::string>			args;
+	std::vector<std::string>::iterator 	it;
+
+	args = split(value, SYNTAX_CGI);
+	if (args.size() != 2)
+		throw (std::runtime_error(SYNTAX_CGI));
+	_cgiFolder = args[0];
+	_cgi.clear();
+	for (it = args.begin() + 1; it != args.end(); ++it) {
+		if (!isValidCgiFilename(*it))
+			throw (std::runtime_error(SYNTAX_CGI));
+		_cgi.push_back(*it);
+	}
+}
+
 bool Config::isValidContentType(const std::string& contentType) {
 	std::string type;
 	std::string subtype;
@@ -254,6 +278,19 @@ bool Config::isValidContentType(const std::string& contentType) {
 	return (true);
 }
 
+bool Config::isValidCgiFilename(std::string& filename) {
+	size_t 		indexExtension;
+	std::string	extension;
+
+	indexExtension = filename.rfind('.');
+	if (indexExtension == std::string::npos || indexExtension == 0)
+		return (false);
+	extension = filename.substr(indexExtension);
+	if (extension != ".py" && extension != ".php")
+		return (false);
+	return (true);
+}
+
 bool Config::isValidToken(std::string const & token) {
 	for (size_t i = 0; i < token.size(); ++i) {
 		if (strchr(SEPARATORS, token[i]) != NULL || !isprint(token[i]))
@@ -262,7 +299,7 @@ bool Config::isValidToken(std::string const & token) {
 	return (true);
 }
 
-/*(args[i])*
+/**
  * @brief converts a 'size' formatted string to size_t
  * @return the converted value
  */
@@ -308,6 +345,8 @@ VirtualServerConfig* Config::findServerConfig(socketAddress_t const & socketAddr
 			result = *it;
 		}
 	}
+	if (bestScore == 0)
+		return (getDefaultServer(socketAddress));
 	return (result);
 }
 
@@ -504,4 +543,5 @@ void Config::print() {
 		std::cout << *i << " | ";
 	std::cout << std::endl;
 	std::cout << "Root: " << _root << std::endl;
+	std::cout << "Cgi folder: " << _cgiFolder << std::endl;
 }

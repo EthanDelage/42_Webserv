@@ -40,6 +40,8 @@ VirtualServerConfig::VirtualServerConfig(VirtualServerConfig const & other) : Co
 	_socketAddress = other._socketAddress;
 	_locationConfig.clear();
 	_types = other._types;
+	_cgiFolder = other._cgiFolder;
+	_cgi = other._cgi;
 }
 
 VirtualServerConfig::~VirtualServerConfig() {
@@ -98,6 +100,7 @@ void VirtualServerConfig::parseLine(std::string& line, std::ifstream& configFile
 void VirtualServerConfig::router(std::string& directive, std::string& value) {
 	std::string	directives[] = {
 		"autoindex",
+		"cgi",
 		"client_max_body_size",
 		"error_page",
 		"index",
@@ -108,6 +111,7 @@ void VirtualServerConfig::router(std::string& directive, std::string& value) {
 	};
 	parseFunctionType	parseFunction[] = {
 		&VirtualServerConfig::parseAutoindex,
+		&VirtualServerConfig::parseCgi,
 		&VirtualServerConfig::parseMaxBodySize,
 		&VirtualServerConfig::parseErrorPage,
 		&VirtualServerConfig::parseIndex,

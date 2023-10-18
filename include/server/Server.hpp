@@ -31,6 +31,7 @@ private:
 	std::vector<socketAddress_t>	_addressArray;
 	size_t							_nbServerSocket;
 	std::vector<Request*>			_requestArray;
+	char**							_envp;
 
 	void			addAddressArray(std::vector<VirtualServerConfig*> serverConfig);
 	void			connectionHandler(socketIterator_t& it, Config const & config);
@@ -48,7 +49,7 @@ public:
 	Server();
 	~Server();
 
-	void	init(Config const & config);
+	void	init(Config const & config, char** envp);
 	void	listener(Config const & config);
 
 };

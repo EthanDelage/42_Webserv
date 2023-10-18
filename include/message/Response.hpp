@@ -17,18 +17,27 @@
 # include "config/LocationConfig.hpp"
 # include "error/Error.hpp"
 
+# define READ 0
+# define WRITE 1
+
 class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
 
 private:
 	std::string			_statusLine;
 	Request				_request;
+	char**				_envp;
 
 	void router();
 	void responseGet();
 	void responsePost();
 	void responseDelete();
+	void cgiResponseGet();
+	void cgiResponsePost();
 
+	void				cgiExecute();
+	void				cgiProcessOutput(int fd);
+	std::vector<char*>	cgiGetEnv() const;
 	std::string 		getResourcePath();
 	std::string			getContentType(std::string const & path) const;
 	void				listingDirectory();
@@ -42,12 +51,15 @@ private:
 	static std::string	statusCodeToString(unsigned int statusCode);
 	static std::string	uitoa(unsigned int n);
 	static bool			removeDirectory(std::string const & dirName);
+	std::string			getCgiFile() const;
 
 	bool				isDirectory(std::string const & path);
 	bool				isFile(std::string const & path);
+	bool				isCgiRequest() const;
+	std::vector<char*>	envToVec() const;
 
 public:
-	Response(Request& request);
+	Response(Request& request, char** envp);
 	~Response();
 
 	void send();

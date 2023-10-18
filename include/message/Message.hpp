@@ -16,7 +16,8 @@
 # include "message/Header.hpp"
 # include "config/LocationConfig.hpp"
 
-# define CRLF "\r\n"
+# define CRLF 			"\r\n"
+# define BUFFER_SIZE	4096
 
 typedef struct httpVersion_s	httpVersion_t;
 struct httpVersion_s {

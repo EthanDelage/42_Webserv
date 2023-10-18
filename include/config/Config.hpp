@@ -33,6 +33,7 @@
 # define SYNTAX_INDEX			"Syntax: \"index\" 1*( SP file ) \";\""
 # define SYNTAX_ROOT			"Syntax: \"root\" SP path \";\""
 # define SYNTAX_TYPE			"Syntax: \"type\" SP mime 1*( SP extension ) \";\""
+# define SYNTAX_CGI				"Syntax: \"cgi\" 1*( SP cgi-filename ) \";\""
 
 # define SEPARATORS				"()<>@,;:\\\"/[]?={} \t"
 
@@ -76,7 +77,9 @@ protected:
 	std::vector<std::string>			_index;
 	bool								_isDefaultIndex;
 	std::string 						_root;
+	std::string 						_cgiFolder;
 	std::map<std::string, std::string>	_types;
+	std::vector<std::string>			_cgi;
 
 	void	lineLexer(std::string& line, std::string& directive, std::string& value);
 	void	parseAutoindex(std::string& value);
@@ -85,10 +88,12 @@ protected:
 	void	parseIndex(std::string& value);
 	void	parseRoot(std::string& value);
 	void	parseType(std::string& value);
+	void	parseCgi(std::string& value);
 
 	static std::vector<std::string>	split(std::string& str, std::string const syntax);
 	bool	isValidIP(std::string const & str) const;
 	bool	isValidIpByte(std::string const & address, size_t& index) const;
+	bool	isValidCgiFilename(std::string& filename);
 
 public:
 	Config();
@@ -102,6 +107,8 @@ public:
 	std::map<std::string, std::string>	getTypes() const;
 	bool								getAutoindex() const;
 	size_t								getMaxBodySize() const;
+	std::string 						getCgiFolder() const;
+	std::vector<std::string>			getCgi() const;
 	VirtualServerConfig*				getDefaultServer(socketAddress_t const & socketAddress) const;
 
 	void			parse(char* configFilename);

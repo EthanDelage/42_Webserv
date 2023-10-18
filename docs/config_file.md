@@ -11,6 +11,14 @@ Default: autoindex off;
 Context: main, server, location
 ```
 
+### cgi
+Set the CGI script to be executed.
+```
+cgi = "cgi" 1*( SP cgi-filename ) ";"
+Default: ——
+Context: main, server, location
+```
+
 ### client_max_body_size:
 Set the maximum allowed size of the client request body.
 If the size of a request exceed the maximum size, the server will respond with a 413 status code (Request Entity Too Large).
@@ -31,8 +39,9 @@ Context: location
 
 ### error_page:
 Define error pages to be sent in response when a client request result in an error.
+Handled code: 300, 400 and 500
 ```
-error_page = "error_page" 1*( SP code ) SP uri ";" ; handled code: 300, 400 and 500
+error_page = "error_page" 1*( SP code ) SP uri ";"
 Default: ——
 Context: main, server, location
 ```
@@ -105,19 +114,20 @@ Context: main, server, location
 
 ### Index
 ```
-address     = 1*3DIGIT 3 ( "." 1*3DIGIT ) ;each fragment must be between 0 and 255
-code        = 3DIGIT ;must be between 300 and 599
-extension   = 1*TEXT
-file        = 1*TEXT
-hostname    = *TEXT
-mime        = token "/" token
-path        = 1*TEXT *( "/" 1*TEXT )
-port        = 1*DIGIT ; must be under uint16_t max
-separators  = "(" | ")" | "<" | ">" | "@"
-                  | "," | ";" | ":" | "\" | <">
-                  | "/" | "[" | "]" | "?" | "="
-                  | "{" | "}" | SP | HT
-size        = 1*DIGIT [ "k" | "m" ]
-token       = 1*<any CHAR except CTLs or separators>
-uri         = *TEXT
+address         = 1*3DIGIT 3 ( "." 1*3DIGIT ) ;each fragment must be between 0 and 255
+cgi-filename    = 1*TEXT "." ( "py" | "php" )
+code            = 3DIGIT ;must be between 300 and 599
+extension       = 1*TEXT
+file            = 1*TEXT
+hostname        = *TEXT
+mime            = token "/" token
+path            = 1*TEXT *( "/" 1*TEXT )
+port            = 1*DIGIT ; must be under uint16_t max
+separators      = "(" | ")" | "<" | ">" | "@"
+                      | "," | ";" | ":" | "\" | <">
+                      | "/" | "[" | "]" | "?" | "="
+                      | "{" | "}" | SP | HT
+size            = 1*DIGIT [ "k" | "m" ]
+token           = 1*<any CHAR except CTLs or separators>
+uri             = *TEXT
 ```
