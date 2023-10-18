@@ -50,8 +50,12 @@ void Server::init(Config const & config, char** envp) {
 			std::cerr << e.what() << " for " << _addressArray[i].first
 				<< ':' << _addressArray[i].second << std::endl;
 			_addressArray.erase(_addressArray.begin() + i);
+			--_nbServerSocket;
 			--i;
 		}
+	}
+	if (_nbServerSocket == 0) {
+		throw (std::runtime_error("No server created"));
 	}
 }
 
@@ -211,14 +215,10 @@ void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex)
 int Server::initSocket(socketAddress_t const & socketAddress) {
 	int 				socketFd;
 	struct sockaddr_in	address;
-	int					opt = 1;
 
 	socketFd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (socketFd == -1)
 		throw (std::runtime_error("socket() failed"));
-	if (setsockopt(socketFd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)) == -1) {
-		throw (std::runtime_error("setsockopt() failed"));
-	}
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = ft_inet_addr(socketAddress.first);
 	address.sin_port = htons(socketAddress.second);
