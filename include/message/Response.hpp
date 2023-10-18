@@ -17,8 +17,9 @@
 # include "config/LocationConfig.hpp"
 # include "error/Error.hpp"
 
-# define READ 0
-# define WRITE 1
+# define READ			0
+# define WRITE			1
+# define CGI_TIMEOUT	1
 
 class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
@@ -38,6 +39,8 @@ private:
 	void				cgiExecute();
 	void				cgiProcessOutput(int fd);
 	std::vector<char*>	cgiGetEnv() const;
+	void				cgiSetPipes(int pipe_in[2], int pipe_out[2]) const;
+	void				cgiSleep();
 	std::string 		getResourcePath();
 	std::string			getContentType(std::string const & path) const;
 	void				listingDirectory();

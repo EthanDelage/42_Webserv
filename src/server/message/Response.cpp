@@ -13,12 +13,11 @@
 #include <unistd.h>
 #include <sstream>
 #include <dirent.h>
-#include <sys/types.h>
 #include <fcntl.h>
-#include "utils.hpp"
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include "message/Response.hpp"
+#include "utils.hpp"
 
 Response::Response(Request& request, char** envp) : Message(request.getClientSocket()), _request(request) {
 	_envp = envp;
@@ -147,31 +146,45 @@ void Response::responseDelete() {
 
 #include "iostream"
 void Response::cgiResponseGet() {
-	int		pipe_out[2];
 	int		pipe_in[2];
-	pid_t	pid;
+	int		pipe_out[2];
+	pid_t	cgi_pid;
+	pid_t	timer_pid;
+	int 	status;
+
 
 	pipe(pipe_out);
-	pid = fork();
-	if (pid == -1)
+	cgi_pid = fork();
+	if (cgi_pid == -1) {
+		close(pipe_out[WRITE]);
+		close(pipe_out[READ]);
 		throw (serverException(_locationConfig));
-	if (pid == 0) {
-		if (_request.getMethod() == POST_METHOD_MASK) {
-			pipe(pipe_in);
-			dup2(STDIN_FILENO, pipe_in[READ]);
-			close(pipe_in[READ]);
-			write(pipe_in[WRITE], _request.getBody().c_str(), _request.getBody().size());
-			close(pipe_in[WRITE]);
-		}
-		close (pipe_out[READ]);
-		dup2(pipe_out[WRITE], STDOUT_FILENO);
-		close (pipe_out[WRITE]);
+	}
+	if (cgi_pid == 0) {
+		pipe(pipe_in);
+		cgiSetPipes(pipe_in, pipe_out);
 		cgiExecute();
 	}
 	close(pipe_out[WRITE]);
-	waitpid(0, NULL, WUNTRACED);
-	cgiProcessOutput(pipe_out[READ]);
-	close(pipe_out[READ]);
+	timer_pid = fork();
+	if (timer_pid == -1) {
+		close(pipe_out[READ]);
+		throw (serverException(_locationConfig));
+	}
+	if (timer_pid == 0)
+		cgiSleep();
+	if (waitpid(WAIT_ANY, &status, WUNTRACED) == timer_pid) {
+		close(pipe_out[READ]);
+		kill(cgi_pid, SIGKILL);
+		throw (serverException(_locationConfig));
+	} else {
+		if (status != 0) {
+			close(pipe_out[READ]);
+			throw (serverException(_locationConfig));
+		}
+		cgiProcessOutput(pipe_out[READ]);
+		close(pipe_out[READ]);
+	}
 }
 
 void Response::cgiExecute() {
@@ -190,6 +203,7 @@ void Response::cgiExecute() {
 		argv[0] = (char *)"/usr/bin/python";
 	else if (extension == ".php")
 		argv[0] = (char *)"/usr/bin/php";
+	// EXIT
 	if (execve(argv[0], argv.data(), envp.data())== -1)
 		throw (serverException(_locationConfig));
 }
@@ -240,6 +254,29 @@ std::vector<char*> Response::cgiGetEnv() const {
 	envp.push_back((char*)queryString.c_str());
 	envp.push_back(NULL);
 	return (envp);
+}
+
+void Response::cgiSetPipes(int *pipe_in, int *pipe_out) const {
+	if (_request.getMethod() == POST_METHOD_MASK) {
+		dup2(STDIN_FILENO, pipe_in[READ]);
+		close(pipe_in[READ]);
+		write(pipe_in[WRITE], _request.getBody().c_str(), _request.getBody().size());
+		close(pipe_in[WRITE]);
+	}
+	close (pipe_out[READ]);
+	dup2(pipe_out[WRITE], STDOUT_FILENO);
+	close (pipe_out[WRITE]);
+
+}
+
+void Response::cgiSleep() {
+	time_t	timestamp;
+	double	elapsedTime;
+
+	timestamp = time(NULL);
+	elapsedTime = difftime(time(NULL), timestamp);
+	while (elapsedTime < CGI_TIMEOUT)
+		elapsedTime = difftime(time(NULL), timestamp);
 }
 
 void Response::sendContinue(int clientSocket) {
