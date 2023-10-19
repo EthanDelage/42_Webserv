@@ -79,9 +79,8 @@ void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 
-	std::cout << "here 1" << std::endl;
 	if (isCgiRequest()) {
-		cgiResponseGet();
+		cgiResponse();
 		return;
 	}
 	path = getResourcePath();
@@ -113,6 +112,10 @@ void Response::responsePost() {
 	std::ofstream	file;
 	std::string		path;
 
+	if (isCgiRequest()) {
+		cgiResponse();
+		return;
+	}
 	path = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
 	if (access(path.c_str(), F_OK) == 0) {
 		throw(clientException(_locationConfig));
@@ -147,18 +150,16 @@ void Response::responseDelete() {
 }
 
 #include "iostream"
-void Response::cgiResponseGet() {
+void Response::cgiResponse() {
 	int		pipe_in[2];
 	int		pipe_out[2];
 	pid_t	cgi_pid;
 	pid_t	timer_pid;
+	char 	**env;
 	int 	status;
 
-
-	std::cout << "here 2" << std::endl;
 	pipe(pipe_out);
 	cgi_pid = fork();
-	std::cout << "cgi pid: " << cgi_pid << std::endl;
 	if (cgi_pid == -1) {
 		close(pipe_out[WRITE]);
 		close(pipe_out[READ]);
@@ -166,28 +167,26 @@ void Response::cgiResponseGet() {
 	} else if (cgi_pid == 0) {
 		pipe(pipe_in);
 		cgiSetPipes(pipe_in, pipe_out);
-		cgiExecute();
+		env = cgiGetEnv();
+		cgiExecute(env);
+		cgiClearEnv(env);
+		std::exit(1);
 	}
-	std::cout << "here 3" << std::endl;
 	close(pipe_out[WRITE]);
 	timer_pid = fork();
-	std::cout << "timer pid: " << timer_pid << std::endl;
 	if (timer_pid == -1) {
 		close(pipe_out[READ]);
 		throw (serverException(_locationConfig));
 	}
 	if (timer_pid == 0) {
 		close (pipe_out[READ]);
-		std::cout << "sleep" << std::endl;
-		usleep(100);
-		std::cout << "wake" << std::endl;
-		exit(0);
+		cgiSleep();
+		std::exit(0);
 	}
-	std::cout << "here 4" << std::endl;
 	if (waitpid(WAIT_ANY, &status, WUNTRACED) == timer_pid) {
-		std::cout << "timed out !" << std::endl;
 		close(pipe_out[READ]);
 		kill(cgi_pid, SIGKILL);
+		waitpid(cgi_pid, &status, WUNTRACED);
 		throw (serverException(_locationConfig));
 	} else {
 		kill(timer_pid, SIGKILL);
@@ -195,20 +194,18 @@ void Response::cgiResponseGet() {
 			close(pipe_out[READ]);
 			throw (serverException(_locationConfig));
 		}
+		waitpid(timer_pid, &status, WUNTRACED);
 		cgiProcessOutput(pipe_out[READ]);
 		close(pipe_out[READ]);
 	}
-	std::cout << "here 5" << std::endl;
 }
 
-void Response::cgiExecute() {
+void Response::cgiExecute(char** envp) {
 	std::string			cgiPath;
 	std::string 		extension;
 	std::vector<char*>	argv;
-	std::vector<char*>	envp;
 
 	cgiPath = _locationConfig->getRoot() + '/' + getCgiFile();
-	envp = cgiGetEnv();
 	argv.reserve(3);
 	argv[1] = (char*)cgiPath.c_str();
 	argv[2] = NULL;
@@ -217,7 +214,8 @@ void Response::cgiExecute() {
 		argv[0] = (char *)"/usr/bin/python";
 	else if (extension == ".php")
 		argv[0] = (char *)"/usr/bin/php";
-	exit(execve(argv[0], argv.data(), envp.data()));
+	execve(argv[0], argv.data(), envp);
+	std::exit(1);
 }
 
 void Response::cgiProcessOutput(int fd) {
@@ -247,14 +245,14 @@ void Response::cgiProcessOutput(int fd) {
 	_header.addContentLength(_body.size());
 }
 
-std::vector<char*> Response::cgiGetEnv() const {
-	std::vector<char*>	envp;
+char** Response::cgiGetEnv() const {
+	char**				env;
 	std::string			cgiFile;
 	std::string			requestUri;
 	std::string			pathInfo;
 	std::string			queryString;
+	size_t				size;
 
-	envp = envToVec();
 	cgiFile = getCgiFile();
 	requestUri = _request.getRequestUri();
 	requestUri.erase(0, requestUri.find(cgiFile) + cgiFile.size());
@@ -262,15 +260,35 @@ std::vector<char*> Response::cgiGetEnv() const {
 	queryString = requestUri.erase(0, pathInfo.size());
 	pathInfo = "PATH_INFO=" + pathInfo;
 	queryString= "QUERY_STRING=" + queryString;
-	*(envp.end()) = (char*)pathInfo.c_str();
-	envp.push_back((char*)queryString.c_str());
-	envp.push_back(NULL);
-	return (envp);
+	size = 0;
+	while (_envp[size])
+		++size;
+	size += 2;
+	env = new char*[size];
+	for (size_t i = 0; _envp[i]; ++i)
+		env[i] = _envp[i];
+	env[size - 3] = new char[pathInfo.size() + 1];
+	std::strcpy(env[size - 3], pathInfo.c_str());
+	env[size - 2] = new char[queryString.size() + 1];
+	std::strcpy(env[size - 2], queryString.c_str());
+	env[size - 1] = NULL;
+	return (env);
+}
+
+void Response::cgiClearEnv(char** env) const {
+	size_t	i;
+
+	i = 0;
+	while (env[i])
+		++i;
+	delete env[i - 3];
+	delete env[i - 2];
+	delete env;
 }
 
 void Response::cgiSetPipes(int *pipe_in, int *pipe_out) const {
 	if (_request.getMethod() == POST_METHOD_MASK) {
-		dup2(STDIN_FILENO, pipe_in[READ]);
+		dup2(pipe_in[READ], STDIN_FILENO);
 		close(pipe_in[READ]);
 		write(pipe_in[WRITE], _request.getBody().c_str(), _request.getBody().size());
 		close(pipe_in[WRITE]);
@@ -609,7 +627,6 @@ bool Response::isFile(std::string const & path) {
 	return (S_ISREG(pathStat.st_mode));
 }
 
-#include "iostream"
 bool Response::isCgiRequest() const {
 	std::string 				cgiFolder;
 	std::string 				cgiFile;
@@ -625,19 +642,6 @@ bool Response::isCgiRequest() const {
 			return (true);
 	}
 	return (false);
-}
-
-std::vector<char *> Response::envToVec() const {
-	std::vector<char*>	vector;
-	std::size_t			i;
-
-	i = 0;
-	while (_envp[i]) {
-		vector.push_back(_envp[i]);
-		i++;
-	}
-	vector.push_back(NULL);
-	return (vector);
 }
 
 #include <iostream>
