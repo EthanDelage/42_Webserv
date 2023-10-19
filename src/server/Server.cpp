@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <iterator>
 #include <iostream>
+#include <sstream>
 #include "message/Request.hpp"
 #include "message/Response.hpp"
 #include "error/Error.hpp"
@@ -35,25 +36,11 @@ Server::~Server() {
 }
 
 void Server::init(Config const & config, char** envp) {
-	pollfd	currentServerSocket;
-
 	_envp = envp;
 	addAddressArray(config.getServerConfig());
 	_nbServerSocket = _addressArray.size();
-	for (size_t i = 0; i < _nbServerSocket; ++i) {
-		try {
-			currentServerSocket.fd = initSocket(_addressArray[i]);
-			currentServerSocket.events = POLLIN;
-			currentServerSocket.revents = POLL_DEFAULT;
-			_socketArray.push_back(currentServerSocket);
-		} catch (std::runtime_error const & e) {
-			std::cerr << e.what() << " for " << _addressArray[i].first
-				<< ':' << _addressArray[i].second << std::endl;
-			_addressArray.erase(_addressArray.begin() + i);
-			--_nbServerSocket;
-			--i;
-		}
-	}
+	initSocketDefaultAddress();
+	initOtherSocket();
 	if (_nbServerSocket == 0) {
 		throw (std::runtime_error("No server created"));
 	}
@@ -81,14 +68,16 @@ void Server::listener(Config const & config) {
 void Server::connectionHandler(socketIterator_t& it, Config const & config) {
 	pollfd					newClientSocket;
 	Request*				newRequest;
+	socketAddress_t			socketAddress;
 	VirtualServerConfig*	virtualServerConfig;
 
 	for (; std::distance(_socketArray.begin(), it) != static_cast<long>(_nbServerSocket); ++it) {
 		if (it->revents == POLLIN) {
-			newClientSocket.fd = acceptClient(it->fd);
+			newClientSocket.fd = acceptClient(it->fd, socketAddress.first);
 			newClientSocket.events = POLLIN;
 			newClientSocket.revents = POLL_DEFAULT;
-			virtualServerConfig = config.getDefaultServer(_addressArray[std::distance(_socketArray.begin(), it)]);
+			socketAddress.second = _addressArray[std::distance(_socketArray.begin(), it)].second;
+			virtualServerConfig = config.getDefaultServer(socketAddress);
 			newRequest = new Request(newClientSocket.fd, virtualServerConfig);
 			_socketArray.push_back(newClientSocket);
 			_requestArray.push_back(newRequest);
@@ -201,6 +190,24 @@ void	Server::addAddressArray(std::vector<VirtualServerConfig*> serverConfig) {
 		if (std::find(_addressArray.begin(), _addressArray.end(), socketAddress) == _addressArray.end())
 			_addressArray.push_back(socketAddress);
 	}
+	removeDuplicateAddress();
+}
+
+void	Server::removeDuplicateAddress() {
+	socketAddress_t							anyAddress;
+	std::vector<socketAddress_t>::iterator	itAnyAddress;
+	std::vector<socketAddress_t>::iterator	it;
+
+	anyAddress.first = ANY_ADDRESS;
+	it = _addressArray.begin();
+	while (it != _addressArray.end()) {
+		anyAddress.second = it->second;
+		itAnyAddress = std::find(_addressArray.begin(), _addressArray.end(), anyAddress);
+		if (it->first != ANY_ADDRESS && itAnyAddress != _addressArray.end())
+			it = _addressArray.erase(it);
+		else
+			++it;
+	}
 }
 
 void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex) {
@@ -210,6 +217,48 @@ void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex)
 	it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
 	if (it != _socketArray.begin())
 		--it;
+}
+
+void Server::initSocketDefaultAddress() {
+	pollfd	currentServerSocket;
+
+	for (size_t i = 0; i < _nbServerSocket; ++i) {
+		try {
+			if (_addressArray[i].first == ANY_ADDRESS) {
+				currentServerSocket.fd = initSocket(_addressArray[i]);
+				currentServerSocket.events = POLLIN;
+				currentServerSocket.revents = POLL_DEFAULT;
+				_socketArray.push_back(currentServerSocket);
+			}
+		} catch (std::runtime_error const & e) {
+			std::cerr << e.what() << " for " << _addressArray[i].first
+					  << ':' << _addressArray[i].second << std::endl;
+			_addressArray.erase(_addressArray.begin() + i);
+			--_nbServerSocket;
+			--i;
+		}
+	}
+}
+
+void Server::initOtherSocket() {
+	pollfd									currentServerSocket;
+
+	for (size_t i = 0; i < _nbServerSocket; ++i) {
+		try {
+			if (_addressArray[i].first != ANY_ADDRESS) {
+				currentServerSocket.fd = initSocket(_addressArray[i]);
+				currentServerSocket.events = POLLIN;
+				currentServerSocket.revents = POLL_DEFAULT;
+				_socketArray.push_back(currentServerSocket);
+			}
+		} catch (std::runtime_error const & e) {
+			std::cerr << e.what() << " for " << _addressArray[i].first
+					  << ':' << _addressArray[i].second << std::endl;
+			_addressArray.erase(_addressArray.begin() + i);
+			--_nbServerSocket;
+			--i;
+		}
+	}
 }
 
 int Server::initSocket(socketAddress_t const & socketAddress) {
@@ -229,7 +278,7 @@ int Server::initSocket(socketAddress_t const & socketAddress) {
 	return (socketFd);
 }
 
-int Server::acceptClient(int socketFd) {
+int Server::acceptClient(int socketFd, std::string& ip) {
 	int 				clientSocketFd;
 	struct sockaddr_in	address;
 	socklen_t			addressLength;
@@ -238,6 +287,7 @@ int Server::acceptClient(int socketFd) {
 	clientSocketFd = accept(socketFd, (struct sockaddr*) &address, &addressLength);
 	if (clientSocketFd == -1)
 		throw (std::runtime_error("accept() failed"));
+	ip = ft_inet_ntoa(address.sin_addr.s_addr);
 	return (clientSocketFd);
 }
 
@@ -256,4 +306,15 @@ uint32_t Server::ft_inet_addr(std::string ip) {
 	}
 	s_addr = htonl(s_addr);
 	return (s_addr);
+}
+
+std::string Server::ft_inet_ntoa(uint32_t s_addr) {
+	std::stringstream	ip;
+
+	s_addr = ntohl(s_addr);
+	ip << ((s_addr & 0xff000000) >> 24)
+		<< '.' << ((s_addr & 0xff0000) >> 16)
+		<< '.' << ((s_addr & 0xff00) >> 8)
+		<< '.' << (s_addr & 0xff);
+	return (ip.str());
 }
