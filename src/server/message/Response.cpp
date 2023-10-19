@@ -185,6 +185,7 @@ void Response::cgiResponse() {
 	}
 	if (waitpid(WAIT_ANY, &status, WUNTRACED) == timer_pid) {
 		close(pipe_out[READ]);
+		std::cout << "TIMEOUT !!" << std::endl;
 		kill(cgi_pid, SIGKILL);
 		waitpid(cgi_pid, &status, WUNTRACED);
 		throw (serverException(_locationConfig));
