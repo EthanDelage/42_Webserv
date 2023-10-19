@@ -72,6 +72,14 @@ Default: ——
 Context: server
 ```
 
+### return:
+Stops processing and returns the specified URI to a client.
+```
+return = "return" SP uri ";"
+Default: ——
+Context: location
+```
+
 ### root:
 Set the root directory for requests.
 Example, with the following configuration file:

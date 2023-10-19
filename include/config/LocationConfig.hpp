@@ -33,12 +33,14 @@ private:
 	std::string const			_uri;
 	std::vector<std::string> 	_uriDirectories;
 	uint8_t						_allowedHttpMethod;
+	std::string 				_redirectionUri;
 
 	void 	parseLine(std::string& line);
 	void 	router(std::string& directive, std::string& value);
 
 protected:
 	void parseDeny(std::string& value);
+	void parseReturn(std::string& value);
 
 public:
 # ifdef UNIT_TESTING
@@ -49,6 +51,7 @@ public:
 
 	std::string					getUri() const;
 	std::vector<std::string>	getUriDirectories() const;
+	std::string 				getRedirectionUri() const;
 	bool						getMethodStatus() const;
 	bool						postMethodStatus() const;
 	bool						deleteMethodStatus() const;
