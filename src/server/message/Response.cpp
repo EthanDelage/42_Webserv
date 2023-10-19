@@ -30,11 +30,13 @@ Response::~Response() {}
 
 void Response::send() {
 	std::string	header;
+	std::string response;
 
 	header = _header.toString();
-	write(_clientSocket, _statusLine.c_str(), _statusLine.size());
-	write(_clientSocket, header.c_str(), header.size());
-	write(_clientSocket, _body.c_str(), _body.size());
+	response = _statusLine + header + _body;
+	if (write(_clientSocket, response.c_str(), response.size()) <= 0) {
+		throw (clientDisconnected());
+	}
 }
 
 void Response::setDate() {
@@ -42,9 +44,12 @@ void Response::setDate() {
 }
 
 void Response::send(int clientSocket, std::string statusLine, std::string header, std::string body) {
-	write(clientSocket, statusLine.c_str(), statusLine.size());
-	write(clientSocket, header.c_str(), header.size());
-	write(clientSocket, body.c_str(), body.size());
+	std::string response;
+
+	response = statusLine + header + body;
+	if (write(clientSocket, response.c_str(), response.size()) <= 0) {
+		throw (clientDisconnected());
+	}
 }
 
 void Response::router() {
@@ -248,13 +253,6 @@ std::vector<char*> Response::cgiGetEnv() const {
 	envp.push_back((char*)queryString.c_str());
 	envp.push_back(NULL);
 	return (envp);
-}
-
-void Response::sendContinue(int clientSocket) {
-	std::string	statusLine;
-
-	statusLine = statusCodeToLine(INFORMATIONAL_STATUS_CODE);
-	write(clientSocket, statusLine.c_str(), statusLine.size());
 }
 
 void Response::sendClientError(int clientSocket, clientException const & clientException) {

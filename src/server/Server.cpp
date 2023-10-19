@@ -20,6 +20,7 @@
 #include <iterator>
 #include <iostream>
 #include <sstream>
+#include <signal.h>
 #include "message/Request.hpp"
 #include "message/Response.hpp"
 #include "error/Error.hpp"
@@ -29,9 +30,18 @@ Server::Server() {
 }
 
 Server::~Server() {
-	for (std::vector<pollfd>::iterator it = _socketArray.begin(); it != _socketArray.end(); ++it) {
+	size_t							i;
+	std::vector<pollfd>::iterator	it;
+
+	i = 0;
+	it = _socketArray.begin();
+	while (it != _socketArray.end()) {
+		if (i >= _nbServerSocket)
+			delete _requestArray[i - _nbServerSocket];
 		if (it->fd == -1)
 			close(it->fd);
+		++it;
+		++i;
 	}
 }
 
@@ -73,10 +83,9 @@ void Server::connectionHandler(socketIterator_t& it, Config const & config) {
 
 	for (; std::distance(_socketArray.begin(), it) != static_cast<long>(_nbServerSocket); ++it) {
 		if (it->revents == POLLIN) {
-			newClientSocket.fd = acceptClient(it->fd, socketAddress.first);
+			newClientSocket.fd = acceptClient(it->fd, socketAddress);
 			newClientSocket.events = POLLIN;
 			newClientSocket.revents = POLL_DEFAULT;
-			socketAddress.second = _addressArray[std::distance(_socketArray.begin(), it)].second;
 			virtualServerConfig = config.getDefaultServer(socketAddress);
 			newRequest = new Request(newClientSocket.fd, virtualServerConfig);
 			_socketArray.push_back(newClientSocket);
@@ -278,7 +287,7 @@ int Server::initSocket(socketAddress_t const & socketAddress) {
 	return (socketFd);
 }
 
-int Server::acceptClient(int socketFd, std::string& ip) {
+int Server::acceptClient(int socketFd, socketAddress_t& socketAddress) {
 	int 				clientSocketFd;
 	struct sockaddr_in	address;
 	socklen_t			addressLength;
@@ -287,7 +296,9 @@ int Server::acceptClient(int socketFd, std::string& ip) {
 	clientSocketFd = accept(socketFd, (struct sockaddr*) &address, &addressLength);
 	if (clientSocketFd == -1)
 		throw (std::runtime_error("accept() failed"));
-	ip = ft_inet_ntoa(address.sin_addr.s_addr);
+	getsockname(clientSocketFd, (struct sockaddr*) &address, &addressLength);
+	socketAddress.first = ft_inet_ntoa(address.sin_addr.s_addr);
+	socketAddress.second = ntohs(address.sin_port);
 	return (clientSocketFd);
 }
 

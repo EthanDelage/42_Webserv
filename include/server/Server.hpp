@@ -45,7 +45,7 @@ private:
 	void 				initSocketDefaultAddress();
 	void 				initOtherSocket();
 	static int			initSocket(socketAddress_t const & socketAddress);
-	static int			acceptClient(int socketFd, std::string& ip);
+	static int			acceptClient(int socketFd, socketAddress_t& socketAddress);
 	static uint32_t		ft_inet_addr(std::string ip);
 	static std::string	ft_inet_ntoa(uint32_t s_addr);
 
