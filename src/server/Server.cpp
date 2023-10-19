@@ -35,25 +35,11 @@ Server::~Server() {
 }
 
 void Server::init(Config const & config, char** envp) {
-	pollfd	currentServerSocket;
-
 	_envp = envp;
 	addAddressArray(config.getServerConfig());
 	_nbServerSocket = _addressArray.size();
-	for (size_t i = 0; i < _nbServerSocket; ++i) {
-		try {
-			currentServerSocket.fd = initSocket(_addressArray[i]);
-			currentServerSocket.events = POLLIN;
-			currentServerSocket.revents = POLL_DEFAULT;
-			_socketArray.push_back(currentServerSocket);
-		} catch (std::runtime_error const & e) {
-			std::cerr << e.what() << " for " << _addressArray[i].first
-				<< ':' << _addressArray[i].second << std::endl;
-			_addressArray.erase(_addressArray.begin() + i);
-			--_nbServerSocket;
-			--i;
-		}
-	}
+	initSocketDefaultAddress();
+	initOtherSocket();
 	if (_nbServerSocket == 0) {
 		throw (std::runtime_error("No server created"));
 	}
@@ -201,6 +187,24 @@ void	Server::addAddressArray(std::vector<VirtualServerConfig*> serverConfig) {
 		if (std::find(_addressArray.begin(), _addressArray.end(), socketAddress) == _addressArray.end())
 			_addressArray.push_back(socketAddress);
 	}
+	removeDuplicateAddress();
+}
+
+void	Server::removeDuplicateAddress() {
+	socketAddress_t							anyAddress;
+	std::vector<socketAddress_t>::iterator	itAnyAddress;
+	std::vector<socketAddress_t>::iterator	it;
+
+	anyAddress.first = ANY_ADDRESS;
+	it = _addressArray.begin();
+	while (it != _addressArray.end()) {
+		anyAddress.second = it->second;
+		itAnyAddress = std::find(_addressArray.begin(), _addressArray.end(), anyAddress);
+		if (it->first != ANY_ADDRESS && itAnyAddress != _addressArray.end())
+			it = _addressArray.erase(it);
+		else
+			++it;
+	}
 }
 
 void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex) {
@@ -210,6 +214,48 @@ void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex)
 	it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
 	if (it != _socketArray.begin())
 		--it;
+}
+
+void Server::initSocketDefaultAddress() {
+	pollfd	currentServerSocket;
+
+	for (size_t i = 0; i < _nbServerSocket; ++i) {
+		try {
+			if (_addressArray[i].first == ANY_ADDRESS) {
+				currentServerSocket.fd = initSocket(_addressArray[i]);
+				currentServerSocket.events = POLLIN;
+				currentServerSocket.revents = POLL_DEFAULT;
+				_socketArray.push_back(currentServerSocket);
+			}
+		} catch (std::runtime_error const & e) {
+			std::cerr << e.what() << " for " << _addressArray[i].first
+					  << ':' << _addressArray[i].second << std::endl;
+			_addressArray.erase(_addressArray.begin() + i);
+			--_nbServerSocket;
+			--i;
+		}
+	}
+}
+
+void Server::initOtherSocket() {
+	pollfd									currentServerSocket;
+
+	for (size_t i = 0; i < _nbServerSocket; ++i) {
+		try {
+			if (_addressArray[i].first != ANY_ADDRESS) {
+				currentServerSocket.fd = initSocket(_addressArray[i]);
+				currentServerSocket.events = POLLIN;
+				currentServerSocket.revents = POLL_DEFAULT;
+				_socketArray.push_back(currentServerSocket);
+			}
+		} catch (std::runtime_error const & e) {
+			std::cerr << e.what() << " for " << _addressArray[i].first
+					  << ':' << _addressArray[i].second << std::endl;
+			_addressArray.erase(_addressArray.begin() + i);
+			--_nbServerSocket;
+			--i;
+		}
+	}
 }
 
 int Server::initSocket(socketAddress_t const & socketAddress) {
