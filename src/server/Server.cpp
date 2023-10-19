@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <iterator>
 #include <iostream>
+#include <sstream>
 #include "message/Request.hpp"
 #include "message/Response.hpp"
 #include "error/Error.hpp"
@@ -67,14 +68,16 @@ void Server::listener(Config const & config) {
 void Server::connectionHandler(socketIterator_t& it, Config const & config) {
 	pollfd					newClientSocket;
 	Request*				newRequest;
+	socketAddress_t			socketAddress;
 	VirtualServerConfig*	virtualServerConfig;
 
 	for (; std::distance(_socketArray.begin(), it) != static_cast<long>(_nbServerSocket); ++it) {
 		if (it->revents == POLLIN) {
-			newClientSocket.fd = acceptClient(it->fd);
+			newClientSocket.fd = acceptClient(it->fd, socketAddress.first);
 			newClientSocket.events = POLLIN;
 			newClientSocket.revents = POLL_DEFAULT;
-			virtualServerConfig = config.getDefaultServer(_addressArray[std::distance(_socketArray.begin(), it)]);
+			socketAddress.second = _addressArray[std::distance(_socketArray.begin(), it)].second;
+			virtualServerConfig = config.getDefaultServer(socketAddress);
 			newRequest = new Request(newClientSocket.fd, virtualServerConfig);
 			_socketArray.push_back(newClientSocket);
 			_requestArray.push_back(newRequest);
@@ -275,7 +278,7 @@ int Server::initSocket(socketAddress_t const & socketAddress) {
 	return (socketFd);
 }
 
-int Server::acceptClient(int socketFd) {
+int Server::acceptClient(int socketFd, std::string& ip) {
 	int 				clientSocketFd;
 	struct sockaddr_in	address;
 	socklen_t			addressLength;
@@ -284,6 +287,7 @@ int Server::acceptClient(int socketFd) {
 	clientSocketFd = accept(socketFd, (struct sockaddr*) &address, &addressLength);
 	if (clientSocketFd == -1)
 		throw (std::runtime_error("accept() failed"));
+	ip = ft_inet_ntoa(address.sin_addr.s_addr);
 	return (clientSocketFd);
 }
 
@@ -302,4 +306,15 @@ uint32_t Server::ft_inet_addr(std::string ip) {
 	}
 	s_addr = htonl(s_addr);
 	return (s_addr);
+}
+
+std::string Server::ft_inet_ntoa(uint32_t s_addr) {
+	std::stringstream	ip;
+
+	s_addr = ntohl(s_addr);
+	ip << ((s_addr & 0xff000000) >> 24)
+		<< '.' << ((s_addr & 0xff0000) >> 16)
+		<< '.' << ((s_addr & 0xff00) >> 8)
+		<< '.' << (s_addr & 0xff);
+	return (ip.str());
 }
