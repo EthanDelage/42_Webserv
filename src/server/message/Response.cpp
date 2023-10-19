@@ -100,7 +100,8 @@ void Response::responseGet() {
 		}
 	}
 	if (isDirectory(path)) {
-		_header.addHeader("Location", _request.getRequestUri() + '/');
+		if (_locationConfig->getRedirectionUri().empty())
+			_header.addHeader("Location", _request.getRequestUri() + '/');
 		responseRedirectionError(_locationConfig->getErrorPage()[300]);
 		return;
 	}
