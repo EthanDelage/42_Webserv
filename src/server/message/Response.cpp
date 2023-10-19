@@ -260,17 +260,17 @@ void Response::sendClientError(int clientSocket, clientException const & clientE
 	statusLine = statusCodeToLine(CLIENT_ERROR_STATUS_CODE);
 	if (clientException.getMethodMask() != 0b01111000)
 		header.addHeader("Allow", LocationConfig::allowedHttpMethodToString(clientException.getMethodMask()));
+	header.addDate();
 	errorPage.open(clientException.getErrorPage().c_str());
 	if (!errorPage.is_open()) {
-		header.addDate();
-		send(clientSocket, statusLine, header.toString(), body);
+		header.addContentLength(0);
+		send(clientSocket, statusLine, header.toString(), "");
 		return;
 	}
 	body = getFileContent(errorPage);
 	errorPage.close();
 	header.addHeader("Content-Type", "text/html");
 	header.addContentLength(body.size());
-	header.addDate();
 	send(clientSocket, statusLine, header.toString(), body);
 }
 
@@ -282,18 +282,17 @@ void Response::sendServerError(int clientSocket, std::string const & errorPagePa
 	Header				header;
 
 	statusLine = statusCodeToLine(SERVER_ERROR_STATUS_CODE);
+	header.addDate();
 	errorPage.open(errorPagePath.c_str());
 	if (!errorPage.is_open()) {
-		header.addDate();
-		write(clientSocket, statusLine.c_str(), statusLine.size());
-		write(clientSocket, CRLF, std::strlen(CRLF));
+		header.addContentLength(0);
+		send(clientSocket, statusLine, header.toString(), "");
 		return;
 	}
 	body = getFileContent(errorPage);
 	errorPage.close();
 	header.addHeader("Content-Type", "text/html");
 	header.addContentLength(body.size());
-	header.addDate();
 	send(clientSocket, statusLine, header.toString(), body);
 }
 
@@ -302,8 +301,10 @@ void Response::responseRedirectionError(std::string const & pathErrorPage) {
 
 	_statusLine = statusCodeToLine(300);
 	errorPage.open(pathErrorPage.c_str());
-	if (!errorPage.is_open())
+	if (!errorPage.is_open()) {
+		_header.addContentLength(0);
 		return;
+	}
 	_body = getFileContent(errorPage);
 	errorPage.close();
 	addContentType(pathErrorPage);
