@@ -222,9 +222,9 @@ void	Server::removeDuplicateAddress() {
 void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex) {
 	close(_requestArray[requestIndex]->getClientSocket());
 	delete _requestArray[requestIndex];
-	(void) _requestArray.erase(_requestArray.begin() + requestIndex);
+	_requestArray.erase(_requestArray.begin() + requestIndex);
 	it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
-	if (it != _socketArray.begin())
+	if (it == _socketArray.end())
 		--it;
 }
 
