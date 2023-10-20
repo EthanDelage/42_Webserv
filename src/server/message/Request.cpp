@@ -47,11 +47,11 @@ void Request::process() {
 void Request::router() {
 	if (_status == REQUEST_LINE)
 		parseRequestLine();
-	else if (_status == HEADER)
+	if (_status == HEADER)
 		parseRequestHeader();
-	else if (_status == BODY)
+	if (_status == BODY)
 		parseRequestBody();
-	else if (_status == CHUNKED)
+	if (_status == CHUNKED)
 		parseRequestChunk();
 }
 
