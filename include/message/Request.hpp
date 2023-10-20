@@ -33,6 +33,7 @@ typedef enum requestStatus_e {
 	REQUEST_LINE,
 	HEADER,
 	BODY,
+	CHUNKED,
 	END
 } requestStatus_t;
 
@@ -58,9 +59,11 @@ private:
 	void	parseRequestLine();
 	void	parseRequestHeader();
 	void	parseRequestBody();
+	void 	parseRequestChunk();
 	void	parseMethod(std::string const & arg);
 	void	parseHttpVersion(std::string const & arg);
 	bool 	requestContainBody() const;
+	bool	requestChunked() const;
 
 	void					readBuffer();
 	uint8_t					getMethodByName(std::string const & method) const;

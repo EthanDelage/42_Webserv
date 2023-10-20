@@ -47,10 +47,12 @@ void Request::process() {
 void Request::router() {
 	if (_status == REQUEST_LINE)
 		parseRequestLine();
-	if (_status == HEADER)
+	else if (_status == HEADER)
 		parseRequestHeader();
-	if (_status == BODY)
+	else if (_status == BODY)
 		parseRequestBody();
+	else if (_status == CHUNKED)
+		parseRequestChunk();
 }
 
 void Request::readBuffer() {
@@ -103,7 +105,9 @@ void Request::parseRequestHeader() {
 		_buffer.erase(0,index + 2);
 		if (currentLine == CRLF) {
 			_locationConfig = getMessageLocation(*_serverConfig, _requestURI);
-			if (requestContainBody())
+			if (requestChunked())
+				_status = CHUNKED;
+			else if (requestContainBody())
 				_status = BODY;
 			else
 				_status = END;
@@ -130,6 +134,34 @@ void Request::parseRequestBody() {
 	_buffer.erase(0, read_size);
 	if (_body.size() == size) {
 		_status = END;
+	}
+}
+
+void Request::parseRequestChunk() {
+	size_t	index;
+	size_t	chunkSize;
+
+	while (_buffer.find(CRLF) != std::string::npos) {
+		index = 0;
+		chunkSize = 0;
+		if (!isdigit(_buffer[0]))
+			throw (clientException(_locationConfig));
+		while (isdigit(_buffer[index])) {
+			if ((chunkSize * 10 + (_buffer[index] - '0')) / 10 != chunkSize)
+				throw (clientException(_locationConfig));
+			chunkSize = chunkSize * 10 + (_buffer[index] - '0');
+			++index;
+		}
+		if (std::strncmp(_buffer.c_str() + index, CRLF, 2) != 0)
+			throw (clientException(_locationConfig));
+		if (chunkSize == 0)
+			_status = END;
+		if (_buffer.size() - (index + 2) < chunkSize)
+			return;
+		if (_body.size() + chunkSize > _locationConfig->getMaxBodySize())
+			throw (clientException(_locationConfig));
+		_body += _buffer.substr(index + 2, chunkSize);
+		_buffer.erase(0, chunkSize + index + 2);
 	}
 }
 
@@ -188,11 +220,23 @@ bool Request::requestContainBody() const {
 	if (_method != POST_METHOD_MASK)
 		return (false);
 	try {
-		(void) _header.getHeaderByKey("Content-Length");
+		static_cast<void>(_header.getHeaderByKey("Content-Length"));
 	} catch (headerException const & e) {
 		return (false);
 	}
 	return (true);
+}
+
+bool Request::requestChunked() const {
+	std::string transferEncoding;
+	try {
+		transferEncoding = _header.getHeaderByKey("Transfer-Encoding");
+		if (transferEncoding == "chunked")
+			return (true);
+		return (false);
+	} catch (headerException const & e) {
+		return (false);
+	}
 }
 
 uint8_t Request::getMethodByName(const std::string& method) const {
