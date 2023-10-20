@@ -125,6 +125,8 @@ void Response::responsePost() {
 	std::ofstream	file;
 	std::string		path;
 
+	std::cout << "here" << std::endl;
+	std::cout << "POST BODY: " << std::endl << _request.getBody() << std::endl;
 	if (isCgiRequest()) {
 		cgiResponse();
 		return;
