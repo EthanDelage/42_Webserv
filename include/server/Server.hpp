@@ -27,19 +27,21 @@ class Server {
 	typedef std::vector<pollfd>::iterator socketIterator_t;
 
 private:
+	Config*							_config;
 	std::vector<pollfd>				_socketArray;
 	std::vector<socketAddress_t>	_addressArray;
 	size_t							_nbServerSocket;
 	std::vector<Request*>			_requestArray;
 	char**							_envp;
+	static bool						_exit;
 
 	void				addAddressArray(std::vector<VirtualServerConfig*> serverConfig);
 	void 				removeDuplicateAddress();
-	void				connectionHandler(socketIterator_t& it, Config const & config);
+	void				connectionHandler(socketIterator_t& it);
 	void 				clientHandler(socketIterator_t& it);
 	void 				requestHandler(size_t requestIndex, socketIterator_t& it);
-	void 				responseHandler(socketIterator_t& it, Config const & config);
-	void 				sendResponse(size_t requestIndex, Config const & config);
+	void 				responseHandler(socketIterator_t& it);
+	void 				sendResponse(size_t requestIndex);
 	void 				requestReset(size_t requestIndex);
 	void				clientDisconnect(socketIterator_t& it, size_t requestIndex);
 	void 				initSocketDefaultAddress();
@@ -53,8 +55,9 @@ public:
 	Server();
 	~Server();
 
-	void	init(Config const & config, char** envp);
-	void	listener(Config const & config);
+	void		init(Config* config, char** envp);
+	void		listener();
+	static void	setCloseServer();
 
 };
 

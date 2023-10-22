@@ -25,6 +25,8 @@
 #include "message/Response.hpp"
 #include "error/Error.hpp"
 
+bool Server::_exit = false;
+
 Server::Server() {
 	_nbServerSocket = 0;
 }
@@ -45,9 +47,10 @@ Server::~Server() {
 	}
 }
 
-void Server::init(Config const & config, char** envp) {
+void Server::init(Config* config, char** envp) {
+	_config = config;
 	_envp = envp;
-	addAddressArray(config.getServerConfig());
+	addAddressArray(_config->getServerConfig());
 	_nbServerSocket = _addressArray.size();
 	initSocketDefaultAddress();
 	initOtherSocket();
@@ -56,7 +59,7 @@ void Server::init(Config const & config, char** envp) {
 	}
 }
 
-void Server::listener(Config const & config) {
+void Server::listener() {
 	socketIterator_t	it;
 
 	for (size_t i = 0; i < _nbServerSocket; ++i) {
@@ -64,18 +67,21 @@ void Server::listener(Config const & config) {
 			throw(std::runtime_error("listen() failed"));
 	}
 	while (true) {
-		if (poll(_socketArray.data(), _socketArray.size(), POLL_TIMEOUT) == -1)
+		if (poll(_socketArray.data(), _socketArray.size(), POLL_TIMEOUT) == -1) {
+			if (_exit)
+				return;
 			throw (std::runtime_error("poll() failed"));
+		}
 		it = _socketArray.begin();
-		connectionHandler(it, config);
+		connectionHandler(it);
 		it = _socketArray.begin() + _nbServerSocket;
 		clientHandler(it);
 		it = _socketArray.begin() + _nbServerSocket;
-		responseHandler(it, config);
+		responseHandler(it);
 	}
 }
 
-void Server::connectionHandler(socketIterator_t& it, Config const & config) {
+void Server::connectionHandler(socketIterator_t& it) {
 	pollfd					newClientSocket;
 	Request*				newRequest;
 	socketAddress_t			socketAddress;
@@ -86,7 +92,7 @@ void Server::connectionHandler(socketIterator_t& it, Config const & config) {
 			newClientSocket.fd = acceptClient(it->fd, socketAddress);
 			newClientSocket.events = POLLIN;
 			newClientSocket.revents = POLL_DEFAULT;
-			virtualServerConfig = config.getDefaultServer(socketAddress);
+			virtualServerConfig = _config->getDefaultServer(socketAddress);
 			newRequest = new Request(newClientSocket.fd, virtualServerConfig);
 			_socketArray.push_back(newClientSocket);
 			_requestArray.push_back(newRequest);
@@ -140,14 +146,14 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 	}
 }
 
-void Server::responseHandler(socketIterator_t& it, Config const & config) {
+void Server::responseHandler(socketIterator_t& it) {
 	size_t requestIndex;
 
 	requestIndex = 0;
 	for (; it != _socketArray.end(); ++it) {
 		if (_requestArray[requestIndex]->getStatus() == END) {
 			try {
-				sendResponse(requestIndex, config);
+				sendResponse(requestIndex);
 			} catch (clientDisconnected const& e) {
 				clientDisconnect(it, requestIndex);
 			}
@@ -156,12 +162,12 @@ void Server::responseHandler(socketIterator_t& it, Config const & config) {
 	}
 }
 
-void Server::sendResponse(size_t requestIndex, Config const & config) {
+void Server::sendResponse(size_t requestIndex) {
 	Request*			currentRequest;
 
 	currentRequest = _requestArray[requestIndex];
 	try {
-		currentRequest->updateServerConfig(config);
+		currentRequest->updateServerConfig(*_config);
 		Response response(*currentRequest, _envp);
 
 		response.print();
@@ -250,7 +256,7 @@ void Server::initSocketDefaultAddress() {
 }
 
 void Server::initOtherSocket() {
-	pollfd									currentServerSocket;
+	pollfd	currentServerSocket;
 
 	for (size_t i = 0; i < _nbServerSocket; ++i) {
 		try {
@@ -328,4 +334,8 @@ std::string Server::ft_inet_ntoa(uint32_t s_addr) {
 		<< '.' << ((s_addr & 0xff00) >> 8)
 		<< '.' << (s_addr & 0xff);
 	return (ip.str());
+}
+
+void Server::setCloseServer() {
+	_exit = true;
 }
