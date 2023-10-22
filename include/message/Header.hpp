@@ -30,6 +30,7 @@ public:
 	void		addHeader(std::string const & key, std::string const & value);
 	void		addContentLength(size_t bodySize);
 	void 		addDate();
+	bool		contain(std::string const & header) const;
 	std::string toString() const;
 
 	static std::string dateToString(tm* dateInfo);

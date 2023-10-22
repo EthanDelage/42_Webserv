@@ -35,7 +35,7 @@ void Header::parseHeader(std::string const & line) {
 	separatorIndex = line.find(':');
 	key = line.substr(0, separatorIndex);
 	if (!isValidHeader(key)) {
-		std::cout << "invalid header" << std::endl;
+		std::cout << "Unknown header: " << key << ": " << value << std::endl;
 		return;
 	}
 	value = line.substr(separatorIndex + 1, line.size() - (separatorIndex + 2));
@@ -95,6 +95,15 @@ std::string Header::dateToString(tm *dateInfo) {
 	return (date.str());
 }
 
+bool Header::contain(std::string const & header) const {
+	try {
+		getHeaderByKey(header);
+	} catch (headerException const & e) {
+		return (false);
+	}
+	return (true);
+}
+
 std::string Header::toString() const {
 	std::string	result;
 
@@ -110,8 +119,11 @@ bool Header::isValidHeader(std::string const & headerKey) {
 	std::string const	 validHeader[] = {
 		"Host",
 		"Content-Length",
+		"Content-Type",
 		"Accept",
-		"Transfer-Encoding"};
+		"Transfer-Encoding",
+		"Content-Disposition"
+	};
 
 	for (size_t i = 0; i != sizeof(validHeader) / sizeof (*validHeader); ++i) {
 		if (headerKey == validHeader[i])
