@@ -31,7 +31,7 @@ private:
 	std::vector<pollfd>				_socketArray;
 	std::vector<socketAddress_t>	_addressArray;
 	size_t							_nbServerSocket;
-	std::vector<Request*>			_requestArray;
+	std::vector<Request>			_requestArray;
 	char**							_envp;
 	static bool						_exit;
 
