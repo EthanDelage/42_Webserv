@@ -59,7 +59,6 @@ private:
 	static std::string	uitoa(unsigned int n);
 	static bool			removeDirectory(std::string const & dirName);
 	std::string			getCgiFile() const;
-	std::string 		getUploadFilename(std::string& contentDisposition) const;
 
 	bool				isDirectory(std::string const & path);
 	bool				isCgiRequest() const;

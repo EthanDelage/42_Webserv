@@ -25,6 +25,7 @@ class Header {
 public:
 	Header();
 	std::string	getHeaderByKey(std::string const & key) const;
+	std::string getAttribute(std::string const & key, std::string const & attribute);
 
 	void		parseHeader(std::string const &line);
 	void		addHeader(std::string const & key, std::string const & value);

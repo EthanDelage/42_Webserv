@@ -124,44 +124,47 @@ void Response::responseGet() {
 void Response::responsePost() {
 	std::ofstream	file;
 	std::string		path;
-	std::string 	contentType;
 	std::string 	boundary;
 
 	if (isCgiRequest())
 		return (cgiResponse());
-	if (!_request.getHeader().contain("Content-Type"))
+	try {
+		boundary = _request.getHeader().getAttribute("Content-Type", "boundary");
+		boundary = "--" + boundary;
+		postProcessBody(boundary);
+	} catch (headerException const & e) {
 		throw (clientException(_locationConfig));
-	contentType = _request.getHeader().getHeaderByKey("Content-Type");
-	boundary = contentType.substr(contentType.find(' '));
-	boundary.erase(0, std::strlen(" boundary="));
-	boundary = "--" + boundary;
-	contentType.erase(contentType.find(' '));
-	if (contentType != "multipart/form-data;" || boundary.empty())
-		throw (clientException(_locationConfig));
-	postProcessBody(boundary);
+	}
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 	_header.addHeader("Location", _request.getRequestUri());
 }
 
 void Response::postProcessBody(std::string& boundary) {
-	std::string requestBody;
-	std::string currentLine;
+	std::string body;
+	std::string fileContent;
+	std::string line;
+	std::string end;
+	size_t		index;
 
-	requestBody = _request.getBody();
-	currentLine = getHttpLine(requestBody);
-	while (currentLine == (boundary + CRLF)) {
-		if (requestBody.find(boundary) == std::string::npos)
+	body = _request.getBody();
+	line = getHttpLine(body);
+	while (line == (boundary + CRLF)) {
+		index = body.find(boundary);
+		if (index == std::string::npos)
 			throw (clientException(_locationConfig));
-		postProcessUpload(requestBody, boundary);
-		currentLine = getHttpLine(requestBody);
+		if (body.substr(index - std::strlen(CRLF), std::strlen(CRLF)) != CRLF)
+			throw (clientException(_locationConfig));
+		fileContent = body.substr(0, index - std::strlen(CRLF));
+		body.erase(0, index);
+		postProcessUpload(fileContent, boundary);
+		line = getHttpLine(body);
 	}
-	if (currentLine != boundary + "--" + CRLF)
+	if (line != boundary + "--" + CRLF)
 		throw (clientException(_locationConfig));
 }
 
 void Response::postProcessUpload(std::string& body, std::string& boundary) {
 	Header		header;
-	std::string contentDisposition;
 	std::string	currentLine;
 	std::string	filename;
 	std::string	content;
@@ -173,11 +176,18 @@ void Response::postProcessUpload(std::string& body, std::string& boundary) {
 	}
 	if (!header.contain("Content-Disposition"))
 		throw (clientException(_locationConfig));
-	contentDisposition = header.getHeaderByKey("Content-Disposition");
-	filename = getUploadFilename(contentDisposition);
 	content = body.substr(0, body.find(boundary));
 	body.erase(0, content.find(boundary));
-	postUploadFile(filename, content);
+	try {
+		filename = header.getAttribute("Content-Disposition", "filename");
+		if (filename.size() < 3 && (filename.at(0) != '\"' || filename.at(filename.size() - 1) != '\"'))
+			throw (clientException(_locationConfig));
+		filename.erase(filename.begin());
+		filename.erase(filename.end() - 1);
+		postUploadFile(filename, content);
+	} catch (headerException const & e) {
+		throw(clientException(_locationConfig));
+	}
 }
 
 void Response::postUploadFile(std::string& filename, std::string& content) {
@@ -194,32 +204,6 @@ void Response::postUploadFile(std::string& filename, std::string& content) {
 		throw (serverException(_locationConfig));
 	file << content;
 	file.close();
-}
-
-std::string Response::getUploadFilename(std::string& contentDisposition) const {
-	std::string	filename;
-	size_t		separator;
-
-	while (!contentDisposition.empty()) {
-		separator = contentDisposition.find(';');
-		filename = contentDisposition.substr(0, separator);
-		if (filename.find(" filename=") == 0) {
-			filename.erase(0, strlen(" filename="));
-			if (filename.size() < 3)
-				throw (clientException(_locationConfig));
-			if (filename.at(0) != '\"' || filename.at(filename.size() - 1) != '\"')
-				throw (clientException(_locationConfig));
-			//TODO check if the quote is before a ':' instead of at the end
-			filename.erase(filename.begin());
-			filename.erase(filename.end() - 1);
-			return (filename);
-		}
-		if (separator == std::string::npos)
-			contentDisposition.clear();
-		else
-			contentDisposition.erase(0, separator + 1);
-	}
-	throw (clientException(_locationConfig));
 }
 
 void Response::responseDelete() {

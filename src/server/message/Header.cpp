@@ -26,6 +26,36 @@ std::string Header::getHeaderByKey(std::string const & key) const {
 	return (value->second);
 }
 
+std::string Header::getAttribute(std::string const & key, std::string const & attribute) {
+	std::string const	separator = "; ";
+	std::string 		header;
+	std::string 		current_attribute;
+	size_t				index;
+
+	//TODO handle quote
+	header = getHeaderByKey(key);
+	index = header.find(separator);
+	if (index == std::string::npos)
+		throw (headerException());
+	header.erase(0, index + separator.size());
+	while (!header.empty()) {
+		index = header.find(separator);
+		current_attribute = header.substr(0, index);
+		if (current_attribute.find(attribute) == 0) {
+			index = current_attribute.find('=');
+			if (index == std::string::npos)
+				throw (headerException());
+			current_attribute.erase(0, index + 1);
+			return (current_attribute);
+		}
+		if (index == std::string::npos)
+			header.clear();
+		else
+			header.erase(0, index + separator.size());
+	}
+	throw (headerException());
+}
+
 #include <iostream>
 void Header::parseHeader(std::string const & line) {
 	std::string	key;
