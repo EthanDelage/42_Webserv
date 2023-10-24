@@ -124,22 +124,87 @@ void Response::responseGet() {
 void Response::responsePost() {
 	std::ofstream	file;
 	std::string		path;
+	std::string 	boundary;
 
-	if (isCgiRequest()) {
-		cgiResponse();
-		return;
+	if (isCgiRequest())
+		return (cgiResponse());
+	try {
+		boundary = _request.getHeader().getAttribute("Content-Type", "boundary");
+		boundary = "--" + boundary;
+		postProcessBody(boundary);
+	} catch (headerException const & e) {
+		throw (clientException(_locationConfig));
 	}
-	path = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
-	if (access(path.c_str(), F_OK) == 0) {
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	_header.addHeader("Location", _request.getRequestUri());
+	_header.addContentLength(_body.size());
+}
+
+void Response::postProcessBody(std::string& boundary) {
+	std::string body;
+	std::string fileContent;
+	std::string line;
+	std::string end;
+	size_t		index;
+
+	body = _request.getBody();
+	line = getHttpLine(body);
+	while (line == (boundary + CRLF)) {
+		index = body.find(boundary);
+		if (index == std::string::npos)
+			throw (clientException(_locationConfig));
+		if (body.substr(index - std::strlen(CRLF), std::strlen(CRLF)) != CRLF)
+			throw (clientException(_locationConfig));
+		fileContent = body.substr(0, index - std::strlen(CRLF));
+		body.erase(0, index);
+		postProcessUpload(fileContent, boundary);
+		line = getHttpLine(body);
+	}
+	if (line != boundary + "--" + CRLF)
+		throw (clientException(_locationConfig));
+}
+
+void Response::postProcessUpload(std::string& body, std::string& boundary) {
+	Header		header;
+	std::string	currentLine;
+	std::string	filename;
+	std::string	content;
+
+	currentLine = getHttpLine(body);
+	while (currentLine != CRLF) {
+		header.parseHeader(currentLine);
+		currentLine = getHttpLine(body);
+	}
+	if (!header.contain("Content-Disposition"))
+		throw (clientException(_locationConfig));
+	content = body.substr(0, body.find(boundary));
+	body.erase(0, content.find(boundary));
+	try {
+		filename = header.getAttribute("Content-Disposition", "filename");
+		if (filename.size() < 3 || filename.at(0) != '\"' || filename.at(filename.size() - 1) != '\"')
+			throw (clientException(_locationConfig));
+		filename.erase(filename.begin());
+		filename.erase(filename.end() - 1);
+		postUploadFile(filename, content);
+	} catch (headerException const & e) {
 		throw(clientException(_locationConfig));
 	}
+}
+
+void Response::postUploadFile(std::string& filename, std::string& content) {
+	std::string 	path;
+	std::ofstream	file;
+
+	path = _locationConfig->getRoot() + '/';
+	path += _request.getRequestUri().erase(0, _locationConfig->getUri().size());
+	path += filename;
+	if (access(path.c_str(), F_OK) == 0)
+		throw(clientException(_locationConfig));
 	file.open(path.c_str());
 	if (!file.is_open())
 		throw (serverException(_locationConfig));
-	file << _request.getBody();
+	file << content;
 	file.close();
-	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-	_header.addHeader("Location", _request.getRequestUri());
 }
 
 void Response::responseDelete() {
@@ -160,9 +225,9 @@ void Response::responseDelete() {
 		throw (serverException(_locationConfig));
 	}
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	_header.addContentLength(_body.size());
 }
 
-#include "iostream"
 void Response::cgiResponse() {
 	int		pipe_in[2];
 	int		pipe_out[2];
@@ -198,7 +263,6 @@ void Response::cgiResponse() {
 	}
 	if (waitpid(WAIT_ANY, &status, WUNTRACED) == timer_pid) {
 		close(pipe_out[READ]);
-		std::cout << "TIMEOUT !!" << std::endl;
 		kill(cgi_pid, SIGKILL);
 		waitpid(cgi_pid, &status, WUNTRACED);
 		throw (serverException(_locationConfig));
@@ -619,20 +683,24 @@ std::string Response::getCgiFile() const {
 	return (cgiFile);
 }
 
+std::string Response::getHttpLine(std::string& str) const {
+	size_t		index;
+	std::string	line;
+
+	index = str.find(CRLF);
+	if (index == std::string::npos)
+		throw (clientException(_locationConfig));
+	line = str.substr(0, index + 2);
+	str.erase(0, index + 2);
+	return (line);
+}
+
 bool Response::isDirectory(std::string const & path) {
 	struct stat	pathStat;
 
 	if (stat(path.c_str(), &pathStat) == -1)
 		throw (clientException(_locationConfig));
 	return (S_ISDIR(pathStat.st_mode));
-}
-
-bool Response::isFile(std::string const & path) {
-	struct stat pathStat;
-
-	if (stat(path.c_str(), &pathStat) == -1)
-		throw (clientException(_locationConfig));
-	return (S_ISREG(pathStat.st_mode));
 }
 
 bool Response::isCgiRequest() const {

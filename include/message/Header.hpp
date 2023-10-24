@@ -25,11 +25,13 @@ class Header {
 public:
 	Header();
 	std::string	getHeaderByKey(std::string const & key) const;
+	std::string getAttribute(std::string const & key, std::string const & attribute);
 
 	void		parseHeader(std::string const &line);
 	void		addHeader(std::string const & key, std::string const & value);
 	void		addContentLength(size_t bodySize);
 	void 		addDate();
+	bool		contain(std::string const & header) const;
 	std::string toString() const;
 
 	static std::string dateToString(tm* dateInfo);

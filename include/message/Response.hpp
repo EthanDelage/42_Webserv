@@ -35,6 +35,9 @@ private:
 	void responseDelete();
 	void cgiResponse();
 
+	void				postProcessBody(std::string& boundary);
+	void				postProcessUpload(std::string& body, std::string& boundary);
+	void				postUploadFile(std::string& filename, std::string& content);
 	void				cgiExecute(char** envp);
 	void				cgiProcessOutput(int fd);
 	char**				cgiGetEnv() const;
@@ -45,6 +48,7 @@ private:
 	std::string			getContentType(std::string const & path) const;
 	void				listingDirectory();
 	void 				addContentType(std::string const & path);
+	std::string			getHttpLine(std::string& str) const;
 	bool				checkAcceptWildcard(std::string const & contentType, std::string const & acceptValue);
 	static void			send(int clientSocket, std::string statusLine, std::string header, std::string body);
 	static std::string	getFileContent(std::ifstream& file);
@@ -57,7 +61,6 @@ private:
 	std::string			getCgiFile() const;
 
 	bool				isDirectory(std::string const & path);
-	bool				isFile(std::string const & path);
 	bool				isCgiRequest() const;
 
 public:
