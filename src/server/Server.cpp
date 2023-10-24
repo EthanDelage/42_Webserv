@@ -162,7 +162,7 @@ void Server::sendResponse(size_t requestIndex) {
 		currentRequest->updateServerConfig(*_config);
 		Response response(*currentRequest, _envp);
 
-		response.print();
+		currentRequest->print();
 		response.setDate();
 		response.send();
 	} catch (clientException const& e) {
@@ -307,7 +307,7 @@ int Server::acceptClient(int socketFd, socketAddress_t& socketAddress) {
 	socketAddress.first = ft_inet_ntoa(address.sin_addr.s_addr);
 	socketAddress.second = ntohs(address.sin_port);
 	printColor(std::cout, "New client connected ➜ ", PURPLE);
-	std::cout << socketFd << std::endl;
+	std::cout << clientSocketFd << std::endl;
 	return (clientSocketFd);
 }
 

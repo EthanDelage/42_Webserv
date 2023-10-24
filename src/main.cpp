@@ -33,7 +33,7 @@ int	main(int argc, char** argv, char **envp) {
 		server.listener();
 	} catch (std::exception const & e) {
 		printColor(std::cerr, std::string("Error: ") + e.what() + '\n', RED);
-		printColor(std::cerr, "Webserv close due to error\n", RED);
+		printColor(std::cerr, "Webserv close\n", RED);
 		return (1);
 	}
 	printColor(std::cout, "\nWebserv close\n", GREEN);

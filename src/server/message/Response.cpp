@@ -15,6 +15,7 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <fcntl.h>
+#include <iostream>
 #include "utils.hpp"
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -29,14 +30,18 @@ Response::Response(Request& request, char** envp) : Message(request.getClientSoc
 Response::~Response() {}
 
 void Response::send() {
-	std::string	header;
-	std::string response;
+	std::string			header;
+	std::string 		response;
+	std::stringstream	ss;
 
+	print();
 	header = _header.toString();
 	response = _statusLine + header + _body;
 	if (write(_clientSocket, response.c_str(), response.size()) <= 0) {
 		throw (clientDisconnected());
 	}
+	printSend(response.size(), _clientSocket);
+	print();
 }
 
 void Response::setDate() {
@@ -44,12 +49,19 @@ void Response::setDate() {
 }
 
 void Response::send(int clientSocket, std::string statusLine, std::string header, std::string body) {
-	std::string response;
+	std::string 		response;
+	std::stringstream	ss;
 
+	printColor(std::cout, "Response to client ", PURPLE);
+	ss << clientSocket;
+	printColor(std::cout, ss.str(), DEFAULT);
+	printColor(std::cout, " ↴\n", PURPLE);
+	printColor(std::cout, statusLine + header, DEFAULT);
 	response = statusLine + header + body;
 	if (write(clientSocket, response.c_str(), response.size()) <= 0) {
 		throw (clientDisconnected());
 	}
+	printSend(response.size(), clientSocket);
 }
 
 void Response::router() {
@@ -158,7 +170,6 @@ void Response::responseDelete() {
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 }
 
-#include "iostream"
 void Response::cgiResponseGet() {
 	int		pipe_out[2];
 	int		pipe_in[2];
@@ -203,6 +214,7 @@ void Response::cgiExecute() {
 		argv[0] = (char *)"/usr/bin/python";
 	else if (extension == ".php")
 		argv[0] = (char *)"/usr/bin/php";
+	printCgiExecution(cgiPath);
 	if (execve(argv[0], argv.data(), envp.data())== -1)
 		throw (serverException(_locationConfig));
 }
@@ -226,7 +238,7 @@ void Response::cgiProcessOutput(int fd) {
 		}
 		currentHeader = cgiOutput.substr(0, cgiOutput.find(CRLF) + 2);
 		if (currentHeader != CRLF)
-			_header.parseHeader(currentHeader);
+			_header.parseHeader(currentHeader, _clientSocket);
 		cgiOutput.erase(0, cgiOutput.find(CRLF) + 2);
 	} while (currentHeader != CRLF);
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
@@ -574,8 +586,6 @@ bool Response::isCgiRequest() const {
 	std::vector<std::string>	cgi;
 
 	cgiFolder = _locationConfig->getCgiFolder();
-	std::cout << "cgi folder:" << cgiFolder << std::endl;
-	std::cout << "root: " << _locationConfig->getUri() << std::endl;
 	if (_locationConfig->getUri() != cgiFolder)
 		return (false);
 	cgiFile = getCgiFile();
@@ -600,11 +610,35 @@ std::vector<char *> Response::envToVec() const {
 	return (vector);
 }
 
-#include <iostream>
 void Response::print() const {
-	std::cout << "Response:" << std::endl;
-	std::cout << _statusLine;
-	std::cout << _header.toString();
-	std::cout << _body;
-	std::cout << "End" << std::endl;
+	std::stringstream	ss;
+
+	printColor(std::cout, "Response to client ", PURPLE);
+	ss << _clientSocket;
+	printColor(std::cout, ss.str(), DEFAULT);
+	printColor(std::cout, " ↴\n", PURPLE);
+	printColor(std::cout, _statusLine + _header.toString(), DEFAULT);
+}
+
+void Response::printSend(size_t bytesSend, int clientSocket) {
+	std::stringstream	ss;
+
+	ss << "Send " << bytesSend;
+	if (bytesSend == 1)
+		ss << " byte ";
+	else
+		ss << " bytes ";
+	ss << "to client ";
+	printColor(std::cout, ss.str(), BLUE);
+	ss.str("");
+	ss << clientSocket << std::endl;
+	printColor(std::cout, ss.str(), DEFAULT);
+}
+
+void Response::printCgiExecution(std::string const & cgiPath) const {
+	std::stringstream	ss;
+
+	printColor(std::cout, std::string("Execute CGI `") + cgiPath + "` for client ", PURPLE);
+	ss << _clientSocket << std::endl;
+	printColor(std::cout, ss.str(), DEFAULT);
 }

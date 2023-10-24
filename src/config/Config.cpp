@@ -551,6 +551,4 @@ void Config::print() {
 	for (std::vector<std::string>::iterator i = _index.begin(); i !=  _index.end(); i++)
 		std::cout << *i << " | ";
 	std::cout << std::endl;
-	std::cout << "Root: " << _root << std::endl;
-	std::cout << "Cgi folder: " << _cgiFolder << std::endl;
 }

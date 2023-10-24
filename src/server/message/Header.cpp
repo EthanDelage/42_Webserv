@@ -14,6 +14,7 @@
 #include "error/Error.hpp"
 #include <sstream>
 #include <ctime>
+#include <iostream>
 
 Header::Header() : _header() {}
 
@@ -26,24 +27,25 @@ std::string Header::getHeaderByKey(std::string const & key) const {
 	return (value->second);
 }
 
-#include <iostream>
-void Header::parseHeader(std::string const & line) {
+void Header::parseHeader(std::string const & line, uint16_t clientSocket) {
 	std::string	key;
 	std::string	value;
 	size_t		separatorIndex;
 
 	separatorIndex = line.find(':');
-	key = line.substr(0, separatorIndex);
+	if (separatorIndex == std::string::npos)
+		key = line.substr(0, line.size() - 2);
+	else
+		key = line.substr(0, separatorIndex);
 	if (!isValidHeader(key)) {
-		printColor(std::cerr, "Header not Managed `", RED);
-		printColor(std::cerr, key, DEFAULT);
-		printColor(std::cerr, "`\n", RED);
+		printHeader(key, clientSocket);
 		return;
 	}
 	value = line.substr(separatorIndex + 1, line.size() - (separatorIndex + 2));
 	value = trim(value);
 	if (key == "Host" && value.empty())
 		throw (headerException());
+	printHeader(key, clientSocket);
 	addHeader(key, value);
 }
 
@@ -133,4 +135,21 @@ std::string Header::trim(std::string& str) {
 	while (str[end] == ' ')
 		end--;
 	return (str.substr(start, end - start));
+}
+
+void Header::printHeader(std::string const & headerKey, uint16_t clientSocket) {
+	std::stringstream	ss;
+
+	ss << clientSocket << std::endl;
+	if (isValidHeader(headerKey)) {
+		printColor(std::cout, "Header `", PURPLE);
+		printColor(std::cout, headerKey, DEFAULT);
+		printColor(std::cout, "` received from client ", PURPLE);
+		printColor(std::cout, ss.str(), DEFAULT);
+	} else {
+		printColor(std::cerr, "Header `", RED);
+		printColor(std::cerr, headerKey, DEFAULT);
+		printColor(std::cerr, "` not handled from client ", RED);
+		printColor(std::cerr, ss.str(), DEFAULT);
+	}
 }

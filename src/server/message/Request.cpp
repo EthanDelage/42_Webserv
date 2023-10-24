@@ -74,8 +74,11 @@ void Request::readBuffer() {
 		ss << " byte ";
 	else
 		ss << " bytes ";
-	ss << "from client " << _clientSocket << '\n';
+	ss << "from client ";
 	printColor(std::cout, ss.str(), BLUE);
+	ss.str("");
+	ss << _clientSocket << std::endl;
+	printColor(std::cout, ss.str(), DEFAULT);
 }
 
 /**
@@ -122,7 +125,7 @@ void Request::parseRequestHeader() {
 			return;
 		}
 		try {
-			_header.parseHeader(currentLine);
+			_header.parseHeader(currentLine, _clientSocket);
 		} catch (headerException const & e) {
 			throw (clientException(_serverConfig));
 		}
@@ -278,13 +281,20 @@ std::vector<std::string> Request::split(std::string const & str) const {
 }
 
 void Request::print() const {
-	std::cout << std::endl << "Request:" << std::endl;
-	std::cout << "Http-Version: " << _httpVersion.major << '.' << _httpVersion.minor << std::endl;
+	std::stringstream	ss;
+
+	printColor(std::cout, "Request from client ", PURPLE);
+	ss << _clientSocket;
+	printColor(std::cout, ss.str(), DEFAULT);
+	printColor(std::cout, " ↴\n", PURPLE);
+	ss.str("");
 	if (_method == GET_METHOD_MASK)
-		std::cout << "Method: GET" << std::endl;
+		ss << "GET";
 	else if (_method == POST_METHOD_MASK)
-		std::cout << "Method: POST" << std::endl;
+		ss << "POST";
 	else
-		std::cout << "Method: DELETE" << std::endl;
-	std::cout << "Request-URI: " << _requestURI << std::endl;
+		ss << "DELETE";
+	ss << " " << _requestURI << std::endl;
+	ss << _header.toString();
+	printColor(std::cout, ss.str(), DEFAULT);
 }
