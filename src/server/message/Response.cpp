@@ -181,7 +181,7 @@ void Response::postProcessUpload(std::string& body, std::string& boundary) {
 	body.erase(0, content.find(boundary));
 	try {
 		filename = header.getAttribute("Content-Disposition", "filename");
-		if (filename.size() < 3 && (filename.at(0) != '\"' || filename.at(filename.size() - 1) != '\"'))
+		if (filename.size() < 3 || filename.at(0) != '\"' || filename.at(filename.size() - 1) != '\"')
 			throw (clientException(_locationConfig));
 		filename.erase(filename.begin());
 		filename.erase(filename.end() - 1);
