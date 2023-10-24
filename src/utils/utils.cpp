@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include "utils.hpp"
 
 /**
  * @brief Split the string in a vector of strings that represent every directory.
@@ -58,4 +59,8 @@ std::string toLower(std::string const & str) {
 	for (size_t i = 0; i < str.size(); ++i)
 		result += static_cast<char>(tolower(str[i]));
 	return (result);
+}
+
+void printColor(std::ostream& os, std::string const & str, std::string const & color) {
+	os << color << str << DEFAULT << std::flush;
 }

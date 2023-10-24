@@ -10,9 +10,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 #include "message/Request.hpp"
 #include "error/Error.hpp"
+#include "utils.hpp"
 
 Request::Request(int clientSocket, VirtualServerConfig* virtualServerConfig) : Message(clientSocket) {
 	_clientSocket = clientSocket;
@@ -56,18 +58,24 @@ void Request::router() {
 }
 
 void Request::readBuffer() {
-	ssize_t		ret;
-	char		buffer[BUFFER_SIZE];
+	std::stringstream	ss;
+	ssize_t				ret;
+	char				buffer[BUFFER_SIZE];
 
-	do {
-		ret = read(_clientSocket, buffer, BUFFER_SIZE - 1);
-		if (ret == 0)
-			throw (clientDisconnected());
-		else if (ret == -1)
-			throw (serverException(_serverConfig));
-		buffer[ret] = '\0';
-		_buffer += buffer;
-	} while (ret == BUFFER_SIZE - 1);
+	ret = read(_clientSocket, buffer, BUFFER_SIZE - 1);
+	if (ret == 0)
+		throw (clientDisconnected());
+	else if (ret == -1)
+		throw (serverException(_serverConfig));
+	buffer[ret] = '\0';
+	_buffer += buffer;
+	ss << "Read " << ret;
+	if (ret == 1)
+		ss << " byte ";
+	else
+		ss << " bytes ";
+	ss << "from client " << _clientSocket << '\n';
+	printColor(std::cout, ss.str(), BLUE);
 }
 
 /**

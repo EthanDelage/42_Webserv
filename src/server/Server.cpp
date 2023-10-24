@@ -20,10 +20,10 @@
 #include <iterator>
 #include <iostream>
 #include <sstream>
-#include <signal.h>
 #include "message/Request.hpp"
 #include "message/Response.hpp"
 #include "error/Error.hpp"
+#include "utils.hpp"
 
 bool Server::_exit = false;
 
@@ -57,6 +57,7 @@ void Server::listener() {
 			throw(std::runtime_error("listen() failed"));
 	}
 	while (true) {
+//		printColor(std::cout, "Waiting for a request...\n", YELLOW);
 		if (poll(_socketArray.data(), _socketArray.size(), POLL_TIMEOUT) == -1) {
 			if (_exit)
 				return;
@@ -215,7 +216,13 @@ void	Server::removeDuplicateAddress() {
 }
 
 void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex) {
-	close(_requestArray[requestIndex].getClientSocket());
+	std::stringstream 	ss;
+	pid_t				clientSocketFd;
+
+	clientSocketFd = _requestArray[requestIndex].getClientSocket();
+	ss << "Client " << clientSocketFd << " disconnected" << std::endl;
+	printColor(std::cout, ss.str(), GREY);
+	close(clientSocketFd);
 	_requestArray.erase(_requestArray.begin() + requestIndex);
 	it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
 	if (it == _socketArray.end())
@@ -234,8 +241,11 @@ void Server::initSocketDefaultAddress() {
 				_socketArray.push_back(currentServerSocket);
 			}
 		} catch (std::runtime_error const & e) {
-			std::cerr << e.what() << " for " << _addressArray[i].first
-					  << ':' << _addressArray[i].second << std::endl;
+			std::stringstream ss;
+
+			ss << e.what() << " for " << _addressArray[i].first
+				<< ':' << _addressArray[i].second << std::endl;
+			printColor(std::cerr, ss.str(), RED);
 			_addressArray.erase(_addressArray.begin() + i);
 			--_nbServerSocket;
 			--i;
@@ -255,8 +265,11 @@ void Server::initOtherSocket() {
 				_socketArray.push_back(currentServerSocket);
 			}
 		} catch (std::runtime_error const & e) {
-			std::cerr << e.what() << " for " << _addressArray[i].first
-					  << ':' << _addressArray[i].second << std::endl;
+			std::stringstream ss;
+
+			ss << e.what() << " for " << _addressArray[i].first
+			   << ':' << _addressArray[i].second << std::endl;
+			printColor(std::cerr, ss.str(), RED);
 			_addressArray.erase(_addressArray.begin() + i);
 			--_nbServerSocket;
 			--i;
@@ -293,6 +306,8 @@ int Server::acceptClient(int socketFd, socketAddress_t& socketAddress) {
 	getsockname(clientSocketFd, (struct sockaddr*) &address, &addressLength);
 	socketAddress.first = ft_inet_ntoa(address.sin_addr.s_addr);
 	socketAddress.second = ntohs(address.sin_port);
+	printColor(std::cout, "New client connected ➜ ", PURPLE);
+	std::cout << socketFd << std::endl;
 	return (clientSocketFd);
 }
 

@@ -35,7 +35,9 @@ void Header::parseHeader(std::string const & line) {
 	separatorIndex = line.find(':');
 	key = line.substr(0, separatorIndex);
 	if (!isValidHeader(key)) {
-		std::cout << "invalid header" << std::endl;
+		printColor(std::cerr, "Header not Managed `", RED);
+		printColor(std::cerr, key, DEFAULT);
+		printColor(std::cerr, "`\n", RED);
 		return;
 	}
 	value = line.substr(separatorIndex + 1, line.size() - (separatorIndex + 2));

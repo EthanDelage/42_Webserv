@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 #include "config/Config.hpp"
 #include "server/Server.hpp"
+#include "utils.hpp"
 #include <iostream>
 #include <csignal>
 
@@ -21,8 +22,9 @@ int	main(int argc, char** argv, char **envp) {
 	Server	server;
 
 	signal(SIGINT, &closeServer);
+	std::cout << DEFAULT;
 	if (argc != 2) {
-		std::cerr << "Too few arguments" << std::endl;
+		printColor(std::cerr, "Too few arguments\n", RED);
 		return (1);
 	}
 	try {
@@ -30,10 +32,11 @@ int	main(int argc, char** argv, char **envp) {
 		server.init(&config, envp);
 		server.listener();
 	} catch (std::exception const & e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+		printColor(std::cerr, std::string("Error: ") + e.what() + '\n', RED);
+		printColor(std::cerr, "Webserv close due to error\n", RED);
 		return (1);
 	}
-	std::cout << std::endl << "Webserv close" << std::endl;
+	printColor(std::cout, "\nWebserv close\n", GREEN);
 	return (0);
 }
 

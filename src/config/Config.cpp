@@ -18,6 +18,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include "utils.hpp"
 
 Config::Config() {
@@ -188,8 +189,7 @@ void Config::parseErrorPage(std::string &value) {
 		if (errorCode % 100 == 0)
 			_errorPage[errorCode] = uri;
 		else
-			std::cerr << "Webserv: [warn] error code `" << static_cast<int>(errorCode)
-				<< "` is not handled, ignored" << std::endl;
+			warnErrorCode(errorCode);
 	}
 }
 
@@ -423,6 +423,15 @@ std::string Config::removeQuote(std::string &str) {
 			result += str[i];
 	}
 	return (result);
+}
+
+void Config::warnErrorCode(uint16_t code) {
+	std::stringstream warnMessage;
+
+	warnMessage << "Webserv: [warn] error code `"
+		<< static_cast<int>(code)
+		<< "` is not handled, ignored" << std::endl;
+	printColor(std::cerr, warnMessage.str(), RED);
 }
 
 /**
