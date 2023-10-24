@@ -15,6 +15,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include "message/Response.hpp"
 #include "utils.hpp"
@@ -33,7 +34,7 @@ void Response::send() {
 
 	header = _header.toString();
 	response = _statusLine + header + _body;
-	if (write(_clientSocket, response.c_str(), response.size()) <= 0) {
+	if (::send(_clientSocket, response.c_str(), response.size(), MSG_NOSIGNAL) <= 0) {
 		throw (clientDisconnected());
 	}
 }
@@ -46,7 +47,7 @@ void Response::send(int clientSocket, std::string statusLine, std::string header
 	std::string response;
 
 	response = statusLine + header + body;
-	if (write(clientSocket, response.c_str(), response.size()) <= 0) {
+	if (::send(clientSocket, response.c_str(), response.size(), MSG_NOSIGNAL) <= 0) {
 		throw (clientDisconnected());
 	}
 }
