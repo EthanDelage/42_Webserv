@@ -197,8 +197,8 @@ void Response::postUploadFile(std::string& filename, std::string& content) {
 
 	path = _locationConfig->getRoot() + '/';
 	path += _request.getRequestUri().erase(0, _locationConfig->getUri().size());
-	path += '/' + filename;
-	if (access(path.c_str(), F_OK) == 1)
+	path += filename;
+	if (access(path.c_str(), F_OK) == 0)
 		throw(clientException(_locationConfig));
 	file.open(path.c_str());
 	if (!file.is_open())
