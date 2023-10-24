@@ -137,6 +137,7 @@ void Response::responsePost() {
 	}
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
 	_header.addHeader("Location", _request.getRequestUri());
+	_header.addContentLength(_body.size());
 }
 
 void Response::postProcessBody(std::string& boundary) {
@@ -224,6 +225,7 @@ void Response::responseDelete() {
 		throw (serverException(_locationConfig));
 	}
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	_header.addContentLength(_body.size());
 }
 
 void Response::cgiResponse() {
