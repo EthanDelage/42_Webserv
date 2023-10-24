@@ -66,7 +66,7 @@ void Request::readBuffer() {
 		else if (ret == -1)
 			throw (serverException(_serverConfig));
 		buffer[ret] = '\0';
-		_buffer += buffer;
+		_buffer.append(buffer, ret);
 	} while (ret == BUFFER_SIZE - 1);
 }
 
@@ -124,14 +124,14 @@ void Request::parseRequestHeader() {
 
 void Request::parseRequestBody() {
 	size_t	size;
-	size_t	read_size;
+	size_t	readSize;
 
 	size = std::strtoul(_header.getHeaderByKey("Content-Length").c_str(), NULL, 10);
 	if (size > _locationConfig->getMaxBodySize())
 		throw (clientException(_locationConfig));
-	read_size = size - _body.size();
-	_body += _buffer.substr(0, read_size);
-	_buffer.erase(0, read_size);
+	readSize = size - _body.size();
+	_body += _buffer.substr(0, readSize);
+	_buffer.erase(0, readSize);
 	if (_body.size() == size) {
 		_status = END;
 	}

@@ -98,7 +98,6 @@ void Server::connectionHandler(socketIterator_t& it, Config const & config) {
 }
 
 void Server::clientHandler(socketIterator_t& it) {
-	std::string		line;
 	size_t			requestIndex;
 
 	requestIndex = 0;
