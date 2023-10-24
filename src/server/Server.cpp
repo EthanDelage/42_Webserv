@@ -57,7 +57,7 @@ void Server::listener() {
 			throw(std::runtime_error("listen() failed"));
 	}
 	while (true) {
-//		printColor(std::cout, "Waiting for a request...\n", YELLOW);
+		printColor(std::cout, "Waiting for a request...\n", YELLOW);
 		if (poll(_socketArray.data(), _socketArray.size(), POLL_TIMEOUT) == -1) {
 			if (_exit)
 				return;
@@ -101,7 +101,7 @@ void Server::clientHandler(socketIterator_t& it) {
 
 	requestIndex = 0;
 	for (; it != _socketArray.end(); ++it) {
-		if (it->revents == POLLIN) {
+		if (it->revents & POLLIN) {
 			requestHandler(requestIndex, it);
 		} else if (difftime(time(NULL), _requestArray[requestIndex].getTimeLastAction()) >= REQUEST_TIMEOUT) {
 			clientDisconnect(it, requestIndex);
