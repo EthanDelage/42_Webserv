@@ -192,6 +192,7 @@ void Response::cgiResponseGet() {
 		close (pipe_out[WRITE]);
 		cgiExecute();
 	}
+	printCgiExecution(_locationConfig->getRoot() + '/' + getCgiFile());
 	close(pipe_out[WRITE]);
 	waitpid(0, NULL, WUNTRACED);
 	cgiProcessOutput(pipe_out[READ]);
@@ -214,7 +215,6 @@ void Response::cgiExecute() {
 		argv[0] = (char *)"/usr/bin/python";
 	else if (extension == ".php")
 		argv[0] = (char *)"/usr/bin/php";
-	printCgiExecution(cgiPath);
 	if (execve(argv[0], argv.data(), envp.data())== -1)
 		throw (serverException(_locationConfig));
 }
@@ -638,7 +638,9 @@ void Response::printSend(size_t bytesSend, int clientSocket) {
 void Response::printCgiExecution(std::string const & cgiPath) const {
 	std::stringstream	ss;
 
-	printColor(std::cout, std::string("Execute CGI `") + cgiPath + "` for client ", PURPLE);
+	printColor(std::cout, "Execute CGI `", PURPLE);
+	printColor(std::cout, cgiPath, DEFAULT);
+	printColor(std::cout, "` for client ", PURPLE);
 	ss << _clientSocket << std::endl;
 	printColor(std::cout, ss.str(), DEFAULT);
 }
