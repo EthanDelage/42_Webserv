@@ -18,7 +18,7 @@
 extern std::ofstream logFile;
 extern std::ofstream errorLogFile;
 
-static void	addTimestamp(std::ofstream & os);
+static void	printTimestamp(std::ostream & os);
 
 /**
  * @brief Split the string in a vector of strings that represent every directory.
@@ -71,18 +71,31 @@ void printColor(std::ostream& os, std::string const & str, std::string const & c
 	static char	lastCharPrint = '\n';
 
 	os << color << str << DEFAULT << std::flush;
-	if ((&os == &std::cout || &os == &std::cerr) && logFile.is_open()) {
+	if (logFile.is_open()) {
 		if (lastCharPrint == '\n')
-			addTimestamp(logFile);
-		logFile << color << str << DEFAULT;
+			printTimestamp(logFile);
+		logFile << str;
 	} if (&os == &std::cerr && errorLogFile.is_open()) {
 		if (lastCharPrint == '\n')
-			addTimestamp(errorLogFile);
-		errorLogFile << color << str << DEFAULT;
+			printTimestamp(errorLogFile);
+		errorLogFile << str;
 	}
 	lastCharPrint = str[str.size() - 1];
 }
 
-static void	addTimestamp(std::ofstream & os) {
-	os << "[] ";
+static void	printTimestamp(std::ostream & os) {
+	time_t	current_time;
+	tm		*timeinfo;
+
+	time(&current_time);
+	timeinfo = localtime(&current_time);
+	os	<< '['
+		<< std::setfill('0') << std::setw(4) << timeinfo->tm_year + 1900 << '-'
+		<< std::setfill('0') << std::setw(2) << timeinfo->tm_mon + 1 << '-'
+		<< std::setfill('0') << std::setw(2) << timeinfo->tm_mday
+		<< ' '
+		<< std::setfill('0') << std::setw(2) << timeinfo->tm_hour << ':'
+		<< std::setfill('0') << std::setw(2) << timeinfo->tm_min << ':'
+		<< std::setfill('0') << std::setw(2) << timeinfo->tm_sec
+		<< "] ";
 }
