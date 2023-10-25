@@ -164,15 +164,6 @@ std::string LocationConfig::allowedHttpMethodToString(uint8_t methodMask) {
 	return (result);
 }
 
-void LocationConfig::print() const {
-	std::cout << "LOCATION" << std::endl;
-	VirtualServerConfig::print();
-	std::cout << "Uri:    " << _uri << std::endl;
-	std::cout << "Get:    " << (getMethodStatus() ? "Allowed": "Denied") << std::endl;
-	std::cout << "Post:   " << (postMethodStatus() ? "Allowed": "Denied") << std::endl;
-	std::cout << "Delete: " << (deleteMethodStatus() ? "Allowed": "Denied") << std::endl;
-}
-
 void LocationConfig::printResponseConfig(int clientSocket) const {
 	std::stringstream			ss;
 	std::vector<std::string>	serverNames;

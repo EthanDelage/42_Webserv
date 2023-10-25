@@ -113,7 +113,6 @@ public:
 	VirtualServerConfig*				getDefaultServer(socketAddress_t const & socketAddress) const;
 
 	void			parse(char* configFilename);
-	virtual void	print() const;
 
 	VirtualServerConfig*	findServerConfig(socketAddress_t const & socketAddress, std::string host) const;
 };

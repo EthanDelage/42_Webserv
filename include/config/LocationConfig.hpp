@@ -62,7 +62,6 @@ public:
 	static std::string 			allowedHttpMethodToString(uint8_t methodMask);
 
 	void	parse(std::ifstream& configFile);
-	void	print() const;
 	void	printResponseConfig(int clientSocket) const;
 };
 
