@@ -212,6 +212,6 @@ void LocationConfig::printResponseConfig(int clientSocket) const {
 		ss << "\t\treturn: " << _redirectionUri << ';' << std::endl;
 	}
 	ss << "\t}" << std::endl
-		<< '}' << std::endl;
+		<< '}' << std::endl << std::endl;
 	printColor(std::cout, ss.str(), DEFAULT);
 }
