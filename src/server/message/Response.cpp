@@ -34,6 +34,7 @@ void Response::send() {
 	std::string 		response;
 	std::stringstream	ss;
 
+	_locationConfig->printResponseConfig(_clientSocket);
 	print();
 	header = _header.toString();
 	response = _statusLine + header + _body;

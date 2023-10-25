@@ -56,6 +56,7 @@ void Server::listener() {
 		if (listen(_socketArray[i].fd, QUEUE_LENGTH) == -1)
 			throw(std::runtime_error("listen() failed"));
 	}
+	printColor(std::cout, "Webserv up\n", GREEN);
 	while (true) {
 		printColor(std::cout, "Waiting for a request...\n", YELLOW);
 		if (poll(_socketArray.data(), _socketArray.size(), POLL_TIMEOUT) == -1) {

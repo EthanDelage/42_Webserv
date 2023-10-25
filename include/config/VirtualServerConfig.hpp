@@ -69,7 +69,7 @@ public:
 
 
 	virtual void	parse(std::ifstream& configFile);
-	virtual void	print();
+	virtual void	print() const;
 };
 
 #endif

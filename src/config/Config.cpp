@@ -541,14 +541,13 @@ bool Config::isValidIpByte(std::string const & address, size_t& index) const {
 	return (true);
 }
 
-#include <iostream>
-void Config::print() {
+void Config::print() const {
 	std::cout << "CONFIG" << std::endl;
 	std::cout << "Autoindex: " << _autoindex << std::endl;
 	std::cout << "Max body size: " << _maxBodySize << std::endl;
 	std::cout << "Error pages: " << _errorPage.begin()->second << std::endl;
 	std::cout << "Index:";
-	for (std::vector<std::string>::iterator i = _index.begin(); i !=  _index.end(); i++)
+	for (std::vector<std::string>::const_iterator i = _index.begin(); i !=  _index.end(); i++)
 		std::cout << *i << " | ";
 	std::cout << std::endl;
 }

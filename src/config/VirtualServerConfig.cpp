@@ -220,14 +220,13 @@ void VirtualServerConfig::removeHorizontalTabAndSpace(std::string& line) {
 	line.erase(0, index);
 }
 
-#include <iostream>
-void VirtualServerConfig::print() {
+void VirtualServerConfig::print() const {
 	std::cout << "VIRTUAL SERVER" << std::endl;
 	Config::print();
 	std::cout << "Port: " << _socketAddress.second << std::endl;
 	std::cout << "Address: " << _socketAddress.first << std::endl;
 	std::cout << "Server Names: ";
-	for (std::vector<std::string>::iterator i = _serverNames.begin(); i !=  _serverNames.end(); i++)
+	for (std::vector<std::string>::const_iterator i = _serverNames.begin(); i !=  _serverNames.end(); i++)
 		std::cout << *i << " | ";
 	std::cout << std::endl;
 }

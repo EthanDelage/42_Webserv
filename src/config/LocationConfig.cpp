@@ -11,6 +11,8 @@
 /* ************************************************************************** */
 #include "config/LocationConfig.hpp"
 #include "utils.hpp"
+#include <sstream>
+#include <iostream>
 
 #ifdef UNIT_TESTING
 	LocationConfig::LocationConfig() : _allowedHttpMethod(DEFAULT_METHOD_MASK) {}
@@ -162,12 +164,63 @@ std::string LocationConfig::allowedHttpMethodToString(uint8_t methodMask) {
 	return (result);
 }
 
-#include <iostream>
-void LocationConfig::print() {
+void LocationConfig::print() const {
 	std::cout << "LOCATION" << std::endl;
 	VirtualServerConfig::print();
 	std::cout << "Uri:    " << _uri << std::endl;
 	std::cout << "Get:    " << (getMethodStatus() ? "Allowed": "Denied") << std::endl;
 	std::cout << "Post:   " << (postMethodStatus() ? "Allowed": "Denied") << std::endl;
 	std::cout << "Delete: " << (deleteMethodStatus() ? "Allowed": "Denied") << std::endl;
+}
+
+void LocationConfig::printResponseConfig(int clientSocket) const {
+	std::stringstream			ss;
+	std::vector<std::string>	serverNames;
+	socketAddress_t				socketAddress;
+
+	serverNames = getServerNames();
+	socketAddress = getSocketAddress();
+	printColor(std::cout, "Config for response sent to client ", PURPLE);
+	ss << clientSocket;
+	printColor(std::cout, ss.str(), DEFAULT);
+	printColor(std::cout, " ↴\n", PURPLE);
+	ss.str("");
+	ss << "server {" << std::endl
+		<< "\tlisten: " << socketAddress.first << ':' << socketAddress.second << ';' << std::endl;
+	if (!serverNames.empty()) {
+		ss << "\tserver_name:";
+		for (std::vector<std::string>::const_iterator it = serverNames.begin(); it != serverNames.end(); ++it)
+			ss << ' ' + *it;
+		ss << ';' << std::endl;
+	}
+	ss << "\tclient_max_body_size: " << getMaxBodySize() << "b;" << std::endl;
+	ss << "\tlocation " << _uri << " {" << std::endl;
+	if (_autoindex)
+		ss << "\t\tautoindex: on;" << std::endl;
+	ss << "\t\tcgi: " << _cgiFolder;
+	for (std::vector<std::string>::const_iterator it = _cgi.begin(); it != _cgi.end(); ++it)
+		ss << ' ' + *it;
+	ss << ';' << std::endl;
+	if (_allowedHttpMethod != DEFAULT_METHOD_MASK) {
+		ss << "\t\tdeny:";
+		if (!getMethodStatus())
+			ss << " GET";
+		if (!deleteMethodStatus())
+			ss << " DELETE";
+		if (!postMethodStatus())
+			ss << " POST";
+		ss << ';' << std::endl;
+	}
+	if (_redirectionUri.empty()) {
+		ss << "\t\troot: " << _root << ';'<< std::endl;
+		ss << "\t\tindex:";
+		for (std::vector<std::string>::const_iterator it = _index.begin(); it != _index.end(); ++it)
+			ss << ' ' + *it;
+		ss << ';' << std::endl;
+	} else {
+		ss << "\t\treturn: " << _redirectionUri << ';' << std::endl;
+	}
+	ss << "\t}" << std::endl
+		<< '}' << std::endl;
+	printColor(std::cout, ss.str(), DEFAULT);
 }
