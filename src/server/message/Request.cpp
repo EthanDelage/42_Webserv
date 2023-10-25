@@ -294,7 +294,8 @@ void Request::print() const {
 		ss << "POST";
 	else
 		ss << "DELETE";
-	ss << " " << _requestURI << std::endl;
+	ss << " " << _requestURI
+		<< " HTTP/" << _httpVersion.major << '.' << _httpVersion.minor << std::endl;
 	ss << _header.toString();
 	printColor(std::cout, ss.str(), DEFAULT);
 }

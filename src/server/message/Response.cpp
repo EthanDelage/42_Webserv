@@ -41,7 +41,6 @@ void Response::send() {
 		throw (clientDisconnected());
 	}
 	printSend(response.size(), _clientSocket);
-	print();
 }
 
 void Response::setDate() {
