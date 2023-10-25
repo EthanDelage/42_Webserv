@@ -20,7 +20,7 @@
 
 # define ANY_ADDRESS	"0.0.0.0"
 # define QUEUE_LENGTH	32
-# define POLL_TIMEOUT	100
+# define POLL_TIMEOUT	REQUEST_TIMEOUT * 1000
 # define POLL_DEFAULT	0
 
 class Server {

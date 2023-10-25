@@ -11,18 +11,28 @@
 /* ************************************************************************** */
 #include "config/Config.hpp"
 #include "server/Server.hpp"
+#include "utils.hpp"
 #include <iostream>
 #include <csignal>
 
+std::ofstream	logFile;
+std::ofstream	errorLogFile;
+
 static void closeServer(int signal);
+static void	createLogFile();
+static void closeLogFile();
 
 int	main(int argc, char** argv, char **envp) {
 	Config	config;
 	Server	server;
 
 	signal(SIGINT, &closeServer);
+	if (logFile.is_open())
+		std::cout << "logfile" << std::endl;
+	createLogFile();
+	std::cout << DEFAULT;
 	if (argc != 2) {
-		std::cerr << "Too few arguments" << std::endl;
+		printColor(std::cerr, "Too few arguments\n", RED);
 		return (1);
 	}
 	try {
@@ -30,14 +40,30 @@ int	main(int argc, char** argv, char **envp) {
 		server.init(&config, envp);
 		server.listener();
 	} catch (std::exception const & e) {
-		std::cerr << "Error: " << e.what() << std::endl;
+		printColor(std::cerr, std::string("Error: ") + e.what() + '\n', RED);
+		printColor(std::cerr, "Webserv close\n", RED);
+		closeLogFile();
 		return (1);
 	}
-	std::cout << std::endl << "Webserv close" << std::endl;
+	std::cout << std::endl;
+	printColor(std::cout, "Webserv close\n", GREEN);
+	closeLogFile();
 	return (0);
 }
 
 static void closeServer(int signal) {
 	(void) signal;
 	Server::setCloseServer();
+}
+
+static void	createLogFile() {
+	logFile.open("webserv.log");
+	errorLogFile.open("webservError.log");
+}
+
+static void closeLogFile() {
+	if (logFile.is_open())
+		logFile.close();
+	if (errorLogFile.is_open())
+		errorLogFile.close();
 }

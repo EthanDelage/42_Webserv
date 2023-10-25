@@ -10,9 +10,11 @@
 /*                                                                            */
 /* ************************************************************************** */
 #include <iostream>
+#include <sstream>
 #include <unistd.h>
 #include "message/Request.hpp"
 #include "error/Error.hpp"
+#include "utils.hpp"
 
 Request::Request(int clientSocket, VirtualServerConfig* virtualServerConfig) : Message(clientSocket) {
 	_clientSocket = clientSocket;
@@ -56,18 +58,27 @@ void Request::router() {
 }
 
 void Request::readBuffer() {
-	ssize_t		ret;
-	char		buffer[BUFFER_SIZE];
+	std::stringstream	ss;
+	ssize_t				ret;
+	char				buffer[BUFFER_SIZE];
 
-	do {
-		ret = read(_clientSocket, buffer, BUFFER_SIZE - 1);
-		if (ret == 0)
-			throw (clientDisconnected());
-		else if (ret == -1)
-			throw (serverException(_serverConfig));
-		buffer[ret] = '\0';
-		_buffer.append(buffer, ret);
-	} while (ret == BUFFER_SIZE - 1);
+	ret = read(_clientSocket, buffer, BUFFER_SIZE - 1);
+	if (ret == 0)
+		throw (clientDisconnected());
+	else if (ret == -1)
+		throw (serverException(_serverConfig));
+	buffer[ret] = '\0';
+	_buffer.append(buffer, ret);
+	ss << "Read " << ret;
+	if (ret == 1)
+		ss << " byte ";
+	else
+		ss << " bytes ";
+	ss << "from client ";
+	printColor(std::cout, ss.str(), BLUE);
+	ss.str("");
+	ss << _clientSocket << std::endl;
+	printColor(std::cout, ss.str(), DEFAULT);
 }
 
 /**
@@ -114,7 +125,7 @@ void Request::parseRequestHeader() {
 			return;
 		}
 		try {
-			_header.parseHeader(currentLine);
+			_header.parseHeader(currentLine, _clientSocket);
 		} catch (headerException const & e) {
 			throw (clientException(_serverConfig));
 		}
@@ -270,13 +281,21 @@ std::vector<std::string> Request::split(std::string const & str) const {
 }
 
 void Request::print() const {
-	std::cout << std::endl << "Request:" << std::endl;
-	std::cout << "Http-Version: " << _httpVersion.major << '.' << _httpVersion.minor << std::endl;
+	std::stringstream	ss;
+
+	printColor(std::cout, "Request from client ", PURPLE);
+	ss << _clientSocket;
+	printColor(std::cout, ss.str(), DEFAULT);
+	printColor(std::cout, " ↴\n", PURPLE);
+	ss.str("");
 	if (_method == GET_METHOD_MASK)
-		std::cout << "Method: GET" << std::endl;
+		ss << "GET";
 	else if (_method == POST_METHOD_MASK)
-		std::cout << "Method: POST" << std::endl;
+		ss << "POST";
 	else
-		std::cout << "Method: DELETE" << std::endl;
-	std::cout << "Request-URI: " << _requestURI << std::endl;
+		ss << "DELETE";
+	ss << " " << _requestURI
+		<< " HTTP/" << _httpVersion.major << '.' << _httpVersion.minor << std::endl;
+	ss << _header.toString();
+	printColor(std::cout, ss.str(), DEFAULT);
 }

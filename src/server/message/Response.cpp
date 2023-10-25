@@ -14,6 +14,8 @@
 #include <sstream>
 #include <dirent.h>
 #include <fcntl.h>
+#include <iostream>
+#include <signal.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <sys/wait.h>
@@ -29,14 +31,18 @@ Response::Response(Request& request, char** envp) : Message(request.getClientSoc
 Response::~Response() {}
 
 void Response::send() {
-	std::string	header;
-	std::string response;
+	std::string			header;
+	std::string 		response;
+	std::stringstream	ss;
 
+	_locationConfig->printResponseConfig(_clientSocket);
+	print();
 	header = _header.toString();
 	response = _statusLine + header + _body;
 	if (::send(_clientSocket, response.c_str(), response.size(), MSG_NOSIGNAL) <= 0) {
 		throw (clientDisconnected());
 	}
+	printSend(response.size(), _clientSocket);
 }
 
 void Response::setDate() {
@@ -44,12 +50,19 @@ void Response::setDate() {
 }
 
 void Response::send(int clientSocket, std::string statusLine, std::string header, std::string body) {
-	std::string response;
+	std::string 		response;
+	std::stringstream	ss;
 
+	printColor(std::cout, "Response to client ", PURPLE);
+	ss << clientSocket;
+	printColor(std::cout, ss.str(), DEFAULT);
+	printColor(std::cout, " ↴\n", PURPLE);
+	printColor(std::cout, statusLine + header, DEFAULT);
 	response = statusLine + header + body;
 	if (::send(clientSocket, response.c_str(), response.size(), MSG_NOSIGNAL) <= 0) {
 		throw (clientDisconnected());
 	}
+	printSend(response.size(), clientSocket);
 }
 
 void Response::router() {
@@ -173,7 +186,7 @@ void Response::postProcessUpload(std::string& body, std::string& boundary) {
 
 	currentLine = getHttpLine(body);
 	while (currentLine != CRLF) {
-		header.parseHeader(currentLine);
+		header.parseHeader(currentLine, _clientSocket);
 		currentLine = getHttpLine(body);
 	}
 	if (!header.contain("Content-Disposition"))
@@ -251,6 +264,7 @@ void Response::cgiResponse() {
 		cgiClearEnv(env);
 		std::exit(1);
 	}
+	printCgiExecution(_locationConfig->getRoot() + '/' + getCgiFile());
 	close(pipe_out[WRITE]);
 	timer_pid = fork();
 	if (timer_pid == -1) {
@@ -316,7 +330,7 @@ void Response::cgiProcessOutput(int fd) {
 		}
 		currentHeader = cgiOutput.substr(0, cgiOutput.find(CRLF) + 2);
 		if (currentHeader != CRLF)
-			_header.parseHeader(currentHeader);
+			_header.parseHeader(currentHeader, _clientSocket);
 		cgiOutput.erase(0, cgiOutput.find(CRLF) + 2);
 	} while (currentHeader != CRLF);
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
@@ -721,11 +735,37 @@ bool Response::isCgiRequest() const {
 	return (false);
 }
 
-#include <iostream>
 void Response::print() const {
-	std::cout << "Response:" << std::endl;
-	std::cout << _statusLine;
-	std::cout << _header.toString();
-	std::cout << _body;
-	std::cout << "End" << std::endl;
+	std::stringstream	ss;
+
+	printColor(std::cout, "Response to client ", PURPLE);
+	ss << _clientSocket;
+	printColor(std::cout, ss.str(), DEFAULT);
+	printColor(std::cout, " ↴\n", PURPLE);
+	printColor(std::cout, _statusLine + _header.toString(), DEFAULT);
+}
+
+void Response::printSend(size_t bytesSend, int clientSocket) {
+	std::stringstream	ss;
+
+	ss << "Send " << bytesSend;
+	if (bytesSend == 1)
+		ss << " byte ";
+	else
+		ss << " bytes ";
+	ss << "to client ";
+	printColor(std::cout, ss.str(), BLUE);
+	ss.str("");
+	ss << clientSocket << std::endl;
+	printColor(std::cout, ss.str(), DEFAULT);
+}
+
+void Response::printCgiExecution(std::string const & cgiPath) const {
+	std::stringstream	ss;
+
+	printColor(std::cout, "Execute CGI `", PURPLE);
+	printColor(std::cout, cgiPath, DEFAULT);
+	printColor(std::cout, "` for client ", PURPLE);
+	ss << _clientSocket << std::endl;
+	printColor(std::cout, ss.str(), DEFAULT);
 }

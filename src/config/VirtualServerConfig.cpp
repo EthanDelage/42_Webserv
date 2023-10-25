@@ -172,7 +172,6 @@ void VirtualServerConfig::parseLocation(std::ifstream& configFile, std::string& 
 	locationConfig = new LocationConfig(*this, argv[1]);
 	try {
 		locationConfig->parse(configFile);
-		locationConfig->print();
 		if (isDuplicate(locationConfig))
 			throw (std::runtime_error("Location Uri duplicated `" + locationConfig->getUri() + '\''));
 		_locationConfig.push_back(locationConfig);
@@ -218,16 +217,4 @@ void VirtualServerConfig::removeHorizontalTabAndSpace(std::string& line) {
 	while (line[index] == '\t' || line[index] == ' ')
 		++index;
 	line.erase(0, index);
-}
-
-#include <iostream>
-void VirtualServerConfig::print() {
-	std::cout << "VIRTUAL SERVER" << std::endl;
-	Config::print();
-	std::cout << "Port: " << _socketAddress.second << std::endl;
-	std::cout << "Address: " << _socketAddress.first << std::endl;
-	std::cout << "Server Names: ";
-	for (std::vector<std::string>::iterator i = _serverNames.begin(); i !=  _serverNames.end(); i++)
-		std::cout << *i << " | ";
-	std::cout << std::endl;
 }

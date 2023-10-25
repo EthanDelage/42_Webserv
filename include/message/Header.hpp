@@ -27,7 +27,7 @@ public:
 	std::string	getHeaderByKey(std::string const & key) const;
 	std::string getAttribute(std::string const & key, std::string const & attribute);
 
-	void		parseHeader(std::string const &line);
+	void		parseHeader(std::string const &line, uint16_t clientSocket);
 	void		addHeader(std::string const & key, std::string const & value);
 	void		addContentLength(size_t bodySize);
 	void 		addDate();
@@ -41,6 +41,7 @@ private:
 
 	std::string	trim(std::string & str);
 	static bool	isValidHeader(std::string const & headerKey);
+	static void printHeader(std::string const & headerKey, uint16_t clientSocket);
 
 };
 

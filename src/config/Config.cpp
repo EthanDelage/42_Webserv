@@ -18,6 +18,7 @@
 #include <cmath>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include "utils.hpp"
 
 Config::Config() {
@@ -188,8 +189,7 @@ void Config::parseErrorPage(std::string &value) {
 		if (errorCode % 100 == 0)
 			_errorPage[errorCode] = uri;
 		else
-			std::cerr << "Webserv: [warn] error code `" << static_cast<int>(errorCode)
-				<< "` is not handled, ignored" << std::endl;
+			warnErrorCode(errorCode);
 	}
 }
 
@@ -224,7 +224,6 @@ void Config::parseServer(std::ifstream &configFile) {
 
 	try {
 		newServerConfig->parse(configFile);
-		newServerConfig->print();
 		_serverConfig.push_back(newServerConfig);
 	} catch (std::runtime_error const & e) {
 		delete newServerConfig;
@@ -425,6 +424,15 @@ std::string Config::removeQuote(std::string &str) {
 	return (result);
 }
 
+void Config::warnErrorCode(uint16_t code) {
+	std::stringstream warnMessage;
+
+	warnMessage << "Webserv: [warn] error code `"
+		<< static_cast<int>(code)
+		<< "` is not handled, ignored" << std::endl;
+	printColor(std::cerr, warnMessage.str(), RED);
+}
+
 /**
  * @brief extract the next file and removes the quotes
  */
@@ -530,18 +538,4 @@ bool Config::isValidIpByte(std::string const & address, size_t& index) const {
 	if (std::isdigit(address[index]))
 		return (false);
 	return (true);
-}
-
-#include <iostream>
-void Config::print() {
-	std::cout << "CONFIG" << std::endl;
-	std::cout << "Autoindex: " << _autoindex << std::endl;
-	std::cout << "Max body size: " << _maxBodySize << std::endl;
-	std::cout << "Error pages: " << _errorPage.begin()->second << std::endl;
-	std::cout << "Index:";
-	for (std::vector<std::string>::iterator i = _index.begin(); i !=  _index.end(); i++)
-		std::cout << *i << " | ";
-	std::cout << std::endl;
-	std::cout << "Root: " << _root << std::endl;
-	std::cout << "Cgi folder: " << _cgiFolder << std::endl;
 }

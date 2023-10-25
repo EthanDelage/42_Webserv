@@ -91,6 +91,7 @@ protected:
 
 	static std::vector<std::string>	split(std::string& str, std::string const syntax);
 	static std::string				removeQuote(std::string& str);
+	static void						warnErrorCode(uint16_t code);
 	bool	isValidIP(std::string const & str) const;
 	bool	isValidIpByte(std::string const & address, size_t& index) const;
 	bool	isValidCgiFilename(std::string& filename);
@@ -112,7 +113,6 @@ public:
 	VirtualServerConfig*				getDefaultServer(socketAddress_t const & socketAddress) const;
 
 	void			parse(char* configFilename);
-	virtual void	print();
 
 	VirtualServerConfig*	findServerConfig(socketAddress_t const & socketAddress, std::string host) const;
 };
