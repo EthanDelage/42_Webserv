@@ -27,6 +27,36 @@ std::string Header::getHeaderByKey(std::string const & key) const {
 	return (value->second);
 }
 
+std::string Header::getAttribute(std::string const & key, std::string const & attribute) {
+	std::string const	separator = "; ";
+	std::string 		header;
+	std::string 		current_attribute;
+	size_t				index;
+
+	//TODO handle quote
+	header = getHeaderByKey(key);
+	index = header.find(separator);
+	if (index == std::string::npos)
+		throw (headerException());
+	header.erase(0, index + separator.size());
+	while (!header.empty()) {
+		index = header.find(separator);
+		current_attribute = header.substr(0, index);
+		if (current_attribute.find(attribute) == 0) {
+			index = current_attribute.find('=');
+			if (index == std::string::npos)
+				throw (headerException());
+			current_attribute.erase(0, index + 1);
+			return (current_attribute);
+		}
+		if (index == std::string::npos)
+			header.clear();
+		else
+			header.erase(0, index + separator.size());
+	}
+	throw (headerException());
+}
+
 void Header::parseHeader(std::string const & line, uint16_t clientSocket) {
 	std::string	key;
 	std::string	value;
@@ -99,6 +129,15 @@ std::string Header::dateToString(tm *dateInfo) {
 	return (date.str());
 }
 
+bool Header::contain(std::string const & header) const {
+	try {
+		getHeaderByKey(header);
+	} catch (headerException const & e) {
+		return (false);
+	}
+	return (true);
+}
+
 std::string Header::toString() const {
 	std::string	result;
 
@@ -114,8 +153,11 @@ bool Header::isValidHeader(std::string const & headerKey) {
 	std::string const	 validHeader[] = {
 		"Host",
 		"Content-Length",
+		"Content-Type",
 		"Accept",
-		"Transfer-Encoding"};
+		"Transfer-Encoding",
+		"Content-Disposition"
+	};
 
 	for (size_t i = 0; i != sizeof(validHeader) / sizeof (*validHeader); ++i) {
 		if (headerKey == validHeader[i])

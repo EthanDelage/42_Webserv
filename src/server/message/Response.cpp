@@ -13,13 +13,14 @@
 #include <unistd.h>
 #include <sstream>
 #include <dirent.h>
-#include <sys/types.h>
 #include <fcntl.h>
 #include <iostream>
-#include "utils.hpp"
+#include <signal.h>
 #include <sys/stat.h>
+#include <sys/socket.h>
 #include <sys/wait.h>
 #include "message/Response.hpp"
+#include "utils.hpp"
 
 Response::Response(Request& request, char** envp) : Message(request.getClientSocket()), _request(request) {
 	_envp = envp;
@@ -38,7 +39,7 @@ void Response::send() {
 	print();
 	header = _header.toString();
 	response = _statusLine + header + _body;
-	if (write(_clientSocket, response.c_str(), response.size()) <= 0) {
+	if (::send(_clientSocket, response.c_str(), response.size(), MSG_NOSIGNAL) <= 0) {
 		throw (clientDisconnected());
 	}
 	printSend(response.size(), _clientSocket);
@@ -58,7 +59,7 @@ void Response::send(int clientSocket, std::string statusLine, std::string header
 	printColor(std::cout, " ↴\n", PURPLE);
 	printColor(std::cout, statusLine + header, DEFAULT);
 	response = statusLine + header + body;
-	if (write(clientSocket, response.c_str(), response.size()) <= 0) {
+	if (::send(clientSocket, response.c_str(), response.size(), MSG_NOSIGNAL) <= 0) {
 		throw (clientDisconnected());
 	}
 	printSend(response.size(), clientSocket);
@@ -92,12 +93,13 @@ void Response::router() {
 	throw (clientException(_locationConfig));
 }
 
+#include "iostream"
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
 
 	if (isCgiRequest()) {
-		cgiResponseGet();
+		cgiResponse();
 		return;
 	}
 	if (!_locationConfig->getRedirectionUri().empty()) {
@@ -136,18 +138,87 @@ void Response::responseGet() {
 void Response::responsePost() {
 	std::ofstream	file;
 	std::string		path;
+	std::string 	boundary;
 
-	path = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
-	if (access(path.c_str(), F_OK) == 0) {
+	if (isCgiRequest())
+		return (cgiResponse());
+	try {
+		boundary = _request.getHeader().getAttribute("Content-Type", "boundary");
+		boundary = "--" + boundary;
+		postProcessBody(boundary);
+	} catch (headerException const & e) {
+		throw (clientException(_locationConfig));
+	}
+	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	_header.addHeader("Location", _request.getRequestUri());
+	_header.addContentLength(_body.size());
+}
+
+void Response::postProcessBody(std::string& boundary) {
+	std::string body;
+	std::string fileContent;
+	std::string line;
+	std::string end;
+	size_t		index;
+
+	body = _request.getBody();
+	line = getHttpLine(body);
+	while (line == (boundary + CRLF)) {
+		index = body.find(boundary);
+		if (index == std::string::npos)
+			throw (clientException(_locationConfig));
+		if (body.substr(index - std::strlen(CRLF), std::strlen(CRLF)) != CRLF)
+			throw (clientException(_locationConfig));
+		fileContent = body.substr(0, index - std::strlen(CRLF));
+		body.erase(0, index);
+		postProcessUpload(fileContent, boundary);
+		line = getHttpLine(body);
+	}
+	if (line != boundary + "--" + CRLF)
+		throw (clientException(_locationConfig));
+}
+
+void Response::postProcessUpload(std::string& body, std::string& boundary) {
+	Header		header;
+	std::string	currentLine;
+	std::string	filename;
+	std::string	content;
+
+	currentLine = getHttpLine(body);
+	while (currentLine != CRLF) {
+		header.parseHeader(currentLine, _clientSocket);
+		currentLine = getHttpLine(body);
+	}
+	if (!header.contain("Content-Disposition"))
+		throw (clientException(_locationConfig));
+	content = body.substr(0, body.find(boundary));
+	body.erase(0, content.find(boundary));
+	try {
+		filename = header.getAttribute("Content-Disposition", "filename");
+		if (filename.size() < 3 || filename.at(0) != '\"' || filename.at(filename.size() - 1) != '\"')
+			throw (clientException(_locationConfig));
+		filename.erase(filename.begin());
+		filename.erase(filename.end() - 1);
+		postUploadFile(filename, content);
+	} catch (headerException const & e) {
 		throw(clientException(_locationConfig));
 	}
+}
+
+void Response::postUploadFile(std::string& filename, std::string& content) {
+	std::string 	path;
+	std::ofstream	file;
+
+	path = _locationConfig->getRoot() + '/';
+	path += _request.getRequestUri().erase(0, _locationConfig->getUri().size());
+	path += filename;
+	if (access(path.c_str(), F_OK) == 0)
+		throw(clientException(_locationConfig));
 	file.open(path.c_str());
 	if (!file.is_open())
 		throw (serverException(_locationConfig));
-	file << _request.getBody();
+	file << content;
 	file.close();
-	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-	_header.addHeader("Location", _request.getRequestUri());
 }
 
 void Response::responseDelete() {
@@ -168,45 +239,66 @@ void Response::responseDelete() {
 		throw (serverException(_locationConfig));
 	}
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
+	_header.addContentLength(_body.size());
 }
 
-void Response::cgiResponseGet() {
-	int		pipe_out[2];
+void Response::cgiResponse() {
 	int		pipe_in[2];
-	pid_t	pid;
+	int		pipe_out[2];
+	pid_t	cgi_pid;
+	pid_t	timer_pid;
+	char 	**env;
+	int 	status;
 
 	pipe(pipe_out);
-	pid = fork();
-	if (pid == -1)
+	cgi_pid = fork();
+	if (cgi_pid == -1) {
+		close(pipe_out[WRITE]);
+		close(pipe_out[READ]);
 		throw (serverException(_locationConfig));
-	if (pid == 0) {
-		if (_request.getMethod() == POST_METHOD_MASK) {
-			pipe(pipe_in);
-			dup2(STDIN_FILENO, pipe_in[READ]);
-			close(pipe_in[READ]);
-			write(pipe_in[WRITE], _request.getBody().c_str(), _request.getBody().size());
-			close(pipe_in[WRITE]);
-		}
-		close (pipe_out[READ]);
-		dup2(pipe_out[WRITE], STDOUT_FILENO);
-		close (pipe_out[WRITE]);
-		cgiExecute();
+	} else if (cgi_pid == 0) {
+		pipe(pipe_in);
+		cgiSetPipes(pipe_in, pipe_out);
+		env = cgiGetEnv();
+		cgiExecute(env);
+		cgiClearEnv(env);
+		std::exit(1);
 	}
 	printCgiExecution(_locationConfig->getRoot() + '/' + getCgiFile());
 	close(pipe_out[WRITE]);
-	waitpid(0, NULL, WUNTRACED);
-	cgiProcessOutput(pipe_out[READ]);
-	close(pipe_out[READ]);
+	timer_pid = fork();
+	if (timer_pid == -1) {
+		close(pipe_out[READ]);
+		throw (serverException(_locationConfig));
+	}
+	if (timer_pid == 0) {
+		close (pipe_out[READ]);
+		cgiSleep();
+		std::exit(0);
+	}
+	if (waitpid(WAIT_ANY, &status, WUNTRACED) == timer_pid) {
+		close(pipe_out[READ]);
+		kill(cgi_pid, SIGKILL);
+		waitpid(cgi_pid, &status, WUNTRACED);
+		throw (serverException(_locationConfig));
+	} else {
+		kill(timer_pid, SIGKILL);
+		if (WEXITSTATUS(status) != 0) {
+			close(pipe_out[READ]);
+			throw (serverException(_locationConfig));
+		}
+		waitpid(timer_pid, &status, WUNTRACED);
+		cgiProcessOutput(pipe_out[READ]);
+		close(pipe_out[READ]);
+	}
 }
 
-void Response::cgiExecute() {
+void Response::cgiExecute(char** envp) {
 	std::string			cgiPath;
 	std::string 		extension;
 	std::vector<char*>	argv;
-	std::vector<char*>	envp;
 
 	cgiPath = _locationConfig->getRoot() + '/' + getCgiFile();
-	envp = cgiGetEnv();
 	argv.reserve(3);
 	argv[1] = (char*)cgiPath.c_str();
 	argv[2] = NULL;
@@ -215,8 +307,8 @@ void Response::cgiExecute() {
 		argv[0] = (char *)"/usr/bin/python";
 	else if (extension == ".php")
 		argv[0] = (char *)"/usr/bin/php";
-	if (execve(argv[0], argv.data(), envp.data())== -1)
-		throw (serverException(_locationConfig));
+	execve(argv[0], argv.data(), envp);
+	std::exit(1);
 }
 
 void Response::cgiProcessOutput(int fd) {
@@ -246,14 +338,14 @@ void Response::cgiProcessOutput(int fd) {
 	_header.addContentLength(_body.size());
 }
 
-std::vector<char*> Response::cgiGetEnv() const {
-	std::vector<char*>	envp;
+char** Response::cgiGetEnv() const {
+	char**				env;
 	std::string			cgiFile;
 	std::string			requestUri;
 	std::string			pathInfo;
 	std::string			queryString;
+	size_t				size;
 
-	envp = envToVec();
 	cgiFile = getCgiFile();
 	requestUri = _request.getRequestUri();
 	requestUri.erase(0, requestUri.find(cgiFile) + cgiFile.size());
@@ -261,10 +353,53 @@ std::vector<char*> Response::cgiGetEnv() const {
 	queryString = requestUri.erase(0, pathInfo.size());
 	pathInfo = "PATH_INFO=" + pathInfo;
 	queryString= "QUERY_STRING=" + queryString;
-	*(envp.end()) = (char*)pathInfo.c_str();
-	envp.push_back((char*)queryString.c_str());
-	envp.push_back(NULL);
-	return (envp);
+	size = 0;
+	while (_envp[size])
+		++size;
+	size += 2;
+	env = new char*[size];
+	for (size_t i = 0; _envp[i]; ++i)
+		env[i] = _envp[i];
+	env[size - 3] = new char[pathInfo.size() + 1];
+	std::strcpy(env[size - 3], pathInfo.c_str());
+	env[size - 2] = new char[queryString.size() + 1];
+	std::strcpy(env[size - 2], queryString.c_str());
+	env[size - 1] = NULL;
+	return (env);
+}
+
+void Response::cgiClearEnv(char** env) const {
+	size_t	i;
+
+	i = 0;
+	while (env[i])
+		++i;
+	delete env[i - 3];
+	delete env[i - 2];
+	delete env;
+}
+
+void Response::cgiSetPipes(int *pipe_in, int *pipe_out) const {
+	if (_request.getMethod() == POST_METHOD_MASK) {
+		dup2(pipe_in[READ], STDIN_FILENO);
+		close(pipe_in[READ]);
+		write(pipe_in[WRITE], _request.getBody().c_str(), _request.getBody().size());
+		close(pipe_in[WRITE]);
+	}
+	close (pipe_out[READ]);
+	dup2(pipe_out[WRITE], STDOUT_FILENO);
+	close (pipe_out[WRITE]);
+
+}
+
+void Response::cgiSleep() {
+	time_t	timestamp;
+	double	elapsedTime;
+
+	timestamp = time(NULL);
+	elapsedTime = difftime(time(NULL), timestamp);
+	while (elapsedTime < CGI_TIMEOUT)
+		elapsedTime = difftime(time(NULL), timestamp);
 }
 
 void Response::sendClientError(int clientSocket, clientException const & clientException) {
@@ -563,6 +698,18 @@ std::string Response::getCgiFile() const {
 	return (cgiFile);
 }
 
+std::string Response::getHttpLine(std::string& str) const {
+	size_t		index;
+	std::string	line;
+
+	index = str.find(CRLF);
+	if (index == std::string::npos)
+		throw (clientException(_locationConfig));
+	line = str.substr(0, index + 2);
+	str.erase(0, index + 2);
+	return (line);
+}
+
 bool Response::isDirectory(std::string const & path) {
 	struct stat	pathStat;
 
@@ -571,15 +718,6 @@ bool Response::isDirectory(std::string const & path) {
 	return (S_ISDIR(pathStat.st_mode));
 }
 
-bool Response::isFile(std::string const & path) {
-	struct stat pathStat;
-
-	if (stat(path.c_str(), &pathStat) == -1)
-		throw (clientException(_locationConfig));
-	return (S_ISREG(pathStat.st_mode));
-}
-
-#include "iostream"
 bool Response::isCgiRequest() const {
 	std::string 				cgiFolder;
 	std::string 				cgiFile;
@@ -595,19 +733,6 @@ bool Response::isCgiRequest() const {
 			return (true);
 	}
 	return (false);
-}
-
-std::vector<char *> Response::envToVec() const {
-	std::vector<char*>	vector;
-	std::size_t			i;
-
-	i = 0;
-	while (_envp[i]) {
-		vector.push_back(_envp[i]);
-		i++;
-	}
-	vector.push_back(NULL);
-	return (vector);
 }
 
 void Response::print() const {

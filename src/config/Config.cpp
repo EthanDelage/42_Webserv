@@ -251,7 +251,7 @@ void Config::parseCgi(std::string& value) {
 	std::vector<std::string>::iterator 	it;
 
 	args = split(value, SYNTAX_CGI);
-	if (args.size() != 2)
+	if (args.size() < 2)
 		throw (std::runtime_error(SYNTAX_CGI));
 	_cgiFolder = args[0];
 	_cgi.clear();
