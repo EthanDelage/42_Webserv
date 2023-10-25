@@ -14,7 +14,7 @@ Context: main, server, location
 ### cgi
 Set the CGI script to be executed.
 ```
-cgi = "cgi" 1*( SP cgi-filename ) ";"
+cgi = "cgi" SP cgi-folder 1*( SP cgi-filename ) ";"
 Default: ——
 Context: main, server, location
 ```
@@ -124,6 +124,7 @@ Context: main, server, location
 ```
 address         = 1*3DIGIT 3 ( "." 1*3DIGIT ) ;each fragment must be between 0 and 255
 cgi-filename    = 1*TEXT "." ( "py" | "php" )
+cgi-folder      = 1*TEXT
 code            = 3DIGIT ;must be between 300 and 599
 extension       = 1*TEXT
 file            = 1*TEXT
