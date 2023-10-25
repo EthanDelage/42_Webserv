@@ -5,3 +5,5 @@ cmake-build-debug
 webserv
 webservTest
 resources/*.http
+webserv.log
+webservError.log

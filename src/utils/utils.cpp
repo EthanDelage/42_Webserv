@@ -11,8 +11,14 @@
 /* ************************************************************************** */
 #include <string>
 #include <vector>
+#include <fstream>
 #include <iostream>
 #include "utils.hpp"
+
+extern std::ofstream logFile;
+extern std::ofstream errorLogFile;
+
+static void	addTimestamp(std::ofstream & os);
 
 /**
  * @brief Split the string in a vector of strings that represent every directory.
@@ -62,5 +68,21 @@ std::string toLower(std::string const & str) {
 }
 
 void printColor(std::ostream& os, std::string const & str, std::string const & color) {
+	static char	lastCharPrint = '\n';
+
 	os << color << str << DEFAULT << std::flush;
+	if ((&os == &std::cout || &os == &std::cerr) && logFile.is_open()) {
+		if (lastCharPrint == '\n')
+			addTimestamp(logFile);
+		logFile << color << str << DEFAULT;
+	} if (&os == &std::cerr && errorLogFile.is_open()) {
+		if (lastCharPrint == '\n')
+			addTimestamp(errorLogFile);
+		errorLogFile << color << str << DEFAULT;
+	}
+	lastCharPrint = str[str.size() - 1];
+}
+
+static void	addTimestamp(std::ofstream & os) {
+	os << "[] ";
 }
