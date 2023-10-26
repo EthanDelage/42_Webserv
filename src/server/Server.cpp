@@ -70,8 +70,6 @@ void Server::listener() {
 		connectionHandler(it);
 		it = _socketArray.begin() + _nbServerSocket;
 		clientHandler(it);
-		it = _socketArray.begin() + _nbServerSocket;
-		responseHandler(it);
 	}
 }
 
@@ -102,11 +100,19 @@ void Server::clientHandler(socketIterator_t& it) {
 	requestIndex = 0;
 	for (; it != _socketArray.end(); ++it) {
 		if (it->revents & POLLIN) {
-			requestHandler(requestIndex, it);
+			try {
+				requestHandler(requestIndex, it);
+				if (_requestArray[requestIndex].getStatus() == END)
+					sendResponse(requestIndex);
+				++requestIndex;
+			} catch (clientDisconnected const & e) {
+				clientDisconnect(it, requestIndex);
+			}
 		} else if (difftime(time(NULL), _requestArray[requestIndex].getTimeLastAction()) >= REQUEST_TIMEOUT) {
 			clientDisconnect(it, requestIndex);
+		} else {
+			++requestIndex;
 		}
-		++requestIndex;
 	}
 }
 
@@ -133,24 +139,6 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 		} else {
 			requestReset(requestIndex);
 		}
-	} catch (clientDisconnected const & e) {
-		clientDisconnect(it, requestIndex);
-	}
-}
-
-void Server::responseHandler(socketIterator_t& it) {
-	size_t requestIndex;
-
-	requestIndex = 0;
-	for (; it != _socketArray.end(); ++it) {
-		if (_requestArray[requestIndex].getStatus() == END) {
-			try {
-				sendResponse(requestIndex);
-			} catch (clientDisconnected const& e) {
-				clientDisconnect(it, requestIndex);
-			}
-		}
-		++requestIndex;
 	}
 }
 
