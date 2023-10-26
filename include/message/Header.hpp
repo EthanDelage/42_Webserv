@@ -15,6 +15,7 @@
 # include <string>
 # include <map>
 # include <exception>
+# include <stdint.h>
 
 class Header {
 
