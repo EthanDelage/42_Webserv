@@ -304,7 +304,7 @@ void Response::cgiExecute(char** envp) {
 	argv[2] = NULL;
 	extension = cgiPath.substr(cgiPath.rfind('.'));
 	if (extension == ".py")
-		argv[0] = (char *)"/usr/bin/python";
+		argv[0] = (char *)"/usr/bin/python3";
 	else if (extension == ".php")
 		argv[0] = (char *)"/usr/bin/php";
 	execve(argv[0], argv.data(), envp);
@@ -350,7 +350,7 @@ char** Response::cgiGetEnv() const {
 	requestUri = _request.getRequestUri();
 	requestUri.erase(0, requestUri.find(cgiFile) + cgiFile.size());
 	pathInfo = requestUri.substr(0, requestUri.find('?'));
-	queryString = requestUri.erase(0, pathInfo.size());
+	queryString = requestUri.erase(0, pathInfo.size() + 1);
 	pathInfo = "PATH_INFO=" + pathInfo;
 	queryString= "QUERY_STRING=" + queryString;
 	size = 0;
@@ -693,6 +693,8 @@ std::string Response::getCgiFile() const {
 	requestUri = _request.getRequestUri();
 	cgiFolder = _locationConfig->getCgiFolder();
 	cgiFile = requestUri.erase(0, requestUri.find(cgiFolder) + cgiFolder.size());
+	if (cgiFile.find('?') != std::string::npos)
+		cgiFile.erase(cgiFile.find('?'));
 	if (cgiFile.find('/') != std::string::npos)
 		cgiFile.erase(cgiFile.find('/'));
 	return (cgiFile);
