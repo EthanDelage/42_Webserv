@@ -1,16 +1,12 @@
-import os
-import sys
+import cgi
 
-input_string = sys.stdin.read()
-print("Content-type:text/html\r\n\r\n")
-print('<html>')
-print('<head>')
-print('<title>Hello Word - First CGI Program</title>')
-print('</head>')
-print('<body>')
-print('<h2>Hello Word! This is my first CGI program</h2>')
-print('<p>' + os.environ['PATH_INFO'] + '</p>')
-print('<p>' + os.environ['QUERY_STRING'] + '</p>')
-print('<p>' + input_string + '</p>')
-print('</body>')
-print('</html>')
+print("Content-Type: text/html\r\n\r\n")
+
+form = cgi.FieldStorage()
+if form.getvalue('name') is None:
+    print("Enter your name:")
+    print('<form action="form.py" method="post">')
+    print('<input type="text" name="name" />')
+    print('<input type="submit"></form>')
+else:
+    print(f"Your name is {cgi.FieldStorage.getvalue('name')}")
