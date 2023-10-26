@@ -63,10 +63,8 @@ void Request::readBuffer() {
 	char				buffer[BUFFER_SIZE];
 
 	ret = read(_clientSocket, buffer, BUFFER_SIZE - 1);
-	if (ret == 0)
+	if (ret <= 0)
 		throw (clientDisconnected());
-	else if (ret == -1)
-		throw (serverException(_serverConfig));
 	buffer[ret] = '\0';
 	_buffer.append(buffer, ret);
 	ss << "Read " << ret;

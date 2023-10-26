@@ -40,7 +40,6 @@ private:
 	void				connectionHandler(socketIterator_t& it);
 	void 				clientHandler(socketIterator_t& it);
 	void 				requestHandler(size_t requestIndex, socketIterator_t& it);
-	void 				responseHandler(socketIterator_t& it);
 	void 				sendResponse(size_t requestIndex);
 	void 				requestReset(size_t requestIndex);
 	void				clientDisconnect(socketIterator_t& it, size_t requestIndex);
