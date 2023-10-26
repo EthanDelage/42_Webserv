@@ -146,11 +146,13 @@ void Server::responseHandler(socketIterator_t& it) {
 		if (_requestArray[requestIndex].getStatus() == END) {
 			try {
 				sendResponse(requestIndex);
+				++requestIndex;
 			} catch (clientDisconnected const& e) {
 				clientDisconnect(it, requestIndex);
 			}
+		} else {
+			++requestIndex;
 		}
-		++requestIndex;
 	}
 }
 
