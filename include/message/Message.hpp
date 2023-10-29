@@ -48,6 +48,9 @@ public:
 	int 			getClientSocket() const;
 
 	LocationConfig*		getMessageLocation(VirtualServerConfig const & virtualServerConfig, std::string requestUri);
+	static std::string 	convertHexa(std::string const & str, Config* config);
+	static char 		getHexaChar(char first, char second, Config* config);
+	static ssize_t		getHexaValue(char c);
 
 };
 
