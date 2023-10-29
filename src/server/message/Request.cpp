@@ -99,7 +99,7 @@ void Request::parseRequestLine() {
 	if (argv.size() != 3)
 		throw (clientException(_serverConfig));
 	parseMethod(argv[0]);
-	_requestURI = argv[1];
+	_requestURI = convertHexa(argv[1], _serverConfig);
 	parseHttpVersion(argv[2]);
 	_status = HEADER;
 }
