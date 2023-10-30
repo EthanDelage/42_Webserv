@@ -101,7 +101,7 @@ void Server::clientHandler(socketIterator_t& it) {
 		if (it->revents & POLLIN) {
 			try {
 				requestHandler(requestIndex, it);
-				if (_requestArray[requestIndex].getStatus() == END)
+				while (_requestArray[requestIndex].getStatus() == END)
 					sendResponse(requestIndex);
 				++requestIndex;
 			} catch (clientDisconnected const & e) {
@@ -167,7 +167,7 @@ void Server::requestReset(size_t requestIndex) {
 	Request*	oldRequest;
 
 	oldRequest = &_requestArray[requestIndex];
-	Request newRequest(oldRequest->getClientSocket(), oldRequest->getDefaultServerConfig());
+	Request newRequest(oldRequest);
 	_requestArray[requestIndex] = newRequest;
 }
 

@@ -55,7 +55,6 @@ private:
 	VirtualServerConfig*	_defaultServerConfig;
 	time_t					_timeLastAction;
 
-	void 	router();
 	void	parseRequestLine();
 	void	parseRequestHeader();
 	void	parseRequestBody();
@@ -71,16 +70,19 @@ private:
 
 public:
 	Request(int clientSocket, VirtualServerConfig* virtualServerConfig);
+	Request(Request* oldRequest);
 	~Request();
 
 	uint8_t					getMethod() const;
 	std::string 			getRequestUri() const;
+	std::string 			getBuffer() const;
 	requestStatus_t 		getStatus() const;
 	time_t					getTimeLastAction() const;
 	VirtualServerConfig*	getServerConfig() const;
 	VirtualServerConfig*	getDefaultServerConfig() const;
 	LocationConfig*			getLocationConfig() const;
 
+	void 		router();
 	void		process();
 	void		updateServerConfig(Config const & config);
 	void 		print() const;

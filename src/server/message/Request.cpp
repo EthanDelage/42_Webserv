@@ -24,11 +24,23 @@ Request::Request(int clientSocket, VirtualServerConfig* virtualServerConfig) : M
 	time(&_timeLastAction);
 }
 
+Request::Request(Request* oldRequest) : Message(oldRequest->getClientSocket()) {
+	_clientSocket = oldRequest->getClientSocket();
+	_serverConfig = oldRequest->getDefaultServerConfig();
+	_defaultServerConfig = _serverConfig;
+	_status = REQUEST_LINE;
+	time(&_timeLastAction);
+	_buffer = oldRequest->getBuffer();
+	router();
+}
+
 Request::~Request() {}
 
 uint8_t			Request::getMethod() const {return (_method);}
 
 std::string 	Request::getRequestUri() const {return (_requestURI);}
+
+std::string Request::getBuffer() const {return (_buffer);}
 
 requestStatus_t Request::getStatus() const {return (_status);}
 
