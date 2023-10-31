@@ -46,6 +46,7 @@ public:
 	Header			getHeader() const;
 	httpVersion_t	getHttpVersion() const;
 	int 			getClientSocket() const;
+	LocationConfig*	getLocation() const;
 
 	LocationConfig*		getMessageLocation(VirtualServerConfig const & virtualServerConfig, std::string requestUri);
 	static std::string 	convertHexa(std::string const & str, Config* config);

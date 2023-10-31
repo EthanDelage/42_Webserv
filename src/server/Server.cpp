@@ -12,6 +12,8 @@
 #include "server/Server.hpp"
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <signal.h>
+#include <sys/wait.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -94,14 +96,11 @@ void Server::connectionHandler(socketIterator_t& it) {
 }
 
 void Server::clientHandler(socketIterator_t& it) {
-	size_t			requestIndex;
-
-	requestIndex = 0;
-	for (; it != _socketArray.end(); ++it) {
+	for (size_t requestIndex = 0; requestIndex < _requestArray.size(); ++it) {
 		if (it->revents & POLLIN) {
 			try {
 				requestHandler(requestIndex, it);
-				if (_requestArray[requestIndex].getStatus() == END)
+				if (_requestArray[requestIndex].getStatus() == END) //Put that in requestHandler
 					sendResponse(requestIndex);
 				++requestIndex;
 			} catch (clientDisconnected const & e) {
@@ -111,6 +110,26 @@ void Server::clientHandler(socketIterator_t& it) {
 			clientDisconnect(it, requestIndex);
 		} else {
 			++requestIndex;
+		}
+	}
+}
+
+void Server::cgiResponseHandler(Server::socketIterator_t &it) {
+	cgiParam_t	cgiParam;
+
+	for (size_t responseIndex = 0; responseIndex < _responseArray.size(); ++it) {
+		cgiParam = _responseArray[responseIndex].getCgiParam();
+		if (it->revents & POLLIN) {
+			responseHandler(responseIndex, it);
+		} else if (difftime(time(NULL), cgiParam.timestamp) >= CGI_TIMEOUT) {
+			kill(cgiParam.pid, SIGKILL);
+			waitpid(cgiParam.pid, NULL, WUNTRACED);
+			close(cgiParam.pipe);
+			try {
+				Response::sendServerError(it->fd, _responseArray[responseIndex].getLocation()->getErrorPage()[500]);
+			} catch (clientDisconnected const & e) {
+				//TODO call clientDisconnect() properly
+			}
 		}
 	}
 }
@@ -141,17 +160,41 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 	}
 }
 
+void Server::responseHandler(size_t responseIndex, Server::socketIterator_t &it) {
+	Response*	currentResponse;
+
+	currentResponse = &_responseArray[responseIndex];
+	try {
+		currentResponse->cgiProcessOutput(); //TODO close
+		waitpid(currentResponse->getCgiParam().pid, NULL, WUNTRACED);
+		currentResponse->send(); //TODO set date in send()
+		_responseArray.erase(_responseArray.begin() + responseIndex);
+	} catch (serverException const & e) {
+		//TODO Handle exception
+	}
+}
+
 void Server::sendResponse(size_t requestIndex) {
 	Request*	currentRequest;
+	cgiParam_t	cgiParam;
+	pollfd		cgiFd;
 
 	currentRequest = &_requestArray[requestIndex];
 	try {
 		currentRequest->updateServerConfig(*_config);
 		Response response(*currentRequest, _envp);
 
-		currentRequest->print();
-		response.setDate();
-		response.send();
+		cgiParam = response.getCgiParam();
+		if (cgiParam.pid != -1) {
+			_responseArray.push_back(response);
+			cgiFd.fd = cgiParam.pipe;
+			cgiFd.events = POLLIN;
+			_socketArray.push_back(cgiFd);
+		} else {
+			currentRequest->print();
+			response.setDate();
+			response.send();
+		}
 	} catch (clientException const& e) {
 		Response::sendClientError(currentRequest->getClientSocket(), e);
 	} catch (serverException const& e) {

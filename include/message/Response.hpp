@@ -19,7 +19,12 @@
 
 # define READ			0
 # define WRITE			1
-# define CGI_TIMEOUT	1
+
+typedef struct cgiParam_s {
+	int		pipe;
+	pid_t	pid;
+	time_t	timestamp;
+} cgiParam_t;
 
 class Response : public Message {
 	typedef void (Response::*responseFunction_t)();
@@ -28,6 +33,7 @@ private:
 	std::string			_statusLine;
 	Request				_request;
 	char**				_envp;
+	cgiParam_t			_cgiParam;
 
 	void router();
 	void responseGet();
@@ -39,7 +45,6 @@ private:
 	void				postProcessUpload(std::string& body, std::string& boundary);
 	void				postUploadFile(std::string& filename, std::string& content);
 	void				cgiExecute(char** envp);
-	void				cgiProcessOutput(int fd);
 	char**				cgiGetEnv() const;
 	void				cgiClearEnv(char** env) const;
 	void				cgiSetPipes(int pipe_in[2], int pipe_out[2]) const;
@@ -67,8 +72,11 @@ public:
 	Response(Request& request, char** envp);
 	~Response();
 
+	cgiParam_t getCgiParam(void) const;
+
 	void send();
 	void setDate();
+	void cgiProcessOutput();
 	void print() const;
 	void printCgiExecution(std::string const & cgiPath) const;
 	static void	printSend(size_t bytesSend, int clientSocket);

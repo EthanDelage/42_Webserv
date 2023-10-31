@@ -15,12 +15,14 @@
 # include "config/Config.hpp"
 # include "config/VirtualServerConfig.hpp"
 # include "message/Request.hpp"
+# include "message/Response.hpp"
 
 # include <poll.h>
 
 # define ANY_ADDRESS	"0.0.0.0"
 # define QUEUE_LENGTH	32
-# define POLL_TIMEOUT	REQUEST_TIMEOUT * 1000
+# define POLL_TIMEOUT	(REQUEST_TIMEOUT * 1000)
+# define CGI_TIMEOUT	1
 # define POLL_DEFAULT	0
 
 class Server {
@@ -32,6 +34,7 @@ private:
 	std::vector<socketAddress_t>	_addressArray;
 	size_t							_nbServerSocket;
 	std::vector<Request>			_requestArray;
+	std::vector<Response>			_responseArray;
 	char**							_envp;
 	static bool						_exit;
 
@@ -39,7 +42,9 @@ private:
 	void 				removeDuplicateAddress();
 	void				connectionHandler(socketIterator_t& it);
 	void 				clientHandler(socketIterator_t& it);
+	void 				cgiResponseHandler(socketIterator_t& it);
 	void 				requestHandler(size_t requestIndex, socketIterator_t& it);
+	void 				responseHandler(size_t responseIndex, socketIterator_t& it);
 	void 				sendResponse(size_t requestIndex);
 	void 				requestReset(size_t requestIndex);
 	void				clientDisconnect(socketIterator_t& it, size_t requestIndex);

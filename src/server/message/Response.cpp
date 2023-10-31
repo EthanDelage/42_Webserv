@@ -25,10 +25,13 @@
 Response::Response(Request& request, char** envp) : Message(request.getClientSocket()), _request(request) {
 	_envp = envp;
 	_locationConfig = _request.getLocationConfig();
+	_cgiParam.pid = -1;
 	router();
 }
 
 Response::~Response() {}
+
+cgiParam_t Response::getCgiParam() const {return (_cgiParam);}
 
 void Response::send() {
 	std::string			header;
@@ -245,52 +248,46 @@ void Response::responseDelete() {
 void Response::cgiResponse() {
 	int		pipe_in[2];
 	int		pipe_out[2];
+	int 	pipe_handler[2];
 	pid_t	cgi_pid;
-	pid_t	timer_pid;
+	pid_t	handler_pid;
 	char 	**env;
 	int 	status;
 
-	pipe(pipe_out);
-	cgi_pid = fork();
-	if (cgi_pid == -1) {
-		close(pipe_out[WRITE]);
-		close(pipe_out[READ]);
+	pipe(pipe_handler);
+	handler_pid = fork();
+	if (handler_pid == -1) {
+		close(pipe_handler[READ]);
+		close(pipe_handler[WRITE]);
 		throw (serverException(_locationConfig));
-	} else if (cgi_pid == 0) {
-		pipe(pipe_in);
-		cgiSetPipes(pipe_in, pipe_out);
-		env = cgiGetEnv();
-		cgiExecute(env);
-		cgiClearEnv(env);
-		std::exit(1);
-	}
-	printCgiExecution(_locationConfig->getRoot() + '/' + getCgiFile());
-	close(pipe_out[WRITE]);
-	timer_pid = fork();
-	if (timer_pid == -1) {
-		close(pipe_out[READ]);
-		throw (serverException(_locationConfig));
-	}
-	if (timer_pid == 0) {
-		close (pipe_out[READ]);
-		cgiSleep();
-		std::exit(0);
-	}
-	if (waitpid(WAIT_ANY, &status, WUNTRACED) == timer_pid) {
-		close(pipe_out[READ]);
-		kill(cgi_pid, SIGKILL);
-		waitpid(cgi_pid, &status, WUNTRACED);
-		throw (serverException(_locationConfig));
-	} else {
-		kill(timer_pid, SIGKILL);
-		if (WEXITSTATUS(status) != 0) {
+	} else if (handler_pid == 0) {
+		close(pipe_handler[READ]);
+		pipe(pipe_out);
+		cgi_pid = fork();
+		if (cgi_pid == -1) {
+			close(pipe_handler[WRITE]);
+			close(pipe_out[WRITE]);
 			close(pipe_out[READ]);
 			throw (serverException(_locationConfig));
+		} else if (cgi_pid == 0) {
+			close(pipe_out[READ]);
+			pipe(pipe_in);
+			cgiSetPipes(pipe_in, pipe_out);
+			env = cgiGetEnv();
+			cgiExecute(env);
+			cgiClearEnv(env);
+			std::exit(1);
 		}
-		waitpid(timer_pid, &status, WUNTRACED);
-		cgiProcessOutput(pipe_out[READ]);
-		close(pipe_out[READ]);
+		close(pipe_out[WRITE]);
+		waitpid(cgi_pid, &status, WUNTRACED);
+		// read pipe
+		exit(0);
 	}
+	close(pipe_handler[WRITE]);
+	_cgiParam.pid = handler_pid;
+	_cgiParam.pipe = pipe_handler[READ];
+	_cgiParam.timestamp = time(NULL);
+	printCgiExecution(_locationConfig->getRoot() + '/' + getCgiFile());
 }
 
 void Response::cgiExecute(char** envp) {
@@ -311,14 +308,14 @@ void Response::cgiExecute(char** envp) {
 	std::exit(1);
 }
 
-void Response::cgiProcessOutput(int fd) {
+void Response::cgiProcessOutput() {
 	ssize_t		ret;
 	char 		buf[BUFFER_SIZE];
 	std::string	cgiOutput;
 	std::string	currentHeader;
 
 	do {
-		ret = read(fd, buf, BUFFER_SIZE - 1);
+		ret = read(_cgiParam.pipe, buf, BUFFER_SIZE - 1);
 		if (ret == -1)
 			throw (serverException(_locationConfig));
 		buf[ret] = '\0';

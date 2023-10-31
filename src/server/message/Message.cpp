@@ -29,6 +29,8 @@ Header Message::getHeader() const {return(_header);}
 
 int Message::getClientSocket() const {return (_clientSocket);}
 
+LocationConfig* Message::getLocation() const {return (_locationConfig);}
+
 LocationConfig*	Message::getMessageLocation(const VirtualServerConfig &virtualServerConfig, std::string requestUri) {
 	std::vector<LocationConfig*>	locationConfig;
 	std::vector<std::string>		requestUriDirectories;
