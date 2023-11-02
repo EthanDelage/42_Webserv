@@ -22,7 +22,8 @@
 
 typedef struct cgiParam_s {
 	int		pipe;
-	pid_t	pid;
+	pid_t	cgiPid;
+	pid_t	handlerPid;
 	time_t	timestamp;
 } cgiParam_t;
 
@@ -45,10 +46,10 @@ private:
 	void				postProcessUpload(std::string& body, std::string& boundary);
 	void				postUploadFile(std::string& filename, std::string& content);
 	void				cgiExecute(char** envp);
+	void				cgiReadPipe(int cgiPipe, int handlerPipe);
 	char**				cgiGetEnv() const;
 	void				cgiClearEnv(char** env) const;
 	void				cgiSetPipes(int pipe_in[2], int pipe_out[2]) const;
-	void				cgiSleep();
 	std::string 		getResourcePath();
 	std::string			getContentType(std::string const & path) const;
 	void				listingDirectory();

@@ -25,7 +25,7 @@
 Response::Response(Request& request, char** envp) : Message(request.getClientSocket()), _request(request) {
 	_envp = envp;
 	_locationConfig = _request.getLocationConfig();
-	_cgiParam.pid = -1;
+	_cgiParam.handlerPid = -1;
 	router();
 }
 
@@ -280,14 +280,33 @@ void Response::cgiResponse() {
 		}
 		close(pipe_out[WRITE]);
 		waitpid(cgi_pid, &status, WUNTRACED);
-		// read pipe
+		cgiReadPipe(pipe_out[READ], pipe_handler[WRITE]);
+		close(pipe_out[READ]);
+		close(pipe_handler[WRITE]);
 		exit(0);
 	}
 	close(pipe_handler[WRITE]);
-	_cgiParam.pid = handler_pid;
+	_cgiParam.cgiPid = cgi_pid;
+	_cgiParam.handlerPid = handler_pid;
 	_cgiParam.pipe = pipe_handler[READ];
 	_cgiParam.timestamp = time(NULL);
 	printCgiExecution(_locationConfig->getRoot() + '/' + getCgiFile());
+}
+
+void Response::cgiReadPipe(int cgiPipe, int handlerPipe) {
+	ssize_t		ret;
+	char		buf[BUFFER_SIZE];
+	std::string cgiOutput;
+
+	do {
+		ret = read(cgiPipe, buf, BUFFER_SIZE - 1);
+		if (ret == -1)
+			throw (serverException(_locationConfig));
+		buf[ret] = '\0';
+		cgiOutput += buf;
+	} while (ret != 0);
+	if (write(handlerPipe, cgiOutput.c_str(), cgiOutput.size()) == -1)
+		throw (serverException(_locationConfig));
 }
 
 void Response::cgiExecute(char** envp) {
@@ -321,6 +340,7 @@ void Response::cgiProcessOutput() {
 		buf[ret] = '\0';
 		cgiOutput += buf;
 	} while (ret != 0);
+	close(_cgiParam.pipe);
 	do {
 		if (cgiOutput.find(CRLF) == std::string::npos) {
 			throw (serverException(_locationConfig));
@@ -387,16 +407,6 @@ void Response::cgiSetPipes(int *pipe_in, int *pipe_out) const {
 	dup2(pipe_out[WRITE], STDOUT_FILENO);
 	close (pipe_out[WRITE]);
 
-}
-
-void Response::cgiSleep() {
-	time_t	timestamp;
-	double	elapsedTime;
-
-	timestamp = time(NULL);
-	elapsedTime = difftime(time(NULL), timestamp);
-	while (elapsedTime < CGI_TIMEOUT)
-		elapsedTime = difftime(time(NULL), timestamp);
 }
 
 void Response::sendClientError(int clientSocket, clientException const & clientException) {

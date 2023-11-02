@@ -48,6 +48,7 @@ private:
 	void 				sendResponse(size_t requestIndex);
 	void 				requestReset(size_t requestIndex);
 	void				clientDisconnect(socketIterator_t& it, size_t requestIndex);
+	void				cgiResponseDelete(socketIterator_t& it, size_t responseIndex);
 	void 				initSocketDefaultAddress();
 	void 				initOtherSocket();
 	static int			initSocket(socketAddress_t const & socketAddress);

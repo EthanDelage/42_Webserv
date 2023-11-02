@@ -71,6 +71,8 @@ void Server::listener() {
 		connectionHandler(it);
 		it = _socketArray.begin() + _nbServerSocket;
 		clientHandler(it);
+		it = _socketArray.begin() + _nbServerSocket + _responseArray.size();
+		cgiResponseHandler(it);
 	}
 }
 
@@ -119,17 +121,22 @@ void Server::cgiResponseHandler(Server::socketIterator_t &it) {
 
 	for (size_t responseIndex = 0; responseIndex < _responseArray.size(); ++it) {
 		cgiParam = _responseArray[responseIndex].getCgiParam();
-		if (it->revents & POLLIN) {
-			responseHandler(responseIndex, it);
-		} else if (difftime(time(NULL), cgiParam.timestamp) >= CGI_TIMEOUT) {
-			kill(cgiParam.pid, SIGKILL);
-			waitpid(cgiParam.pid, NULL, WUNTRACED);
-			close(cgiParam.pipe);
-			try {
+		try {
+			if (difftime(time(NULL), cgiParam.timestamp) >= CGI_TIMEOUT) {
+				kill(cgiParam.cgiPid, SIGKILL);
+				waitpid(cgiParam.cgiPid, NULL, WUNTRACED);
+				kill(cgiParam.handlerPid, SIGKILL);
+				waitpid(cgiParam.handlerPid, NULL, WUNTRACED);
+				close(cgiParam.pipe);
 				Response::sendServerError(it->fd, _responseArray[responseIndex].getLocation()->getErrorPage()[500]);
-			} catch (clientDisconnected const & e) {
-				//TODO call clientDisconnect() properly
-			}
+				cgiResponseDelete(it, responseIndex);
+			} else if (it->revents & POLLIN) {
+				responseHandler(responseIndex, it);
+				responseIndex++;
+			} else
+				responseIndex++;
+		} catch (clientDisconnected const & e) {
+			//TODO call clientDisconnect() properly
 		}
 	}
 }
@@ -165,12 +172,12 @@ void Server::responseHandler(size_t responseIndex, Server::socketIterator_t &it)
 
 	currentResponse = &_responseArray[responseIndex];
 	try {
-		currentResponse->cgiProcessOutput(); //TODO close
-		waitpid(currentResponse->getCgiParam().pid, NULL, WUNTRACED);
+		currentResponse->cgiProcessOutput();
+		waitpid(currentResponse->getCgiParam().handlerPid, NULL, WUNTRACED);
 		currentResponse->send(); //TODO set date in send()
-		_responseArray.erase(_responseArray.begin() + responseIndex);
+		cgiResponseDelete(it, responseIndex);
 	} catch (serverException const & e) {
-		//TODO Handle exception
+		Response::sendServerError(it->fd, currentResponse->getLocation()->getErrorPage()[500]);
 	}
 }
 
@@ -185,7 +192,7 @@ void Server::sendResponse(size_t requestIndex) {
 		Response response(*currentRequest, _envp);
 
 		cgiParam = response.getCgiParam();
-		if (cgiParam.pid != -1) {
+		if (cgiParam.handlerPid != -1) {
 			_responseArray.push_back(response);
 			cgiFd.fd = cgiParam.pipe;
 			cgiFd.events = POLLIN;
@@ -254,7 +261,14 @@ void Server::clientDisconnect(Server::socketIterator_t& it, size_t requestIndex)
 	printColor(std::cout, ss.str(), GREY);
 	close(clientSocketFd);
 	_requestArray.erase(_requestArray.begin() + requestIndex);
-	it = _socketArray.erase(_socketArray.begin() + _nbServerSocket + requestIndex);
+	it = _socketArray.erase(it); // TODO ?
+	if (it == _socketArray.end())
+		--it;
+}
+
+void Server::cgiResponseDelete(Server::socketIterator_t &it, size_t responseIndex) {
+	_responseArray.erase(_responseArray.begin() + responseIndex);
+	it = _socketArray.erase(it);
 	if (it == _socketArray.end())
 		--it;
 }
