@@ -187,7 +187,7 @@ void Config::parseErrorPage(std::string &value) {
 	for (it = argv.begin(); it != argv.end(); it++) {
 		errorCode = getErrorCode(*it);
 		if (errorCode % 100 == 0)
-			_errorPage[errorCode] = uri;
+			_errorPage[errorCode] = _root + '/' + uri;
 		else
 			warnErrorCode(errorCode);
 	}

@@ -14,11 +14,11 @@
 
 clientException::clientException(Config const * config): _methodMask(0b01111000) {
 	if (config != NULL)
-		_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
+		_errorPage = config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
 }
 
 clientException::clientException(Config const * config, uint8_t methodMask) {
-	_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
+	_errorPage = config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
 	_methodMask = methodMask;
 }
 
