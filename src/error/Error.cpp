@@ -14,11 +14,11 @@
 
 clientException::clientException(Config const * config): _methodMask(0b01111000) {
 	if (config != NULL)
-		_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
+		_errorPage = config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
 }
 
 clientException::clientException(Config const * config, uint8_t methodMask) {
-	_errorPage = config->getRoot() + '/' + config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
+	_errorPage = config->getErrorPage()[CLIENT_ERROR_STATUS_CODE];
 	_methodMask = methodMask;
 }
 
@@ -30,7 +30,7 @@ uint8_t clientException::getMethodMask() const {return (_methodMask);}
 
 serverException::serverException(Config const * config) {
 	if (config != NULL)
-		_errorPage = config->getRoot() + '/' + config->getErrorPage()[SERVER_ERROR_STATUS_CODE];
+		_errorPage = config->getErrorPage()[SERVER_ERROR_STATUS_CODE];
 }
 
 serverException::~serverException() throw() {}
@@ -39,7 +39,7 @@ std::string serverException::getErrorPage() const {return (_errorPage);}
 
 redirectionException::redirectionException(const Config *config) {
 	if (config != NULL)
-		_errorPage = config->getRoot() + '/' + config->getErrorPage()[REDIRECTION_STATUS_CODE];
+		_errorPage = config->getErrorPage()[REDIRECTION_STATUS_CODE];
 }
 
 redirectionException::~redirectionException() throw() {}
