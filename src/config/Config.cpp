@@ -22,12 +22,12 @@
 #include "utils.hpp"
 
 Config::Config() {
-	//TODO change default valued for errorPage
 	_index.push_back(DEFAULT_INDEX);
 	_isDefaultIndex = true;
 	_root = std::string(PREFIX) + DEFAULT_ROOT;
-	_errorPage[400] = "400.html";
-	_errorPage[300] = "300.html";
+	_errorPage[300] = _root + '/' + "300.html";
+	_errorPage[400] = _root + '/' + "400.html";
+	_errorPage[500] = _root + '/' + "500.html";
 	_maxBodySize = DEFAULT_MAX_BODY_SIZE;
 	_autoindex = DEFAULT_AUTOINDEX;
 }
