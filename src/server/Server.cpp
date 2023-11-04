@@ -83,7 +83,7 @@ void Server::connectionHandler(socketIterator_t& it) {
 			newClientSocket.events = POLLIN;
 			newClientSocket.revents = POLL_DEFAULT;
 			virtualServerConfig = _config->getDefaultServer(socketAddress);
-			Request newRequest(newClientSocket.fd, virtualServerConfig);
+			Request newRequest(newClientSocket.fd, virtualServerConfig, _config);
 			_socketArray.push_back(newClientSocket);
 			_requestArray.push_back(newRequest);
 			return;
@@ -146,7 +146,6 @@ void Server::sendResponse(size_t requestIndex) {
 
 	currentRequest = &_requestArray[requestIndex];
 	try {
-		currentRequest->updateServerConfig(*_config);
 		Response response(*currentRequest, _envp);
 
 		currentRequest->print();

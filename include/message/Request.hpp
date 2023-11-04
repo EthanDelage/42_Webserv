@@ -27,7 +27,7 @@
 # define HTTP_HIGHEST_MAJOR_VERSION_SUPPORTED	1
 # define HTTP_HIGHEST_MINOR_VERSION_SUPPORTED	1
 
-# define REQUEST_TIMEOUT	30
+# define REQUEST_TIMEOUT	60
 
 typedef enum requestStatus_e {
 	REQUEST_LINE,
@@ -47,6 +47,7 @@ public:
 # endif
 
 private:
+	Config*					_config;
 	requestStatus_t			_status;
 	uint8_t					_method;
 	std::string				_requestURI;
@@ -69,7 +70,7 @@ private:
 	std::vector<std::string> split(std::string const & str) const;
 
 public:
-	Request(int clientSocket, VirtualServerConfig* virtualServerConfig);
+	Request(int clientSocket, VirtualServerConfig* virtualServerConfig, Config* config);
 	Request(Request* oldRequest);
 	~Request();
 
@@ -78,13 +79,14 @@ public:
 	std::string 			getBuffer() const;
 	requestStatus_t 		getStatus() const;
 	time_t					getTimeLastAction() const;
+	Config*					getConfig() const;
 	VirtualServerConfig*	getServerConfig() const;
 	VirtualServerConfig*	getDefaultServerConfig() const;
 	LocationConfig*			getLocationConfig() const;
 
 	void 		router();
 	void		process();
-	void		updateServerConfig(Config const & config);
+	void		updateServerConfig();
 	void 		print() const;
 
 };

@@ -16,11 +16,12 @@
 #include "error/Error.hpp"
 #include "utils.hpp"
 
-Request::Request(int clientSocket, VirtualServerConfig* virtualServerConfig) : Message(clientSocket) {
+Request::Request(int clientSocket, VirtualServerConfig* virtualServerConfig, Config* config) : Message(clientSocket) {
 	_clientSocket = clientSocket;
 	_serverConfig = virtualServerConfig;
 	_defaultServerConfig = virtualServerConfig;
 	_status = REQUEST_LINE;
+	_config = config;
 	time(&_timeLastAction);
 }
 
@@ -29,6 +30,7 @@ Request::Request(Request* oldRequest) : Message(oldRequest->getClientSocket()) {
 	_serverConfig = oldRequest->getDefaultServerConfig();
 	_defaultServerConfig = _serverConfig;
 	_status = REQUEST_LINE;
+	_config = oldRequest->getConfig();
 	time(&_timeLastAction);
 	_buffer = oldRequest->getBuffer();
 	router();
@@ -43,6 +45,8 @@ std::string 	Request::getRequestUri() const {return (_requestURI);}
 std::string Request::getBuffer() const {return (_buffer);}
 
 requestStatus_t Request::getStatus() const {return (_status);}
+
+Config *Request::getConfig() const {return (_config);}
 
 VirtualServerConfig* Request::getServerConfig() const {return (_serverConfig);}
 
@@ -125,6 +129,7 @@ void Request::parseRequestHeader() {
 		currentLine = _buffer.substr(0, index + 2);
 		_buffer.erase(0,index + 2);
 		if (currentLine == CRLF) {
+			updateServerConfig();
 			_locationConfig = getMessageLocation(*_serverConfig, _requestURI);
 			if (requestChunked())
 				_status = CHUNKED;
@@ -226,12 +231,12 @@ void Request::parseHttpVersion(const std::string& arg) {
 		throw (serverException(_serverConfig));
 }
 
-void Request::updateServerConfig(Config const & config) {
+void Request::updateServerConfig() {
 	std::string	host;
 
 	try {
 		host = _header.getHeaderByKey("Host");
-		_serverConfig = config.findServerConfig(_defaultServerConfig->getSocketAddress(), host);
+		_serverConfig = _config->findServerConfig(_defaultServerConfig->getSocketAddress(), host);
 	} catch (headerException const & e) {
 		throw (clientException(_serverConfig));
 	}
