@@ -69,10 +69,13 @@ std::string Config::getCgiFolder() const {return (_cgiFolder);}
 std::vector<std::string> Config::getCgi() const {return (_cgi);}
 
 VirtualServerConfig* Config::getDefaultServer(socketAddress_t const & socketAddress) const {
-	std::vector<VirtualServerConfig*>::const_iterator	it;
+	socketAddress_t	serverSocketAddress;
 
-	for (it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
-		if ((*it)->getSocketAddress() == socketAddress)
+	for (std::vector<VirtualServerConfig*>::const_iterator it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
+		serverSocketAddress = (*it)->getSocketAddress();
+		if (serverSocketAddress == socketAddress
+			|| (serverSocketAddress.first == DEFAULT_ADDRESS
+				&& serverSocketAddress.second == socketAddress.second))
 			return (*it);
 	}
 	return (_serverConfig[0]);
