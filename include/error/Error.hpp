@@ -55,11 +55,13 @@ class headerException : public std::exception {};
 
 class redirectionException : public std::exception {
 private:
+	std::string _redirectionUri;
 	std::string _errorPage;
 public:
-	redirectionException(Config const * config);
+	redirectionException(Config const * config, std::string const & redirectionUri);
 	~redirectionException() throw();
 
+	std::string	getRedirectionUri() const;
 	std::string	getErrorPage() const;
 };
 

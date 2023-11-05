@@ -93,7 +93,6 @@ void Response::router() {
 	throw (clientException(_locationConfig));
 }
 
-#include "iostream"
 void Response::responseGet() {
 	std::string					path;
 	std::ifstream				resource;
@@ -103,8 +102,7 @@ void Response::responseGet() {
 		return;
 	}
 	if (!_locationConfig->getRedirectionUri().empty()) {
-		path = _locationConfig->getRedirectionUri();
-		_statusLine = statusCodeToLine(REDIRECTION_STATUS_CODE);
+		throw (redirectionException(_locationConfig, _locationConfig->getRedirectionUri()));
 	} else {
 		path = getResourcePath();
 	}
@@ -118,12 +116,8 @@ void Response::responseGet() {
 			throw (clientException(_locationConfig));
 		}
 	}
-	if (isDirectory(path)) {
-		if (_locationConfig->getRedirectionUri().empty())
-			_header.addHeader("Location", _request.getRequestUri() + '/');
-		responseRedirectionError(_locationConfig->getErrorPage()[300]);
-		return;
-	}
+	if (isDirectory(path))
+		throw (redirectionException(_locationConfig, _request.getRequestUri() + '/'));
 	resource.open(path.c_str());
 	if (!resource.is_open())
 		throw (clientException(_locationConfig));
@@ -449,19 +443,28 @@ void Response::sendServerError(int clientSocket, std::string const & errorPagePa
 	send(clientSocket, statusLine, header.toString(), body);
 }
 
-void Response::responseRedirectionError(std::string const & pathErrorPage) {
+void Response::sendRedirection(int clientSocket, redirectionException const & e) {
+	std::string			statusLine;
+	std::string			body;
 	std::ifstream		errorPage;
+	std::stringstream	contentLength;
+	Header				header;
 
-	_statusLine = statusCodeToLine(300);
-	errorPage.open(pathErrorPage.c_str());
+	statusLine = statusCodeToLine(REDIRECTION_STATUS_CODE);
+	header.addDate();
+	errorPage.open(e.getErrorPage().c_str());
 	if (!errorPage.is_open()) {
-		_header.addContentLength(0);
+		header.addContentLength(0);
+		header.addHeader("Location", e.getRedirectionUri());
+		send(clientSocket, statusLine, header.toString(), "");
 		return;
 	}
-	_body = getFileContent(errorPage);
+	body = getFileContent(errorPage);
 	errorPage.close();
-	addContentType(pathErrorPage);
-	_header.addContentLength(_body.size());
+	header.addHeader("Location", e.getRedirectionUri());
+	header.addHeader("Content-Type", "text/html");
+	header.addContentLength(body.size());
+	send(clientSocket, statusLine, header.toString(), body);
 }
 
 /**

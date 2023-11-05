@@ -133,11 +133,10 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 			currentRequest->getClientSocket(),
 			e.getErrorPage()
 		);
-		if (currentRequest->getStatus() == REQUEST_LINE) {
+		if (currentRequest->getStatus() == REQUEST_LINE)
 			clientDisconnect(it, requestIndex);
-		} else {
+		else
 			requestReset(requestIndex);
-		}
 	}
 }
 
@@ -158,6 +157,9 @@ void Server::sendResponse(size_t requestIndex) {
 			currentRequest->getClientSocket(),
 			e.getErrorPage()
 		);
+	} catch (redirectionException const & e) {
+		Response::sendRedirection(currentRequest->getClientSocket(), e);
+		requestReset(requestIndex);
 	}
 	requestReset(requestIndex);
 }
