@@ -70,8 +70,12 @@ void Server::listener() {
 		it = _socketArray.begin();
 		connectionHandler(it);
 		it = _socketArray.begin() + _nbServerSocket;
+		std::cout << "size: " << _socketArray.size() << std::endl;
+		std::cout << "it: " << _socketArray.size() + _nbServerSocket + _requestArray.size() << std::endl;
 		clientHandler(it);
-		it = _socketArray.begin() + _nbServerSocket + _responseArray.size();
+		it = _socketArray.begin() + _nbServerSocket + _requestArray.size();
+		std::cout << "size: " << _socketArray.size() << std::endl;
+		std::cout << "it: " << _socketArray.size() + _nbServerSocket + _requestArray.size() << std::endl;
 		cgiResponseHandler(it);
 	}
 }
@@ -123,12 +127,11 @@ void Server::cgiResponseHandler(Server::socketIterator_t &it) {
 		cgiParam = _responseArray[responseIndex].getCgiParam();
 		try {
 			if (difftime(time(NULL), cgiParam.timestamp) >= CGI_TIMEOUT) {
-				kill(cgiParam.cgiPid, SIGKILL);
-				waitpid(cgiParam.cgiPid, NULL, WUNTRACED);
-				kill(cgiParam.handlerPid, SIGKILL);
-				waitpid(cgiParam.handlerPid, NULL, WUNTRACED);
+				std::cout << ">>>>>>>>>>>>>>> TIMEOUT" << std::endl;
+				kill(cgiParam.pid, SIGKILL);
+				waitpid(cgiParam.pid, NULL, WUNTRACED);
 				close(cgiParam.pipe);
-				Response::sendServerError(it->fd, _responseArray[responseIndex].getLocation()->getErrorPage()[500]);
+				Response::sendServerError(it->fd, "./resources/www/cgi-bin/500.html");
 				cgiResponseDelete(it, responseIndex);
 			} else if (it->revents & POLLIN) {
 				responseHandler(responseIndex, it);
@@ -169,15 +172,19 @@ void Server::requestHandler(size_t requestIndex, socketIterator_t& it) {
 
 void Server::responseHandler(size_t responseIndex, Server::socketIterator_t &it) {
 	Response*	currentResponse;
+	cgiParam_t	cgiParam;
 
 	currentResponse = &_responseArray[responseIndex];
-	try {
-		currentResponse->cgiProcessOutput();
-		waitpid(currentResponse->getCgiParam().handlerPid, NULL, WUNTRACED);
-		currentResponse->send(); //TODO set date in send()
-		cgiResponseDelete(it, responseIndex);
-	} catch (serverException const & e) {
-		Response::sendServerError(it->fd, currentResponse->getLocation()->getErrorPage()[500]);
+	cgiParam = currentResponse->getCgiParam();
+	if (waitpid(cgiParam.pid, NULL, WNOHANG) != -1) {
+		try {
+			currentResponse->cgiProcessOutput();
+			waitpid(cgiParam.pid, NULL, WUNTRACED);
+			currentResponse->send(); //TODO set date in send()
+			cgiResponseDelete(it, responseIndex);
+		} catch (serverException const & e) {
+			Response::sendServerError(it->fd, currentResponse->getLocation()->getErrorPage()[500]);
+		}
 	}
 }
 
@@ -192,7 +199,7 @@ void Server::sendResponse(size_t requestIndex) {
 		Response response(*currentRequest, _envp);
 
 		cgiParam = response.getCgiParam();
-		if (cgiParam.handlerPid != -1) {
+		if (cgiParam.pid != -1) {
 			_responseArray.push_back(response);
 			cgiFd.fd = cgiParam.pipe;
 			cgiFd.events = POLLIN;
