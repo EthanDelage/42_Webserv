@@ -33,7 +33,6 @@ std::string Header::getAttribute(std::string const & key, std::string const & at
 	std::string 		current_attribute;
 	size_t				index;
 
-	//TODO handle quote
 	header = getHeaderByKey(key);
 	index = header.find(separator);
 	if (index == std::string::npos)

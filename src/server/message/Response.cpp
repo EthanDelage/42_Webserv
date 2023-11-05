@@ -516,7 +516,8 @@ void Response::listingDirectory() {
 	dirEntry = readdir(dir);
 	while (dirEntry) {
 		if (isDirectory(directoryPath + dirEntry->d_name))
-			directoryListing << "\t\t\t<a href=\"" << dirEntry->d_name << "/\">" << dirEntry->d_name << "/</a>" << std::endl;
+			directoryListing << "\t\t\t<a href=\""
+							<< dirEntry->d_name << "/\">" << dirEntry->d_name << "/</a>" << std::endl;
 		else
 			directoryListing << "\t\t\t<a href=\"" << dirEntry->d_name << "\">" << dirEntry->d_name << "</a>" << std::endl;
 		dirEntry = readdir(dir);
