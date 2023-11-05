@@ -21,9 +21,10 @@
 # define WRITE			1
 
 typedef struct cgiParam_s {
-	int		pipe;
-	pid_t	pid;
-	time_t	timestamp;
+	int			pipe;
+	pid_t		pid;
+	time_t		timestamp;
+	std::string buffer;
 } cgiParam_t;
 
 class Response : public Message {
@@ -76,6 +77,7 @@ public:
 	void send();
 	void setDate();
 	void cgiProcessOutput();
+	void cgiReadPipe();
 	void print() const;
 	void printCgiExecution(std::string const & cgiPath) const;
 	static void	printSend(size_t bytesSend, int clientSocket);

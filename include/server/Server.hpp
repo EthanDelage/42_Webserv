@@ -42,7 +42,7 @@ private:
 	void 				removeDuplicateAddress();
 	void				connectionHandler(socketIterator_t& it);
 	void 				clientHandler(socketIterator_t& it);
-	void 				cgiResponseHandler(socketIterator_t& it);
+	void 				cgiHandler(socketIterator_t &it);
 	void 				requestHandler(size_t requestIndex, socketIterator_t& it);
 	void 				responseHandler(size_t responseIndex, socketIterator_t& it);
 	void 				sendResponse(size_t requestIndex);

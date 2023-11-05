@@ -294,7 +294,6 @@ void Response::cgiExecute(char** envp) {
 void Response::cgiProcessOutput() {
 	ssize_t		ret;
 	char 		buf[BUFFER_SIZE];
-	std::string	cgiOutput;
 	std::string	currentHeader;
 
 	do {
@@ -302,21 +301,33 @@ void Response::cgiProcessOutput() {
 		if (ret == -1)
 			throw (serverException(_locationConfig));
 		buf[ret] = '\0';
-		cgiOutput += buf;
+		_cgiParam.buffer.append(buf, ret);
 	} while (ret != 0);
 	close(_cgiParam.pipe);
 	do {
-		if (cgiOutput.find(CRLF) == std::string::npos) {
+		if (_cgiParam.buffer.find(CRLF) == std::string::npos) {
 			throw (serverException(_locationConfig));
 		}
-		currentHeader = cgiOutput.substr(0, cgiOutput.find(CRLF) + 2);
+		currentHeader = _cgiParam.buffer.substr(0, _cgiParam.buffer.find(CRLF) + 2);
 		if (currentHeader != CRLF)
 			_header.parseHeader(currentHeader, _clientSocket);
-		cgiOutput.erase(0, cgiOutput.find(CRLF) + 2);
+		_cgiParam.buffer.erase(0, _cgiParam.buffer.find(CRLF) + 2);
 	} while (currentHeader != CRLF);
 	_statusLine = statusCodeToLine(SUCCESS_STATUS_CODE);
-	_body = cgiOutput;
+	_body = _cgiParam.buffer;
 	_header.addContentLength(_body.size());
+}
+
+void Response::cgiReadPipe() {
+	ssize_t		ret;
+	char 		buf[BUFFER_SIZE];
+
+	ret = read(_cgiParam.pipe, buf, BUFFER_SIZE - 1);
+	if (ret == -1)
+		throw (serverException(_locationConfig));
+	buf[ret] = '\0';
+	_cgiParam.buffer.append(buf, ret);
+
 }
 
 char** Response::cgiGetEnv() const {
