@@ -37,11 +37,13 @@ serverException::~serverException() throw() {}
 
 std::string serverException::getErrorPage() const {return (_errorPage);}
 
-redirectionException::redirectionException(const Config *config) {
-	if (config != NULL)
-		_errorPage = config->getErrorPage()[REDIRECTION_STATUS_CODE];
+redirectionException::redirectionException(Config const * config, std::string const & redirectionUri) {
+	_errorPage = config->getErrorPage()[REDIRECTION_STATUS_CODE];
+	_redirectionUri = redirectionUri;
 }
 
 redirectionException::~redirectionException() throw() {}
+
+std::string redirectionException::getRedirectionUri() const {return (_redirectionUri);}
 
 std::string redirectionException::getErrorPage() const {return (_errorPage);}

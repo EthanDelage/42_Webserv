@@ -129,8 +129,7 @@ void Request::parseRequestHeader() {
 		currentLine = _buffer.substr(0, index + 2);
 		_buffer.erase(0,index + 2);
 		if (currentLine == CRLF) {
-			updateServerConfig();
-			_locationConfig = getMessageLocation(*_serverConfig, _requestURI);
+			findLocationConfig();
 			if (requestChunked())
 				_status = CHUNKED;
 			else if (requestContainBody())
@@ -231,12 +230,15 @@ void Request::parseHttpVersion(const std::string& arg) {
 		throw (serverException(_serverConfig));
 }
 
-void Request::updateServerConfig() {
-	std::string	host;
+void Request::findLocationConfig() {
+	std::string				host;
+	VirtualServerConfig*	serverConfig;
 
 	try {
 		host = _header.getHeaderByKey("Host");
-		_serverConfig = _config->findServerConfig(_defaultServerConfig->getSocketAddress(), host);
+		serverConfig = _config->findServerConfig(_defaultServerConfig->getSocketAddress(), host);
+		_locationConfig = getMessageLocation(*serverConfig, _requestURI);
+		_locationConfig->printResponseConfig(_clientSocket);
 	} catch (headerException const & e) {
 		throw (clientException(_serverConfig));
 	}

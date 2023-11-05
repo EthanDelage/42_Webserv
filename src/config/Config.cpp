@@ -22,12 +22,12 @@
 #include "utils.hpp"
 
 Config::Config() {
-	//TODO change default valued for errorPage
 	_index.push_back(DEFAULT_INDEX);
 	_isDefaultIndex = true;
 	_root = std::string(PREFIX) + DEFAULT_ROOT;
-	_errorPage[400] = "400.html";
-	_errorPage[300] = "300.html";
+	_errorPage[300] = _root + '/' + "300.html";
+	_errorPage[400] = _root + '/' + "400.html";
+	_errorPage[500] = _root + '/' + "500.html";
 	_maxBodySize = DEFAULT_MAX_BODY_SIZE;
 	_autoindex = DEFAULT_AUTOINDEX;
 }
@@ -69,10 +69,13 @@ std::string Config::getCgiFolder() const {return (_cgiFolder);}
 std::vector<std::string> Config::getCgi() const {return (_cgi);}
 
 VirtualServerConfig* Config::getDefaultServer(socketAddress_t const & socketAddress) const {
-	std::vector<VirtualServerConfig*>::const_iterator	it;
+	socketAddress_t	serverSocketAddress;
 
-	for (it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
-		if ((*it)->getSocketAddress() == socketAddress)
+	for (std::vector<VirtualServerConfig*>::const_iterator it = _serverConfig.begin(); it != _serverConfig.end(); ++it) {
+		serverSocketAddress = (*it)->getSocketAddress();
+		if (serverSocketAddress == socketAddress
+			|| (serverSocketAddress.first == DEFAULT_ADDRESS
+				&& serverSocketAddress.second == socketAddress.second))
 			return (*it);
 	}
 	return (_serverConfig[0]);

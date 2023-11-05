@@ -73,9 +73,9 @@ public:
 	void printCgiExecution(std::string const & cgiPath) const;
 	static void	printSend(size_t bytesSend, int clientSocket);
 
-	void		responseRedirectionError(std::string const & pathErrorPage);
 	static void sendClientError(int clientSocket, clientException const & clientException);
 	static void sendServerError(int clientSocket, std::string const & errorPagePath);
+	static void sendRedirection(int clientSocket, redirectionException const & e);
 };
 
 #endif

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload Form</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #222;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 36px;
+        }
+
+        p {
+            font-size: 24px;
+            margin: 20px 0;
+        }
+
+        a:link, a:visited {
+            text-decoration: none;
+            color: #00FF00; /* Change the color to green */
+            position: relative;
+        }
+
+        a::before, a::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            width: 0;
+            height: 2px;
+            background-color: #00FF00;
+            transition: width 0.5s ease; /* Slower animation */
+        }
+
+        a::before {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        a::after {
+            right: 50%;
+            transform: translateX(50%);
+        }
+
+        a:hover::before {
+            width: 100%;
+        }
+
+        a:hover::after {
+            width: 100%;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+    </style>
+</head>
+<body>
+<h1>File Upload Form</h1>
+<form action="/upload/" method="post" enctype="multipart/form-data">
+    <label for="file">Select a File:</label>
+    <input type="file" name="file" id="file">
+    <input type="submit" value="Upload">
+</form>
+<p><a href="/">Return to the home page</a></p>
+</body>
+</html>

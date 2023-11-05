@@ -66,6 +66,7 @@ private:
 	bool	requestChunked() const;
 
 	void					readBuffer();
+	void					findLocationConfig();
 	uint8_t					getMethodByName(std::string const & method) const;
 	std::vector<std::string> split(std::string const & str) const;
 
@@ -86,7 +87,6 @@ public:
 
 	void 		router();
 	void		process();
-	void		updateServerConfig();
 	void 		print() const;
 
 };
