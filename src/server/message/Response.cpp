@@ -199,6 +199,7 @@ void Response::postProcessUpload(std::string& body, std::string& boundary) {
 			throw (clientException(_locationConfig));
 		filename.erase(filename.begin());
 		filename.erase(filename.end() - 1);
+		filename = convertHexa(filename, _locationConfig);
 		postUploadFile(filename, content);
 	} catch (headerException const & e) {
 		throw(clientException(_locationConfig));
@@ -262,7 +263,6 @@ void Response::cgiResponse() {
 		env = cgiGetEnv();
 		cgiExecute(env);
 		cgiClearEnv(env);
-		std::exit(1);
 	}
 	printCgiExecution(_locationConfig->getRoot() + '/' + getCgiFile());
 	close(pipe_out[WRITE]);
@@ -497,9 +497,12 @@ void Response::listingDirectory() {
 	std::stringstream	directoryListing;
 	DIR*				dir;
 	dirent*				dirEntry;
+	std::string 		d_name;
 
 	directoryPath = _locationConfig->getRoot() + '/' + _request.getRequestUri().erase(0, _locationConfig->getUri().size());
 	dir = opendir(directoryPath.c_str());
+	if (dir == NULL)
+		throw (serverException(_locationConfig));
 	directoryListing 	<< "<html>" << std::endl
 						<< "\t<head>" << std::endl
 						<< "\t\t<title>Index of " << _request.getRequestUri() << "</title>" << std::endl
@@ -508,14 +511,19 @@ void Response::listingDirectory() {
 						<< "\t\t<h1>Index of " << _request.getRequestUri() << "</h1>" << std::endl
 						<< "\t\t<hr>" << std::endl
 						<< "\t\t<pre>" << std::endl;
-	if (dir == NULL)
-		throw (clientException(_locationConfig));
 	dirEntry = readdir(dir);
 	while (dirEntry) {
+		d_name = "";
+		for (size_t i = 0; dirEntry->d_name[i]; ++i) {
+			if (dirEntry->d_name[i] == '"')
+				d_name += "&quot;";
+			else
+				d_name += dirEntry->d_name[i];
+		}
 		if (isDirectory(directoryPath + dirEntry->d_name))
-			directoryListing << "\t\t\t<a href=\"" << dirEntry->d_name << "/\">" << dirEntry->d_name << "/</a>" << std::endl;
+			directoryListing << "\t\t\t<a href=\"" << d_name << "/\">" << dirEntry->d_name << "/</a>" << std::endl;
 		else
-			directoryListing << "\t\t\t<a href=\"" << dirEntry->d_name << "\">" << dirEntry->d_name << "</a>" << std::endl;
+			directoryListing << "\t\t\t<a href=\"" << d_name << "\">" << dirEntry->d_name << "</a>" << std::endl;
 		dirEntry = readdir(dir);
 	}
 	closedir(dir);
