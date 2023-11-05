@@ -68,8 +68,7 @@ void VirtualServerConfig::parse(std::ifstream& configFile) {
 		std::getline(configFile, line);
 		if (!line.empty()) {
 			if (line == "}") {
-				if (_locationConfig.empty())
-					addDefaultLocation();
+				addDefaultLocation();
 				return ;
 			}
 			removeHorizontalTabAndSpace(line);
@@ -185,6 +184,9 @@ void VirtualServerConfig::addDefaultLocation() {
 	LocationConfig*				locationConfig;
 	std::string					uri;
 
+	for (std::vector<LocationConfig*>::const_iterator it = _locationConfig.begin(); it != _locationConfig.end(); ++it)
+		if ((*it)->getUri() == "/")
+			return;
 	uri = "/";
 	locationConfig = new LocationConfig(*this, uri);
 	_locationConfig.push_back(locationConfig);
